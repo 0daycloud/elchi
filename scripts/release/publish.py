@@ -9,7 +9,10 @@ the Windows installer from the "Elchi Windows build" workflow run and, with
 --linux-run, the AppImage and .deb from the "Elchi Linux build" run (their
 artifacts, downloaded with `gh`), then, in the website checkout:
 
-- copies them to public/downloads/elchi/<version>/ with SHA256SUMS;
+- copies them to public/downloads/elchi/<version>/ with SHA256SUMS, except files of
+  LARGE_BYTES or more (the AppImage, ~130 MB: GitHub refuses files over 100 MB in a
+  repository), which go to the GitHub release v<version> of this repository instead
+  and are listed with their URL;
 - writes lib/elchi/release.json (what the /elchi page offers);
 - writes public/downloads/elchi/latest.json (the updater manifest).
 
@@ -30,6 +33,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SITE_URL = "https://speech.patientdesk.ai"
 REPO = "0daycloud/elchi"
+LARGE_BYTES = 90 * 1024 * 1024
 
 
 def sha256(path: Path) -> str:
@@ -54,10 +58,12 @@ def main() -> None:
     ap.add_argument("--windows-only", action="store_true",
                     help="publish the Windows installer alone (macOS keeps its 'coming soon')")
     ap.add_argument("--linux-run", help="run id of the 'Elchi Linux build' workflow (AppImage and .deb)")
+    ap.add_argument("--commit", help="the commit the release was built from (default: HEAD); tags the GitHub release")
     args = ap.parse_args()
 
     version = json.loads((ROOT / "src-tauri/tauri.conf.json").read_text())["version"]
-    commit = subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"], text=True).strip()
+    commit_full = subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", args.commit or "HEAD"], text=True).strip()
+    commit = commit_full[:7]
     mac_dir = ROOT / "release-out" / version
     mac = None
     if not args.windows_only:
@@ -96,8 +102,17 @@ def main() -> None:
 
         dest = args.site / "public/downloads/elchi" / version
         dest.mkdir(parents=True, exist_ok=True)
+        sources = {}            # published name -> where its bytes are, for checksums
+        remote = {}             # published name -> URL, for files too large for the site
         for src in (*(mac or ()), exe, exe_sig, *(linux or ())):
-            shutil.copy2(src, dest / src.name)
+            if src.stat().st_size >= LARGE_BYTES:
+                kept = Path(tempfile.mkdtemp(prefix="elchi-publish-")) / src.name  # outlives the download dir
+                shutil.copy2(src, kept)
+                sources[src.name] = kept
+                remote[src.name] = f"https://github.com/{REPO}/releases/download/v{version}/{src.name}"
+            else:
+                shutil.copy2(src, dest / src.name)
+                sources[src.name] = dest / src.name
 
     entries = [(exe.name, "windows", "x86_64", "installer"), (f"{exe.name}.sig", "windows", "x86_64", "signature")]
     if linux:
@@ -114,11 +129,27 @@ def main() -> None:
             (mac_tar.name, "macos", mac_arch, "updater"),
             (mac_sig.name, "macos", mac_arch, "signature"),
         ] + entries
+    remote_sizes = {n: sources[n].stat().st_size for n in remote}
+    remote_sums = {n: sha256(sources[n]) for n in remote}
+    if remote:
+        tag = f"v{version}"
+        if subprocess.run(["gh", "release", "view", tag, "-R", REPO], capture_output=True).returncode != 0:
+            subprocess.run(["gh", "release", "create", tag, "-R", REPO, "--target", commit_full,
+                            "--title", f"Elchi {version}", "--notes", args.notes or f"Elchi {version}"], check=True)
+        subprocess.run(["gh", "release", "upload", tag, "-R", REPO, "--clobber",
+                        *[str(sources[n]) for n in remote]], check=True)
+        for n in remote:
+            shutil.rmtree(sources[n].parent)
+
     files = []
     for name, platform, arch, kind in entries:
-        p = dest / name
-        files.append({"platform": platform, "arch": arch, "kind": kind, "name": name,
-                      "bytes": p.stat().st_size, "sha256": sha256(p)})
+        p = sources[name]
+        entry = {"platform": platform, "arch": arch, "kind": kind, "name": name,
+                 "bytes": p.stat().st_size if p.exists() else remote_sizes[name],
+                 "sha256": sha256(p) if p.exists() else remote_sums[name]}
+        if name in remote:
+            entry["url"] = remote[name]
+        files.append(entry)
     (dest / "SHA256SUMS").write_text("".join(f"{f['sha256']}  {f['name']}\n" for f in files))
 
     today = dt.date.today().isoformat()
@@ -140,7 +171,7 @@ def main() -> None:
             "windows-x86_64": {"signature": (dest / f"{exe.name}.sig").read_text().strip(),
                                "url": f"{base}/{exe.name}"},
             **({"linux-x86_64": {"signature": (dest / f"{linux[0].name}.sig").read_text().strip(),
-                                 "url": f"{base}/{linux[0].name}"}} if linux else {}),
+                                 "url": remote.get(linux[0].name, f"{base}/{linux[0].name}")}} if linux else {}),
         },
     }
     (args.site / "public/downloads/elchi/latest.json").write_text(json.dumps(manifest, indent=1) + "\n")
