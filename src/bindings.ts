@@ -1174,7 +1174,11 @@ streak_days: number;
 /**
  * The last seven days, oldest first, today last.
  */
-days: DayStat[] }
+days: DayStat[]; 
+/**
+ * Every round number of words passed so far, oldest first.
+ */
+milestones: Milestone[] }
 export type DictionaryWord = { 
 /**
  * As the user writes it: "Kaan", "PatientDesk".
@@ -1229,7 +1233,11 @@ export type EngineType =
  */
 "Duyu"
 export type GpuDeviceOption = { id: string; name: string; total_vram_mb: number }
-export type HistoryEntry = { id: number; file_name: string; timestamp: number; saved: boolean; title: string; transcription_text: string; post_processed_text: string | null; post_process_prompt: string | null; post_process_requested: boolean }
+export type HistoryEntry = { id: number; file_name: string; timestamp: number; saved: boolean; title: string; transcription_text: string; post_processed_text: string | null; post_process_prompt: string | null; post_process_requested: boolean; 
+/**
+ * The app it was pasted into ("Mail"), when known.
+ */
+app_name?: string | null }
 export type HistoryUpdatePayload = { action: "added"; entry: HistoryEntry } | { action: "updated"; entry: HistoryEntry } | { action: "deleted"; id: number } | { action: "toggled"; id: number }
 /**
  * Result of changing keyboard implementation
@@ -1247,6 +1255,14 @@ key_down: number; key_up: number; flags_changed: number; mouse: number; duration
 export type KeyboardImplementation = "tauri" | "handy_keys"
 export type LLMPrompt = { id: string; name: string; prompt: string }
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error"
+/**
+ * A round number of words passed, and the day it happened (for the home feed).
+ */
+export type Milestone = { words: number; 
+/**
+ * YYYY-MM-DD, local time.
+ */
+day: string }
 export type ModelInfo = { id: string; name: string; description: string; filename: string; source: ModelSource; size_mb: number; is_downloaded: boolean; is_downloading: boolean; partial_size: number; is_directory: boolean; engine_type: EngineType; accuracy_score: number; speed_score: number; supports_translation: boolean; is_recommended: boolean; supported_languages: string[]; supports_language_selection: boolean; is_custom: boolean; supports_streaming: boolean; supports_language_detection: boolean }
 export type ModelLoadStatus = { is_loaded: boolean; current_model: string | null }
 /**

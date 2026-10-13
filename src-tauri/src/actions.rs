@@ -748,6 +748,7 @@ impl ShortcutAction for TranscribeAction {
                                     post_process,
                                     processed.post_processed_text.clone(),
                                     processed.post_process_prompt.clone(),
+                                    crate::frontmost::app_name(),
                                 ) {
                                     error!("Failed to save history entry: {}", err);
                                 }
@@ -827,6 +828,7 @@ impl ShortcutAction for TranscribeAction {
                                     post_process,
                                     None,
                                     None,
+                                    crate::frontmost::app_name(),
                                 ) {
                                     error!("Failed to save failed history entry: {}", save_err);
                                 }

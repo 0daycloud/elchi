@@ -13,6 +13,7 @@ mod dictionary;
 pub mod duyu;
 mod elchi_pro;
 pub mod engine_supervisor;
+mod frontmost;
 mod helpers;
 mod input;
 mod llm_client;

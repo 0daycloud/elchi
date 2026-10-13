@@ -24,6 +24,18 @@ pub struct DayStat {
     pub dictations: u32,
 }
 
+/// A round number of words passed, and the day it happened (for the home feed).
+#[derive(Clone, Debug, Serialize, Type, PartialEq)]
+pub struct Milestone {
+    pub words: u32,
+    /// YYYY-MM-DD, local time.
+    pub day: String,
+}
+
+const MILESTONES: [u64; 10] = [
+    1_000, 2_500, 5_000, 10_000, 25_000, 50_000, 100_000, 250_000, 500_000, 1_000_000,
+];
+
 #[derive(Clone, Debug, Serialize, Type, PartialEq)]
 pub struct DictationStats {
     pub today_words: u32,
@@ -40,6 +52,8 @@ pub struct DictationStats {
     pub streak_days: u32,
     /// The last seven days, oldest first, today last.
     pub days: Vec<DayStat>,
+    /// Every round number of words passed so far, oldest first.
+    pub milestones: Vec<Milestone>,
 }
 
 /// Words as people count them: runs of text with at least one letter or digit.
@@ -142,7 +156,21 @@ pub fn summary(conn: &Connection, today: NaiveDate) -> rusqlite::Result<Dictatio
         streak_days += 1;
         day -= Duration::days(1);
     }
+    let mut sorted: Vec<(&String, u64)> = by_day.iter().map(|(d, &(w, _, _))| (d, w)).collect();
+    sorted.sort();
+    let (mut running, mut milestones) = (0u64, Vec::new());
+    for (d, w) in sorted {
+        let before = running;
+        running += w;
+        for m in MILESTONES.iter().filter(|&&m| before < m && running >= m) {
+            milestones.push(Milestone {
+                words: *m as u32,
+                day: d.clone(),
+            });
+        }
+    }
     Ok(DictationStats {
+        milestones,
         today_words: by_day.get(&key(today)).map_or(0, |&(w, _, _)| w as u32),
         week_words: week_words as u32,
         week_dictations: week_dictations as u32,
@@ -208,6 +236,25 @@ mod tests {
             ("2026-10-13", 500)
         );
         assert!((s.speaking_wpm.unwrap() - 1800.0 / 12.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn milestones_are_dated_by_the_day_they_were_passed() {
+        let c = db();
+        record(&c, "2026-10-10", 600, 0).unwrap();
+        record(&c, "2026-10-11", 600, 0).unwrap(); // 1.200: passes 1.000
+        record(&c, "2026-10-12", 4000, 0).unwrap(); // 5.200: passes 2.500 and 5.000
+        let m = summary(&c, date("2026-10-13")).unwrap().milestones;
+        assert_eq!(
+            m.iter()
+                .map(|x| (x.words, x.day.as_str()))
+                .collect::<Vec<_>>(),
+            vec![
+                (1000, "2026-10-11"),
+                (2500, "2026-10-12"),
+                (5000, "2026-10-12")
+            ]
+        );
     }
 
     #[test]
