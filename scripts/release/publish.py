@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Put an Elchi release on speech.patientdesk.ai.
 
-    scripts/release/publish.py --site ~/dev/stt-website-elchi --windows-run <GitHub run id> [--notes "…"]
+    scripts/release/publish.py --site ~/dev/stt-website-elchi --windows-run <GitHub run id> [--notes "…"] [--windows-only]
 
 Takes the macOS files made by scripts/release/macos.sh (dist/release/<version>/)
 and the Windows installer from the "Elchi Windows build" workflow run (its
@@ -49,19 +49,23 @@ def main() -> None:
     ap.add_argument("--site", required=True, type=Path, help="website checkout (stt-website)")
     ap.add_argument("--windows-run", required=True, help="run id of the 'Elchi Windows build' workflow")
     ap.add_argument("--notes", default="", help="release notes shown by the updater")
+    ap.add_argument("--windows-only", action="store_true",
+                    help="publish the Windows installer alone (macOS keeps its 'coming soon')")
     args = ap.parse_args()
 
     version = json.loads((ROOT / "src-tauri/tauri.conf.json").read_text())["version"]
     commit = subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"], text=True).strip()
     mac_dir = ROOT / "dist/release" / version
-    if not mac_dir.is_dir():
-        sys.exit(f"{mac_dir} missing: run scripts/release/macos.sh first")
-
-    dmg = one(sorted(mac_dir.glob("*.dmg")), "macOS DMG")
-    mac_tar = one(sorted(mac_dir.glob("*.app.tar.gz")), "macOS updater bundle")
-    mac_sig = Path(f"{mac_tar}.sig")
-    if not mac_sig.exists():
-        sys.exit(f"{mac_sig.name} missing")
+    mac = None
+    if not args.windows_only:
+        if not mac_dir.is_dir():
+            sys.exit(f"{mac_dir} missing: run scripts/release/macos.sh first (or pass --windows-only)")
+        dmg = one(sorted(mac_dir.glob("*.dmg")), "macOS DMG")
+        mac_tar = one(sorted(mac_dir.glob("*.app.tar.gz")), "macOS updater bundle")
+        mac_sig = Path(f"{mac_tar}.sig")
+        if not mac_sig.exists():
+            sys.exit(f"{mac_sig.name} missing")
+        mac = (dmg, mac_tar, mac_sig)
 
     with tempfile.TemporaryDirectory() as tmp:
         subprocess.run(["gh", "run", "download", args.windows_run, "-R", REPO, "-D", tmp], check=True)
@@ -75,18 +79,20 @@ def main() -> None:
 
         dest = args.site / "public/downloads/elchi" / version
         dest.mkdir(parents=True, exist_ok=True)
-        for src in (dmg, mac_tar, mac_sig, exe, exe_sig):
+        for src in (*(mac or ()), exe, exe_sig):
             shutil.copy2(src, dest / src.name)
 
-    mac_arch = "universal" if "universal" in dmg.name else ("aarch64" if "aarch64" in dmg.name else "x86_64")
+    entries = [(exe.name, "windows", "x86_64", "installer"), (f"{exe.name}.sig", "windows", "x86_64", "signature")]
+    if mac:
+        dmg, mac_tar, mac_sig = mac
+        mac_arch = "universal" if "universal" in dmg.name else ("aarch64" if "aarch64" in dmg.name else "x86_64")
+        entries = [
+            (dmg.name, "macos", mac_arch, "installer"),
+            (mac_tar.name, "macos", mac_arch, "updater"),
+            (mac_sig.name, "macos", mac_arch, "signature"),
+        ] + entries
     files = []
-    for name, platform, arch, kind in (
-        (dmg.name, "macos", mac_arch, "installer"),
-        (mac_tar.name, "macos", mac_arch, "updater"),
-        (mac_sig.name, "macos", mac_arch, "signature"),
-        (exe.name, "windows", "x86_64", "installer"),
-        (f"{exe.name}.sig", "windows", "x86_64", "signature"),
-    ):
+    for name, platform, arch, kind in entries:
         p = dest / name
         files.append({"platform": platform, "arch": arch, "kind": kind, "name": name,
                       "bytes": p.stat().st_size, "sha256": sha256(p)})
@@ -97,14 +103,17 @@ def main() -> None:
     (args.site / "lib/elchi/release.json").write_text(json.dumps(release, indent=1) + "\n")
 
     base = f"{SITE_URL}/downloads/elchi/{version}"
-    mac_entry = {"signature": mac_sig.read_text().strip(), "url": f"{base}/{mac_tar.name}"}
-    mac_targets = ["darwin-aarch64", "darwin-x86_64"] if mac_arch == "universal" else [f"darwin-{mac_arch}"]
+    platforms = {}
+    if mac:
+        mac_entry = {"signature": mac_sig.read_text().strip(), "url": f"{base}/{mac_tar.name}"}
+        for t in (["darwin-aarch64", "darwin-x86_64"] if mac_arch == "universal" else [f"darwin-{mac_arch}"]):
+            platforms[t] = mac_entry
     manifest = {
         "version": version,
         "notes": args.notes,
-        "pub_date": dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+        "pub_date": dt.datetime.now(dt.UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "platforms": {
-            **{t: mac_entry for t in mac_targets},
+            **platforms,
             "windows-x86_64": {"signature": (dest / f"{exe.name}.sig").read_text().strip(),
                                "url": f"{base}/{exe.name}"},
         },
