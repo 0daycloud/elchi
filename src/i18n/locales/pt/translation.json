@@ -227,6 +227,25 @@
       "rescan": {
         "label": "Reescanear",
         "tooltip": "Reescaneia em busca de modelos adicionados à pasta de modelos ou ao cache do Hugging Face fora do Elchi"
+      },
+      "pro": {
+        "eyebrow": "Elchi Pro",
+        "title": "Dite com o Duyu, nosso modelo completo",
+        "body": "O Duyu é o modelo maior por trás do Duyu-small. Ele erra menos com fala rápida, nomes e números, e tem a menor taxa de erro por palavra que já medimos em conversas, leitura em voz alta e gravações de call center em turco.",
+        "pricePerMonth": "{{price}} / mês",
+        "freeMonth": "Primeiro mês grátis · Sem cartão",
+        "startFree": "Comece seu mês grátis",
+        "haveKey": "Tenho uma chave",
+        "benchmarks": "Ver os benchmarks",
+        "keyLabel": "Chave do Elchi Pro",
+        "keyHelp": "Crie sua chave no painel de desenvolvedor do PatientDesk.",
+        "keyHelpLink": "Abrir o painel de desenvolvedor",
+        "connect": "Conectar",
+        "connecting": "Verificando…",
+        "useCloud": "Usar o Duyu na nuvem",
+        "useCloudDescription": "Quando desativado, o Elchi transcreve neste computador com o Duyu-small.",
+        "disconnect": "Remover chave",
+        "privacy": "Com o Pro ativado, suas gravações são enviadas aos servidores da PatientDesk AI para serem transcritas. Sem o Pro, nada sai deste computador. Se a conexão cair, o Elchi continua com o Duyu-small."
       }
     },
     "sound": {

@@ -227,7 +227,26 @@
         "label": "Rescan",
         "tooltip": "Rescan for models added to the models folder or Hugging Face cache outside Elchi"
       },
-      "noModelsMatch": "No models match this filter."
+      "noModelsMatch": "No models match this filter.",
+      "pro": {
+        "eyebrow": "Elchi Pro",
+        "title": "Dictate with Duyu, our full model",
+        "body": "Duyu is the larger model behind Duyu-small. It makes fewer mistakes with fast speech, names and numbers, and it has the lowest word error rate we have measured on Turkish conversation, read speech and call-center audio.",
+        "pricePerMonth": "{{price}} / month",
+        "freeMonth": "First month free · No card needed",
+        "startFree": "Start your free month",
+        "haveKey": "I have a key",
+        "benchmarks": "See the benchmarks",
+        "keyLabel": "Elchi Pro key",
+        "keyHelp": "Create your key in the PatientDesk developer panel.",
+        "keyHelpLink": "Open the developer panel",
+        "connect": "Connect",
+        "connecting": "Checking…",
+        "useCloud": "Use Duyu in the cloud",
+        "useCloudDescription": "When off, Elchi transcribes on this computer with Duyu-small.",
+        "disconnect": "Remove key",
+        "privacy": "With Pro on, your recordings are sent to PatientDesk AI's servers to be transcribed. Without Pro, nothing leaves this computer. If the connection drops, Elchi carries on with Duyu-small."
+      }
     },
     "sound": {
       "title": "Sound",

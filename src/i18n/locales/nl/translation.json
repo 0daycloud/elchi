@@ -227,7 +227,26 @@
         "label": "Opnieuw scannen",
         "tooltip": "Scannen naar modellen die buiten Elchi om zijn toegevoegd aan de modellenmap of Hugging Face-cache"
       },
-      "noModelsMatch": "Geen modellen voldoen aan dit filter."
+      "noModelsMatch": "Geen modellen voldoen aan dit filter.",
+      "pro": {
+        "eyebrow": "Elchi Pro",
+        "title": "Dicteer met Duyu, ons volledige model",
+        "body": "Duyu is het grotere model achter Duyu-small. Het maakt minder fouten bij snel spreken, namen en getallen, en heeft de laagste woordfoutratio die we hebben gemeten bij Turkse gesprekken, voorgelezen tekst en callcenteropnames.",
+        "pricePerMonth": "{{price}} / maand",
+        "freeMonth": "Eerste maand gratis · Geen kaart nodig",
+        "startFree": "Start je gratis maand",
+        "haveKey": "Ik heb een sleutel",
+        "benchmarks": "Bekijk de benchmarks",
+        "keyLabel": "Sleutel voor Elchi Pro",
+        "keyHelp": "Maak je sleutel aan in het ontwikkelaarspaneel van PatientDesk.",
+        "keyHelpLink": "Ontwikkelaarspaneel openen",
+        "connect": "Verbinden",
+        "connecting": "Controleren…",
+        "useCloud": "Duyu in de cloud gebruiken",
+        "useCloudDescription": "Als dit uit staat, transcribeert Elchi op deze computer met Duyu-small.",
+        "disconnect": "Sleutel verwijderen",
+        "privacy": "Met Pro aan worden je opnames naar de servers van PatientDesk AI gestuurd om te worden getranscribeerd. Zonder Pro verlaat niets deze computer. Als de verbinding wegvalt, gaat Elchi verder met Duyu-small."
+      }
     },
     "sound": {
       "title": "Geluid",

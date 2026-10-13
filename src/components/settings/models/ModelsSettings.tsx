@@ -18,6 +18,7 @@ import {
   supportsLanguageCode,
 } from "@/lib/constants/languages.ts";
 import type { ModelInfo } from "@/bindings";
+import { ElchiProCard } from "./ElchiProCard";
 
 // check if model supports a language based on its supported_languages list
 const modelSupportsLanguage = (model: ModelInfo, langCode: string): boolean => {
@@ -248,6 +249,8 @@ export const ModelsSettings: React.FC = () => {
         </p>
       </div>
 
+      <ElchiProCard />
+
       {/* Search bar — filter the catalog by name or description */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text/40 pointer-events-none" />
@@ -268,7 +271,7 @@ export const ModelsSettings: React.FC = () => {
               {t("settings.models.yourModels")}
             </h2>
             <div className="flex items-center gap-2">
-              {/* Rescan local sources for models added outside Handy */}
+              {/* Rescan local sources for models added outside Elchi */}
               <button
                 type="button"
                 onClick={() => rescanLocalModels()}

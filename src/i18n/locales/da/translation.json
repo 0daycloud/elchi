@@ -227,7 +227,26 @@
         "label": "Søg igen",
         "tooltip": "Søg igen efter modeller, der er tilføjet til modelmappen eller Hugging Face-cachen uden for Elchi"
       },
-      "noModelsMatch": "Ingen modeller matcher dette filter."
+      "noModelsMatch": "Ingen modeller matcher dette filter.",
+      "pro": {
+        "eyebrow": "Elchi Pro",
+        "title": "Diktér med Duyu, vores fulde model",
+        "body": "Duyu er den større model bag Duyu-small. Den laver færre fejl ved hurtig tale, navne og tal, og den har den laveste ordfejlrate, vi har målt på tyrkisk samtale, oplæst tale og callcenteroptagelser.",
+        "pricePerMonth": "{{price}} / måned",
+        "freeMonth": "Første måned gratis · Intet kort nødvendigt",
+        "startFree": "Start din gratis måned",
+        "haveKey": "Jeg har en nøgle",
+        "benchmarks": "Se målingerne",
+        "keyLabel": "Nøgle til Elchi Pro",
+        "keyHelp": "Opret din nøgle i udviklerpanelet hos PatientDesk.",
+        "keyHelpLink": "Åbn udviklerpanelet",
+        "connect": "Forbind",
+        "connecting": "Kontrollerer…",
+        "useCloud": "Brug Duyu i skyen",
+        "useCloudDescription": "Når den er slået fra, transskriberer Elchi på denne computer med Duyu-small.",
+        "disconnect": "Fjern nøgle",
+        "privacy": "Når Pro er slået til, sendes dine optagelser til PatientDesk AI's servere for at blive transskriberet. Uden Pro forlader intet denne computer. Hvis forbindelsen afbrydes, fortsætter Elchi med Duyu-small."
+      }
     },
     "sound": {
       "title": "Lyd",

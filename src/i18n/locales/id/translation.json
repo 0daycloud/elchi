@@ -227,7 +227,26 @@
         "label": "Pindai Ulang",
         "tooltip": "Pindai ulang model yang ditambahkan ke folder model atau cache Hugging Face dari luar Elchi"
       },
-      "noModelsMatch": "Tidak ada model yang cocok dengan kriteria ini."
+      "noModelsMatch": "Tidak ada model yang cocok dengan kriteria ini.",
+      "pro": {
+        "eyebrow": "Elchi Pro",
+        "title": "Dikte dengan Duyu, model lengkap kami",
+        "body": "Duyu adalah model yang lebih besar di balik Duyu-small. Duyu lebih jarang salah pada ucapan cepat, nama, dan angka, serta memiliki tingkat kesalahan kata terendah yang pernah kami ukur pada percakapan, teks yang dibacakan, dan rekaman pusat panggilan berbahasa Turki.",
+        "pricePerMonth": "{{price}} / bulan",
+        "freeMonth": "Bulan pertama gratis · Tanpa kartu",
+        "startFree": "Mulai bulan gratis Anda",
+        "haveKey": "Saya punya kunci",
+        "benchmarks": "Lihat hasil pengujian",
+        "keyLabel": "Kunci Elchi Pro",
+        "keyHelp": "Buat kunci Anda di panel pengembang PatientDesk.",
+        "keyHelpLink": "Buka panel pengembang",
+        "connect": "Hubungkan",
+        "connecting": "Memeriksa…",
+        "useCloud": "Gunakan Duyu di cloud",
+        "useCloudDescription": "Jika nonaktif, Elchi mentranskripsi di komputer ini dengan Duyu-small.",
+        "disconnect": "Hapus kunci",
+        "privacy": "Saat Pro aktif, rekaman Anda dikirim ke server PatientDesk AI untuk ditranskripsi. Tanpa Pro, tidak ada yang keluar dari komputer ini. Jika koneksi terputus, Elchi melanjutkan dengan Duyu-small."
+      }
     },
     "sound": {
       "title": "Suara",

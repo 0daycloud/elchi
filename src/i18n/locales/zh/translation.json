@@ -176,6 +176,25 @@
       "rescan": {
         "label": "重新扫描",
         "tooltip": "重新扫描在 Elchi 之外添加到模型文件夹或 Hugging Face 缓存中的模型"
+      },
+      "pro": {
+        "eyebrow": "Elchi Pro",
+        "title": "使用完整模型 Duyu 听写",
+        "body": "Duyu 是 Duyu-small 背后的更大模型。它在语速快、人名和数字上出错更少，在我们测试过的土耳其语对话、朗读语音和呼叫中心录音中，它的词错误率最低。",
+        "pricePerMonth": "{{price}} / 月",
+        "freeMonth": "首月免费 · 无需绑卡",
+        "startFree": "开始免费月",
+        "haveKey": "我有密钥",
+        "benchmarks": "查看基准测试",
+        "keyLabel": "Elchi Pro 密钥",
+        "keyHelp": "请在 PatientDesk 开发者面板中创建密钥。",
+        "keyHelpLink": "打开开发者面板",
+        "connect": "连接",
+        "connecting": "正在验证…",
+        "useCloud": "在云端使用 Duyu",
+        "useCloudDescription": "关闭时，Elchi 会在这台计算机上使用 Duyu-small 转录。",
+        "disconnect": "移除密钥",
+        "privacy": "开启 Pro 后，您的录音会发送到 PatientDesk AI 的服务器进行转录。不使用 Pro 时，任何内容都不会离开这台计算机。如果连接中断，Elchi 会继续使用 Duyu-small。"
       }
     },
     "general": {

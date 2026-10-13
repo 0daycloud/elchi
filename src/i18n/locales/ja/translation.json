@@ -176,6 +176,25 @@
       "rescan": {
         "label": "再スキャン",
         "tooltip": "Elchi を使わずに models フォルダーまたは Hugging Face キャッシュに追加されたモデルを再スキャンします"
+      },
+      "pro": {
+        "eyebrow": "Elchi Pro",
+        "title": "フルモデルの Duyu で音声入力",
+        "body": "Duyu は Duyu-small の元になった、より大きなモデルです。早口や人名、数字での誤りが少なく、トルコ語の会話、朗読音声、コールセンター音声で私たちが測定した中で最も低い単語誤り率を記録しています。",
+        "pricePerMonth": "月額 {{price}}",
+        "freeMonth": "最初の1か月無料 · カード登録不要",
+        "startFree": "無料の1か月を始める",
+        "haveKey": "キーを持っています",
+        "benchmarks": "ベンチマークを見る",
+        "keyLabel": "Elchi Pro キー",
+        "keyHelp": "PatientDesk の開発者パネルでキーを作成してください。",
+        "keyHelpLink": "開発者パネルを開く",
+        "connect": "接続",
+        "connecting": "確認中…",
+        "useCloud": "クラウドで Duyu を使用",
+        "useCloudDescription": "オフのときは、Elchi はこのコンピューター上で Duyu-small を使って文字起こしします。",
+        "disconnect": "キーを削除",
+        "privacy": "Pro がオンのとき、録音は文字起こしのために PatientDesk AI のサーバーに送信されます。Pro を使わない場合、データがこのコンピューターの外に出ることはありません。接続が切れた場合、Elchi は Duyu-small で処理を続けます。"
       }
     },
     "general": {

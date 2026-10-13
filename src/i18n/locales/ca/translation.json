@@ -227,7 +227,26 @@
         "label": "Torna a cercar",
         "tooltip": "Torna a cercar models afegits a la carpeta de models o a la memòria cau de Hugging Face des de fora de l'Elchi"
       },
-      "noModelsMatch": "Cap model no coincideix amb aquest filtre."
+      "noModelsMatch": "Cap model no coincideix amb aquest filtre.",
+      "pro": {
+        "eyebrow": "Elchi Pro",
+        "title": "Dicteu amb Duyu, el nostre model complet",
+        "body": "Duyu és el model més gran que hi ha darrere de Duyu-small. Comet menys errors amb la parla ràpida, els noms i els números, i té la taxa d'error per paraula més baixa que hem mesurat en converses, lectura en veu alta i enregistraments de centres d'atenció telefònica en turc.",
+        "pricePerMonth": "{{price}} / mes",
+        "freeMonth": "Primer mes gratuït · No cal targeta",
+        "startFree": "Comenceu el mes gratuït",
+        "haveKey": "Tinc una clau",
+        "benchmarks": "Vegeu els resultats de les proves",
+        "keyLabel": "Clau d'Elchi Pro",
+        "keyHelp": "Creeu la clau al tauler de desenvolupadors de PatientDesk.",
+        "keyHelpLink": "Obre el tauler de desenvolupadors",
+        "connect": "Connecta",
+        "connecting": "S'està comprovant…",
+        "useCloud": "Utilitza Duyu al núvol",
+        "useCloudDescription": "Quan està desactivat, l'Elchi transcriu en aquest ordinador amb Duyu-small.",
+        "disconnect": "Elimina la clau",
+        "privacy": "Amb Pro activat, els vostres enregistraments s'envien als servidors de PatientDesk AI per transcriure'ls. Sense Pro, res no surt d'aquest ordinador. Si la connexió cau, l'Elchi continua amb Duyu-small."
+      }
     },
     "sound": {
       "title": "So",

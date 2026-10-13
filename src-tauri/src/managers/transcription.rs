@@ -1194,12 +1194,41 @@ impl TranscriptionManager {
             );
         }
 
+        // Elchi Pro sends the audio to Duyu in the cloud; any failure falls
+        // back to the local model so dictation keeps working offline.
+        let cloud = if settings.elchi_pro_enabled && !settings.elchi_pro_api_key.0.is_empty() {
+            let hint = matches!(validated_language.as_str(), "tr" | "en")
+                .then_some(validated_language.as_str());
+            match crate::elchi_pro::transcribe(&settings.elchi_pro_api_key.0, &audio, hint) {
+                Ok(text) => {
+                    info!("Transcribed with Elchi Pro ({})", crate::elchi_pro::MODEL);
+                    Some(RunOutcome {
+                        text,
+                        languages: vec!["tr".to_string(), "en".to_string()],
+                        applied_language_hint: hint.map(str::to_string),
+                        output_was_translated: false,
+                        model_detected_language: None,
+                        model_is_whisper: false,
+                    })
+                }
+                Err(e) => {
+                    warn!("Elchi Pro failed, using the local model: {:#}", e);
+                    None
+                }
+            }
+        } else {
+            None
+        };
+
         // Perform transcription with the appropriate engine.
-        let run = match self.engine.loaded() {
-            Some(info) => {
+        let run = match (cloud, self.engine.loaded()) {
+            (Some(run), _) => run,
+            (None, Some(info)) => {
                 self.transcribe_cpp(info, audio, &settings, &validated_language, &active_model)?
             }
-            None => self.transcribe_onnx(&audio, &settings, &validated_language, &active_model)?,
+            (None, None) => {
+                self.transcribe_onnx(&audio, &settings, &validated_language, &active_model)?
+            }
         };
 
         let output_language = with_model_detected_language(

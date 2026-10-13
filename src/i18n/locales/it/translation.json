@@ -176,6 +176,25 @@
       "rescan": {
         "label": "Riscansiona",
         "tooltip": "Riscansiona per trovare modelli aggiunti alla cartella dei modelli o alla cache di Hugging Face al di fuori di Elchi"
+      },
+      "pro": {
+        "eyebrow": "Elchi Pro",
+        "title": "Detta con Duyu, il nostro modello completo",
+        "body": "Duyu è il modello più grande da cui nasce Duyu-small. Fa meno errori con il parlato veloce, i nomi e i numeri, e ha il tasso di errore sulle parole più basso che abbiamo misurato su conversazioni, letture ad alta voce e registrazioni di call center in turco.",
+        "pricePerMonth": "{{price}} / mese",
+        "freeMonth": "Primo mese gratis · Nessuna carta richiesta",
+        "startFree": "Inizia il mese gratuito",
+        "haveKey": "Ho una chiave",
+        "benchmarks": "Vedi i benchmark",
+        "keyLabel": "Chiave Elchi Pro",
+        "keyHelp": "Crea la tua chiave nel pannello sviluppatori di PatientDesk.",
+        "keyHelpLink": "Apri il pannello sviluppatori",
+        "connect": "Collega",
+        "connecting": "Verifica in corso…",
+        "useCloud": "Usa Duyu nel cloud",
+        "useCloudDescription": "Se disattivato, Elchi trascrive su questo computer con Duyu-small.",
+        "disconnect": "Rimuovi chiave",
+        "privacy": "Con Pro attivo, le tue registrazioni vengono inviate ai server di PatientDesk AI per essere trascritte. Senza Pro, nulla lascia questo computer. Se la connessione cade, Elchi continua con Duyu-small."
       }
     },
     "general": {

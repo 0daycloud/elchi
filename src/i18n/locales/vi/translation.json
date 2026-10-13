@@ -176,6 +176,25 @@
       "rescan": {
         "label": "Quét lại",
         "tooltip": "Quét lại các mô hình được thêm vào thư mục mô hình hoặc bộ nhớ đệm Hugging Face bên ngoài Elchi"
+      },
+      "pro": {
+        "eyebrow": "Elchi Pro",
+        "title": "Đọc chính tả với Duyu, mô hình đầy đủ của chúng tôi",
+        "body": "Duyu là mô hình lớn hơn đứng sau Duyu-small. Mô hình này ít mắc lỗi hơn với giọng nói nhanh, tên riêng và con số, và có tỷ lệ lỗi từ thấp nhất mà chúng tôi từng đo được trên hội thoại, giọng đọc và ghi âm tổng đài bằng tiếng Thổ Nhĩ Kỳ.",
+        "pricePerMonth": "{{price}} / tháng",
+        "freeMonth": "Tháng đầu miễn phí · Không cần thẻ",
+        "startFree": "Bắt đầu tháng miễn phí",
+        "haveKey": "Tôi đã có khóa",
+        "benchmarks": "Xem kết quả đo",
+        "keyLabel": "Khóa Elchi Pro",
+        "keyHelp": "Tạo khóa của bạn trong bảng điều khiển nhà phát triển của PatientDesk.",
+        "keyHelpLink": "Mở bảng điều khiển nhà phát triển",
+        "connect": "Kết nối",
+        "connecting": "Đang kiểm tra…",
+        "useCloud": "Dùng Duyu trên đám mây",
+        "useCloudDescription": "Khi tắt, Elchi chuyển giọng nói thành văn bản ngay trên máy tính này bằng Duyu-small.",
+        "disconnect": "Gỡ khóa",
+        "privacy": "Khi bật Pro, bản ghi âm của bạn được gửi đến máy chủ của PatientDesk AI để chuyển thành văn bản. Khi không dùng Pro, không có gì rời khỏi máy tính này. Nếu mất kết nối, Elchi tiếp tục với Duyu-small."
       }
     },
     "general": {

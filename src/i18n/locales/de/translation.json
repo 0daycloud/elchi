@@ -176,6 +176,25 @@
       "rescan": {
         "label": "Neu scannen",
         "tooltip": "Erneut nach Modellen scannen, die außerhalb von Elchi zum Modellordner oder Hugging-Face-Cache hinzugefügt wurden"
+      },
+      "pro": {
+        "eyebrow": "Elchi Pro",
+        "title": "Diktiere mit Duyu, unserem vollständigen Modell",
+        "body": "Duyu ist das größere Modell hinter Duyu-small. Es macht weniger Fehler bei schnellem Sprechen, Namen und Zahlen und hat die niedrigste Wortfehlerrate, die wir bei türkischen Gesprächen, vorgelesenen Texten und Callcenter-Aufnahmen gemessen haben.",
+        "pricePerMonth": "{{price}} / Monat",
+        "freeMonth": "Erster Monat kostenlos · Keine Karte nötig",
+        "startFree": "Kostenlosen Monat starten",
+        "haveKey": "Ich habe einen Schlüssel",
+        "benchmarks": "Benchmarks ansehen",
+        "keyLabel": "Schlüssel für Elchi Pro",
+        "keyHelp": "Erstelle deinen Schlüssel im Entwickler-Panel von PatientDesk.",
+        "keyHelpLink": "Entwickler-Panel öffnen",
+        "connect": "Verbinden",
+        "connecting": "Wird geprüft…",
+        "useCloud": "Duyu in der Cloud nutzen",
+        "useCloudDescription": "Wenn deaktiviert, transkribiert Elchi auf diesem Computer mit Duyu-small.",
+        "disconnect": "Schlüssel entfernen",
+        "privacy": "Mit Pro werden deine Aufnahmen zur Transkription an die Server von PatientDesk AI gesendet. Ohne Pro verlässt nichts diesen Computer. Bricht die Verbindung ab, arbeitet Elchi mit Duyu-small weiter."
       }
     },
     "general": {

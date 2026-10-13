@@ -10,6 +10,7 @@ pub mod cli;
 mod clipboard;
 mod commands;
 pub mod duyu;
+mod elchi_pro;
 pub mod engine_supervisor;
 mod helpers;
 mod input;
@@ -684,6 +685,10 @@ pub fn run(cli_args: CliArgs) {
             shortcut::change_post_process_base_url_setting,
             shortcut::change_post_process_api_format_setting,
             shortcut::change_post_process_api_key_setting,
+            commands::elchi_pro::get_elchi_pro_info,
+            commands::elchi_pro::connect_elchi_pro,
+            commands::elchi_pro::set_elchi_pro_enabled,
+            commands::elchi_pro::disconnect_elchi_pro,
             shortcut::change_post_process_model_setting,
             shortcut::set_post_process_provider,
             shortcut::fetch_post_process_models,

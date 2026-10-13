@@ -366,6 +366,22 @@ impl fmt::Debug for SecretMap {
     }
 }
 
+/// A single secret (the Elchi Pro key): serialized as a plain string,
+/// redacted in Debug output so it never reaches the logs.
+#[derive(Clone, Default, Serialize, Deserialize, Type)]
+#[serde(transparent)]
+pub(crate) struct SecretString(pub String);
+
+impl fmt::Debug for SecretString {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(if self.0.is_empty() {
+            "\"\""
+        } else {
+            "[REDACTED]"
+        })
+    }
+}
+
 impl std::ops::Deref for SecretMap {
     type Target = HashMap<String, String>;
     fn deref(&self) -> &Self::Target {
@@ -477,6 +493,12 @@ pub struct AppSettings {
     pub post_process_providers: Vec<PostProcessProvider>,
     #[serde(default = "default_post_process_api_keys")]
     pub post_process_api_keys: SecretMap,
+    /// Elchi Pro: send dictation to Duyu in the cloud (opt-in, see
+    /// crate::elchi_pro). Off by default; everything stays on device.
+    #[serde(default)]
+    pub elchi_pro_enabled: bool,
+    #[serde(default)]
+    pub elchi_pro_api_key: SecretString,
     #[serde(default = "default_post_process_models")]
     pub post_process_models: HashMap<String, String>,
     #[serde(default = "default_post_process_prompts")]
@@ -1001,6 +1023,8 @@ pub fn get_default_settings() -> AppSettings {
         post_process_provider_id: default_post_process_provider_id(),
         post_process_providers: default_post_process_providers(),
         post_process_api_keys: default_post_process_api_keys(),
+        elchi_pro_enabled: false,
+        elchi_pro_api_key: SecretString::default(),
         post_process_models: default_post_process_models(),
         post_process_prompts: default_post_process_prompts(),
         post_process_selected_prompt_id: None,

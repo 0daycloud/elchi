@@ -256,6 +256,25 @@
       "rescan": {
         "label": "다시 스캔",
         "tooltip": "Elchi 외부에서 모델 폴더 또는 Hugging Face 캐시에 추가된 모델을 다시 스캔합니다"
+      },
+      "pro": {
+        "eyebrow": "Elchi Pro",
+        "title": "전체 모델 Duyu로 받아쓰기",
+        "body": "Duyu는 Duyu-small의 바탕이 되는 더 큰 모델입니다. 빠른 말, 이름, 숫자에서 실수가 적으며, 저희가 측정한 터키어 대화, 낭독 음성, 콜센터 음성에서 가장 낮은 단어 오류율을 보였습니다.",
+        "pricePerMonth": "월 {{price}}",
+        "freeMonth": "첫 달 무료 · 카드 필요 없음",
+        "startFree": "무료 한 달 시작하기",
+        "haveKey": "키가 있습니다",
+        "benchmarks": "벤치마크 보기",
+        "keyLabel": "Elchi Pro 키",
+        "keyHelp": "PatientDesk 개발자 패널에서 키를 만드세요.",
+        "keyHelpLink": "개발자 패널 열기",
+        "connect": "연결",
+        "connecting": "확인 중…",
+        "useCloud": "클라우드에서 Duyu 사용",
+        "useCloudDescription": "끄면 Elchi가 이 컴퓨터에서 Duyu-small로 음성을 인식합니다.",
+        "disconnect": "키 제거",
+        "privacy": "Pro를 켜면 녹음이 음성 인식을 위해 PatientDesk AI 서버로 전송됩니다. Pro를 사용하지 않으면 어떤 데이터도 이 컴퓨터 밖으로 나가지 않습니다. 연결이 끊기면 Elchi는 Duyu-small로 계속 작동합니다."
       }
     },
     "advanced": {

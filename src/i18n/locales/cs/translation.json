@@ -176,6 +176,25 @@
       "rescan": {
         "label": "Znovu prohledat",
         "tooltip": "Znovu prohledat modely přidané do složky modelů nebo mezipaměti Hugging Face mimo Elchi"
+      },
+      "pro": {
+        "eyebrow": "Elchi Pro",
+        "title": "Diktujte s Duyu, naším plným modelem",
+        "body": "Duyu je větší model, ze kterého vychází Duyu-small. Dělá méně chyb u rychlé řeči, jmen a čísel a má nejnižší chybovost slov, jakou jsme naměřili u turecké konverzace, čtené řeči a nahrávek z call center.",
+        "pricePerMonth": "{{price}} / měsíc",
+        "freeMonth": "První měsíc zdarma · Bez platební karty",
+        "startFree": "Začít měsíc zdarma",
+        "haveKey": "Mám klíč",
+        "benchmarks": "Zobrazit výsledky testů",
+        "keyLabel": "Klíč Elchi Pro",
+        "keyHelp": "Klíč si vytvořte ve vývojářském panelu PatientDesk.",
+        "keyHelpLink": "Otevřít vývojářský panel",
+        "connect": "Připojit",
+        "connecting": "Ověřování…",
+        "useCloud": "Používat Duyu v cloudu",
+        "useCloudDescription": "Když je vypnuto, Elchi přepisuje na tomto počítači pomocí Duyu-small.",
+        "disconnect": "Odebrat klíč",
+        "privacy": "Se zapnutým Pro se vaše nahrávky odesílají k přepisu na servery PatientDesk AI. Bez Pro nic neopustí tento počítač. Pokud se spojení přeruší, Elchi pokračuje s Duyu-small."
       }
     },
     "general": {
