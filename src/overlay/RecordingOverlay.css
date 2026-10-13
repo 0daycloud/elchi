@@ -2,28 +2,29 @@
 
 :root {
   --s-font:
-    "Karla Variable", "Karla", -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, sans-serif;
-  /* Live text is set in Instrument Serif italic: the voice, printed. */
-  --s-serif: "Instrument Serif", ui-serif, Georgia, serif;
+    "Outfit Variable", "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  /* Live text in the same face as the app. */
+  --s-serif: var(--s-font);
   --s-mono:
     "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, Menlo, monospace;
 
-  /* The pill is a small riso print. Light theme: a solid cobalt plate with
-     light-blue level bars and a faint light-blue halftone; text reversed out in
-     paper. Dark theme: the same print on night stock. Each value is written
-     once as a light/dark pair and the active token is re-pointed by the media
-     query or by the `data-theme` overrides, as in theme.css. */
-  --light-s-plate: var(--color-ink);
-  --dark-s-plate: var(--color-night);
-  --light-s-text: var(--color-paper);
-  --dark-s-text: var(--color-paper);
-  --s-accent: var(--color-ink-light);
-  /* Halftone dots (second ink) over the plate. */
-  --light-s-dots: color-mix(in srgb, var(--color-ink-light) 30%, transparent);
-  --dark-s-dots: color-mix(in srgb, var(--color-ink-light) 18%, transparent);
-  --light-s-border: color-mix(in srgb, var(--color-ink-light) 45%, transparent);
-  --dark-s-border: color-mix(in srgb, var(--color-ink-light) 40%, transparent);
+  /* Akdeniz pill. Light: a teal plate with white level bars and white text.
+     Dark: a deep-sea plate with bright-teal bars. Each value is written once as
+     a light/dark pair and re-pointed by the media query or by `data-theme`, as
+     in theme.css. */
+  --light-s-plate: #0b6e79;
+  --dark-s-plate: #0f2e35;
+  --light-s-text: #ffffff;
+  --dark-s-text: #e3f2f3;
+  --s-accent: var(--s-bars);
+  --light-s-bars: #ffffff;
+  --dark-s-bars: #5fd0d6;
+  /* No halftone in Akdeniz. */
+  --light-s-dots: transparent;
+  --dark-s-dots: transparent;
+  --light-s-border: rgba(255, 255, 255, 0.18);
+  --dark-s-border: #1d4a52;
 
   /* Active tokens — default light, flipped by the media query below or forced
      by `data-theme`. */
@@ -31,6 +32,7 @@
   --s-text: var(--light-s-text);
   --s-dots: var(--light-s-dots);
   --s-border: var(--light-s-border);
+  --s-bars: var(--light-s-bars);
 
   /* Derived from the active plate/text, so they follow the theme for free. */
   --s-surface: color-mix(in srgb, var(--s-plate) 97%, transparent);
@@ -59,6 +61,7 @@
     --s-text: var(--dark-s-text);
     --s-dots: var(--dark-s-dots);
     --s-border: var(--dark-s-border);
+    --s-bars: var(--dark-s-bars);
   }
 }
 
@@ -71,6 +74,7 @@
   --s-text: var(--light-s-text);
   --s-dots: var(--light-s-dots);
   --s-border: var(--light-s-border);
+  --s-bars: var(--light-s-bars);
 }
 
 :root[data-theme="dark"] {
@@ -78,6 +82,7 @@
   --s-text: var(--dark-s-text);
   --s-dots: var(--dark-s-dots);
   --s-border: var(--dark-s-border);
+  --s-bars: var(--dark-s-bars);
 }
 
 /* ============================================================

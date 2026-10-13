@@ -18,17 +18,25 @@
   --color-ink: var(--color-ink);
   --color-ink-light: var(--color-ink-light);
   --color-night: var(--color-night);
+  --color-coral: var(--color-coral);
+  --color-on-coral: var(--color-on-coral);
+  --color-surface: var(--color-surface);
+  --color-surface-warm: var(--color-surface-warm);
+  --color-border: var(--color-border);
+  --color-header: var(--color-header);
+  --color-on-header: var(--color-on-header);
+  --color-on-header-muted: var(--color-on-header-muted);
+  --color-tile: var(--color-tile);
+  --color-star: var(--color-star);
 }
 
 /* Bundled typefaces (see main.tsx imports; no network at runtime). */
 @theme {
   --font-sans:
-    "Karla Variable", "Karla", ui-sans-serif, system-ui, -apple-system,
+    "Outfit Variable", "Outfit", ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", sans-serif;
   --font-display:
-    "Bricolage Grotesque Variable", "Bricolage Grotesque", ui-sans-serif,
-    system-ui, sans-serif;
-  --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
+    "Karla Variable", "Karla", ui-sans-serif, system-ui, sans-serif;
   --font-mono:
     "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "SF Mono", Menlo,
     Consolas, monospace;
@@ -65,13 +73,8 @@
   background-color: var(--color-background);
 }
 
-/* Paper: the flat ground plus a faint, tiled grain (inline SVG noise, no
-   network). Light mode darkens with warm specks; dark mode lifts slightly. */
 body {
   background-color: var(--color-background);
-  background-image: var(--paper-grain);
-  background-repeat: repeat;
-  background-size: 180px 180px;
 }
 
 h1,
