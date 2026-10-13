@@ -1262,13 +1262,23 @@ fn apply_settings_migrations(
     updated
 }
 
+/// Whether this build ships a working self-updater.
+///
+/// TODO(elchi): wire Elchi's own release feed + updater signing key
+/// (`plugins.updater` in tauri.conf.json, `createUpdaterArtifacts`), then flip
+/// this to `true`. Until then the updater stays off so an Elchi build can never
+/// reach Handy's release feed.
+const SELF_UPDATE_AVAILABLE: bool = false;
+
 /// Update checks are forced off (without touching the persisted setting) when
-/// `HANDY_DISABLE_UPDATER` is set — e.g. by the Nix package, since self-update
-/// can't work against an immutable /nix/store install.
+/// this build has no update feed, or when `HANDY_DISABLE_UPDATER` is set — e.g.
+/// by the Nix package, since self-update can't work against an immutable
+/// /nix/store install.
 pub fn update_checks_forced_disabled() -> bool {
     use std::sync::OnceLock;
     static IS_UPDATER_DISABLED: OnceLock<bool> = OnceLock::new();
-    *IS_UPDATER_DISABLED.get_or_init(|| utils::env_flag_enabled("HANDY_DISABLE_UPDATER"))
+    *IS_UPDATER_DISABLED
+        .get_or_init(|| !SELF_UPDATE_AVAILABLE || utils::env_flag_enabled("HANDY_DISABLE_UPDATER"))
 }
 
 /// Effective updater state: the user's stored preference, overridden to `false`

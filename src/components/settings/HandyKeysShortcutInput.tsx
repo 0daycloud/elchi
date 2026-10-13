@@ -222,12 +222,17 @@ export const HandyKeysShortcutInput: React.FC<HandyKeysShortcutInputProps> = ({
       const result = await commands.startHandyKeysRecording(shortcutId);
       if (result.status === "error") {
         if (String(result.error).includes("secure-input-active")) {
-          toast.error(t("secureInput.recorderBlocked"), {
-            action: {
-              label: t("secureInput.learnMore"),
-              onClick: () => openUrl(SECURE_INPUT_HELP_URL),
-            },
-          });
+          toast.error(
+            t("secureInput.recorderBlocked"),
+            SECURE_INPUT_HELP_URL
+              ? {
+                  action: {
+                    label: t("secureInput.learnMore"),
+                    onClick: () => openUrl(SECURE_INPUT_HELP_URL),
+                  },
+                }
+              : undefined,
+          );
         } else {
           toast.error(
             t("settings.general.shortcut.errors.set", {

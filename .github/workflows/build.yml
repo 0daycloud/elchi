@@ -19,7 +19,7 @@ on:
       asset-prefix:
         required: false
         type: string
-        default: "handy"
+        default: "elchi"
       asset-name-pattern:
         required: false
         type: string
@@ -47,9 +47,6 @@ on:
         required: false
         type: boolean
         default: false
-
-env:
-  TSC_VERSION: "0.9.0"
 
 jobs:
   build:
@@ -163,17 +160,9 @@ jobs:
           version: 1.4.309.0
           cache: true
 
-      - name: Cache trusted-signing-cli
-        if: contains(inputs.platform, 'windows') && inputs.sign-binaries
-        id: cache-tsc
-        uses: actions/cache@v5
-        with:
-          path: ~/.cargo/bin/trusted-signing-cli*
-          key: trusted-signing-cli-${{ env.TSC_VERSION }}-${{ runner.os }}-${{ runner.arch }}
-
-      - name: Install trusted-signing-cli
-        if: contains(inputs.platform, 'windows') && inputs.sign-binaries && steps.cache-tsc.outputs.cache-hit != 'true'
-        run: cargo install --locked --force trusted-signing-cli@${{ env.TSC_VERSION }}
+      # TODO(elchi): Windows code signing. Handy signed through its own Azure
+      # Trusted Signing account (trusted-signing-cli + signCommand); Elchi has
+      # no Windows signing set up yet, so Windows builds are unsigned.
 
       - name: Prepare Vulkan SDK for Ubuntu 24.04
         if: contains(inputs.platform, 'ubuntu-24.04') && !contains(inputs.platform, 'arm')
@@ -395,7 +384,7 @@ jobs:
           # real files and draw ldconfig warnings (issue #1639).
           # deb.files key = destination in package, value = source on disk
           jq --arg so1 "$ORT_DIR/lib/libonnxruntime.so.1" \
-            '.bundle.linux.deb.files["/usr/lib/Handy/libonnxruntime.so.1"] = $so1' \
+            '.bundle.linux.deb.files["/usr/lib/Elchi/libonnxruntime.so.1"] = $so1' \
             src-tauri/tauri.conf.json > tmp.json && mv tmp.json src-tauri/tauri.conf.json
 
       # Windows x64 links a BASELINE ONNX Runtime dynamically instead of statically
@@ -523,11 +512,8 @@ jobs:
           APPLE_CERTIFICATE: ${{ inputs.sign-binaries && secrets.APPLE_CERTIFICATE || '' }}
           APPLE_CERTIFICATE_PASSWORD: ${{ inputs.sign-binaries && secrets.APPLE_CERTIFICATE_PASSWORD || '' }}
           APPLE_SIGNING_IDENTITY: ${{ inputs.sign-binaries && env.CERT_ID || '' }}
-          AZURE_CLIENT_ID: ${{ inputs.sign-binaries && secrets.AZURE_CLIENT_ID || '' }}
-          AZURE_CLIENT_SECRET: ${{ inputs.sign-binaries && secrets.AZURE_CLIENT_SECRET || '' }}
-          AZURE_TENANT_ID: ${{ inputs.sign-binaries && secrets.AZURE_TENANT_ID || '' }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ inputs.sign-binaries && secrets.TAURI_SIGNING_PRIVATE_KEY || '' }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ inputs.sign-binaries && secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD || '' }}
+          # TODO(elchi): pass TAURI_SIGNING_PRIVATE_KEY(_PASSWORD) here once Elchi
+          # has its own updater signing key and createUpdaterArtifacts is on.
           # The Vulkan loader and Wayland client library must come from the host
           # graphics stack. Bundling Ubuntu's copies ahead of the system libraries can
           # prevent a newer distro's Vulkan ICD or Mesa stack from loading.
@@ -587,10 +573,10 @@ jobs:
           echo "=== Frameworks contents ==="
           ls -la "$APP/Contents/Frameworks/" | grep onnx || true
           echo "=== Binary linked libs ==="
-          otool -L "$APP/Contents/MacOS/handy" | grep onnx || true
+          otool -L "$APP/Contents/MacOS/elchi" | grep onnx || true
           echo "=== Checking all @rpath deps are satisfied ==="
           # Extract every @rpath lib the binary needs
-          otool -L "$APP/Contents/MacOS/handy" | grep '@rpath/' | awk '{print $1}' | while read dep; do
+          otool -L "$APP/Contents/MacOS/elchi" | grep '@rpath/' | awk '{print $1}' | while read dep; do
             libname=$(basename "$dep")
             if [ ! -f "$APP/Contents/Frameworks/$libname" ]; then
               echo "MISSING: $libname not found in Frameworks/"
@@ -661,9 +647,9 @@ jobs:
               export VK_ICD_FILENAMES="$vulkan_icd"
             fi
             HANDY_NO_GTK_LAYER_SHELL=1 \
-            LD_LIBRARY_PATH="${root}/usr/lib/Handy:${root}/usr/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" \
-              xvfb-run -a "${root}/usr/bin/handy" --list-devices \
-                >/tmp/handy-package-smoke.log 2>&1
+            LD_LIBRARY_PATH="${root}/usr/lib/Elchi:${root}/usr/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" \
+              xvfb-run -a "${root}/usr/bin/elchi" --list-devices \
+                >/tmp/elchi-package-smoke.log 2>&1
             echo "${label} --list-devices smoke passed"
           }
 
@@ -672,15 +658,15 @@ jobs:
               echo "Auditing deb package: ${deb}"
               listing="$(mktemp)"
               dpkg-deb -c "$deb" > "$listing"
-              require_pattern "$listing" 'usr/bin/handy$' "handy binary"
-              require_pattern "$listing" 'usr/lib/Handy/libtranscribe\.so(\.[0-9]+)+$' "transcribe runtime library (SONAME)"
-              require_pattern "$listing" 'usr/lib/Handy/libggml-cpu.*\.so' "ggml CPU backend module"
+              require_pattern "$listing" 'usr/bin/elchi$' "elchi binary"
+              require_pattern "$listing" 'usr/lib/Elchi/libtranscribe\.so(\.[0-9]+)+$' "transcribe runtime library (SONAME)"
+              require_pattern "$listing" 'usr/lib/Elchi/libggml-cpu.*\.so' "ggml CPU backend module"
               if [[ "${{ inputs.platform }}" == *"ubuntu-22.04"* && "${{ inputs.target }}" == "x86_64-unknown-linux-gnu" ]]; then
-                require_pattern "$listing" 'usr/lib/Handy/libonnxruntime\.so\.[0-9]+$' "ONNX Runtime library (SONAME)"
+                require_pattern "$listing" 'usr/lib/Elchi/libonnxruntime\.so\.[0-9]+$' "ONNX Runtime library (SONAME)"
               fi
               # Handy's libs must stay out of the ldconfig-scanned /usr/lib
-              # (issue #1639): app-private libs belong in /usr/lib/Handy only.
-              # `[^/]+` excludes the Handy/ subdir, so only direct hits match.
+              # (issue #1639): app-private libs belong in /usr/lib/Elchi only.
+              # `[^/]+` excludes the Elchi/ subdir, so only direct hits match.
               if grep -Eq 'usr/lib/[^/]+\.so' "$listing"; then
                 echo "ERROR: libraries installed directly into /usr/lib (issue #1639):" >&2
                 grep -E 'usr/lib/[^/]+\.so' "$listing" >&2
@@ -702,9 +688,9 @@ jobs:
               echo "Auditing rpm package: ${rpm_pkg}"
               listing="$(mktemp)"
               rpm -qpl "$rpm_pkg" > "$listing"
-              require_pattern "$listing" '/usr/bin/handy$' "handy binary"
-              require_pattern "$listing" '/usr/lib/Handy/libtranscribe\.so(\.[0-9]+)+$' "transcribe runtime library (SONAME)"
-              require_pattern "$listing" '/usr/lib/Handy/libggml-cpu.*\.so' "ggml CPU backend module"
+              require_pattern "$listing" '/usr/bin/elchi$' "elchi binary"
+              require_pattern "$listing" '/usr/lib/Elchi/libtranscribe\.so(\.[0-9]+)+$' "transcribe runtime library (SONAME)"
+              require_pattern "$listing" '/usr/lib/Elchi/libggml-cpu.*\.so' "ggml CPU backend module"
               # Same /usr/lib pollution guard as the deb audit (issue #1639).
               if grep -Eq 'usr/lib/[^/]+\.so' "$listing"; then
                 echo "ERROR: libraries installed directly into /usr/lib (issue #1639):" >&2
@@ -719,12 +705,12 @@ jobs:
             for appimage in "${BUNDLE_DIR}"/appimage/*.AppImage; do
               echo "Auditing AppImage package: ${appimage}"
               workdir="$(mktemp -d)"
-              cp "$appimage" "${workdir}/Handy.AppImage"
-              chmod +x "${workdir}/Handy.AppImage"
+              cp "$appimage" "${workdir}/Elchi.AppImage"
+              chmod +x "${workdir}/Elchi.AppImage"
               (
                 cd "$workdir"
-                ./Handy.AppImage --appimage-extract >/dev/null
-                require_path "squashfs-root/usr/bin/handy" "AppImage handy binary"
+                ./Elchi.AppImage --appimage-extract >/dev/null
+                require_path "squashfs-root/usr/bin/elchi" "AppImage elchi binary"
                 # Gear Lever and other integration tools consume the root entry;
                 # appimagetool does not update the copy under usr/share/applications.
                 desktop_file="$(find squashfs-root -maxdepth 1 -type f -name '*.desktop' -print -quit)"
@@ -770,9 +756,9 @@ jobs:
                 # llvmpipe is intentionally not exposed as a compute device by
                 # ggml, but reaching this log proves the module loaded against a
                 # usable system Vulkan loader/ICD instead of failing silently.
-                if ! grep -q 'load_backend: loaded Vulkan backend' /tmp/handy-package-smoke.log; then
+                if ! grep -q 'load_backend: loaded Vulkan backend' /tmp/elchi-package-smoke.log; then
                   echo "ERROR: AppImage could not initialize its Vulkan backend with a usable system ICD" >&2
-                  cat /tmp/handy-package-smoke.log >&2
+                  cat /tmp/elchi-package-smoke.log >&2
                   exit 1
                 fi
               )
@@ -832,9 +818,9 @@ jobs:
           function Assert-PackageContents {
             param([string]$Root, [string]$Label)
 
-            $handy = Get-ChildItem $Root -Filter "handy.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+            $handy = Get-ChildItem $Root -Filter "elchi.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
             if (-not $handy) {
-              throw "$Label package is missing handy.exe"
+              throw "$Label package is missing elchi.exe"
             }
             foreach ($dll in $stagedDlls) {
               if (-not (Get-ChildItem $Root -Filter $dll.Name -Recurse -ErrorAction SilentlyContinue)) {
@@ -845,7 +831,7 @@ jobs:
             $deviceOutput = (& $handy.FullName --list-devices | Out-String)
             $deviceOutput | Write-Host
             if ($LASTEXITCODE -ne 0) {
-              throw "$Label handy.exe --list-devices failed"
+              throw "$Label elchi.exe --list-devices failed"
             }
             if ("${{ inputs.target }}" -like "aarch64*" -and $deviceOutput -match "kind=(vulkan|cuda|metal|gpu)") {
               throw "$Label Windows ARM64 package unexpectedly exposed a GPU compute device"

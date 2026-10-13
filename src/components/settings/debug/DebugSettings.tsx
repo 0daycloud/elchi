@@ -12,6 +12,7 @@ import { AlwaysOnMicrophone } from "../AlwaysOnMicrophone";
 import { SoundPicker } from "../SoundPicker";
 import { ClamshellMicrophoneSelector } from "../ClamshellMicrophoneSelector";
 import { UpdateChecksToggle } from "../UpdateChecksToggle";
+import { SELF_UPDATE_AVAILABLE } from "../../../lib/constants/updater";
 import { WhatsNewPreview } from "./WhatsNewPreview";
 import { KeyboardDiagnostic } from "./KeyboardDiagnostic";
 import {
@@ -40,7 +41,9 @@ export const DebugSettings: React.FC<DebugSettingsProps> = ({
             grouped={true}
           />
         )}
-        <UpdateChecksToggle descriptionMode="tooltip" grouped={true} />
+        {SELF_UPDATE_AVAILABLE && (
+          <UpdateChecksToggle descriptionMode="tooltip" grouped={true} />
+        )}
         <SoundPicker
           label={t("settings.debug.soundTheme.label")}
           description={t("settings.debug.soundTheme.description")}

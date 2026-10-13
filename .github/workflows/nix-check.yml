@@ -48,10 +48,8 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      - uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
-        with:
-          name: handy-computer
-          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+      # Handy pushed to its own `handy-computer` Cachix cache here. Elchi has no
+      # binary cache yet, so the Nix build runs uncached.
 
       # Regenerate .nix/bun.nix from bun.lock and check if it matches
       # what's committed. A diff means the developer forgot to run
@@ -91,7 +89,7 @@ jobs:
         if: steps.bun-check.outputs.outdated != 'true'
         id: eval
         run: |
-          if ! nix eval .#packages.x86_64-linux.handy.drvPath 2>eval_err.log; then
+          if ! nix eval .#packages.x86_64-linux.elchi.drvPath 2>eval_err.log; then
             echo "failed=true" >> "$GITHUB_OUTPUT"
             cat eval_err.log
           fi
@@ -124,7 +122,7 @@ jobs:
       # sandbox issues, compilation failures) that flake eval alone misses.
       # On PRs: only runs when nix packaging files change (~25 min with cold cache).
       # On push to main and workflow_dispatch: always runs so every commit on
-      # main has a verified nix build. cachix-action auto-pushes artifacts.
-      - name: Build handy
+      # main has a verified nix build.
+      - name: Build elchi
         if: steps.bun-check.outputs.outdated != 'true' && steps.eval.outputs.failed != 'true' && (steps.nix-files.outputs.changed == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'push')
-        run: nix build .#handy -L --show-trace
+        run: nix build .#elchi -L --show-trace

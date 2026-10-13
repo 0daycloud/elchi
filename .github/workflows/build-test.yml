@@ -37,8 +37,10 @@ jobs:
       platform: ${{ matrix.platform }}
       target: ${{ matrix.target }}
       build-args: ${{ matrix.args }}
-      sign-binaries: true
-      asset-prefix: "handy-test"
+      # TODO(elchi): set to true once Elchi's own Apple Developer ID secrets
+      # are configured in this repository.
+      sign-binaries: false
+      asset-prefix: "elchi-test"
       upload-artifacts: true
       is-debug-build: ${{ contains(matrix.args, '--debug') }}
     secrets: inherit

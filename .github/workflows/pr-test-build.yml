@@ -43,8 +43,10 @@ jobs:
       platform: ${{ matrix.platform }}
       target: ${{ matrix.target }}
       build-args: ${{ matrix.args }}
-      sign-binaries: true
-      asset-prefix: "handy-pr-${{ inputs.pr_number }}"
+      # TODO(elchi): set to true once Elchi's own Apple Developer ID secrets
+      # are configured in this repository.
+      sign-binaries: false
+      asset-prefix: "elchi-pr-${{ inputs.pr_number }}"
       upload-artifacts: true
       is-debug-build: ${{ contains(matrix.args, '--debug') }}
       ref: ${{ format('refs/pull/{0}/merge', inputs.pr_number) }}
