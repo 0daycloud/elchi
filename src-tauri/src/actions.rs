@@ -360,6 +360,20 @@ pub(crate) async fn process_transcription_output(
     let mut post_processed_text: Option<String> = None;
     let mut post_process_prompt: Option<String> = None;
 
+    // Elchi's formatter first, on every plan unless it is turned off; a custom
+    // post-processing prompt, when one is used, works on its result.
+    if !final_text.trim().is_empty() {
+        let token = app
+            .try_state::<Arc<crate::elchi_pro::ElchiPro>>()
+            .and_then(|elchi| elchi.format_token());
+        if let Some(token) = token {
+            if let Some(formatted) = crate::elchi_pro::format(&token, &final_text).await {
+                post_processed_text = Some(formatted.clone());
+                final_text = formatted;
+            }
+        }
+    }
+
     if post_process {
         if let Some(processed_text) = post_process_transcription(&settings, &final_text).await {
             post_processed_text = Some(processed_text.clone());
@@ -695,7 +709,9 @@ impl ShortcutAction for TranscribeAction {
                                 utils::redact_text(&transcription)
                             );
 
-                            if post_process {
+                            let formatting =
+                                get_settings(&ah).elchi_format && !transcription.trim().is_empty();
+                            if post_process || formatting {
                                 if use_streaming_overlay {
                                     tm.emit_stream_working(StreamWorkKind::Polishing);
                                 } else {

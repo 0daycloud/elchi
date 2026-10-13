@@ -52,5 +52,9 @@ export const useElchiPro = () => {
     setStatus(await commands.setElchiUsePro(enabled));
   }, []);
 
-  return { status, upgrade, setUsePro };
+  const setFormat = useCallback(async (enabled: boolean) => {
+    setStatus(await commands.setElchiFormat(enabled));
+  }, []);
+
+  return { status, upgrade, setUsePro, setFormat };
 };
