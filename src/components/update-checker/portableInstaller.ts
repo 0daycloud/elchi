@@ -8,9 +8,7 @@
 // if asset names or the repo slug change, and it points at the immutable
 // `releases/download/v<version>/…` tag URL instead of a moving `latest` link.
 
-// TODO(elchi): point at Elchi's own releases page once it exists. Unused while
-// SELF_UPDATE_AVAILABLE (src/lib/constants/updater.ts) is false.
-export const PORTABLE_RELEASES_URL = "";
+export const PORTABLE_RELEASES_URL = "https://speech.patientdesk.ai/elchi";
 
 /**
  * Pick the NSIS installer URL for the running target out of the update manifest.

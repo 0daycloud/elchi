@@ -1295,13 +1295,10 @@ fn apply_settings_migrations(
     updated
 }
 
-/// Whether this build ships a working self-updater.
-///
-/// TODO(elchi): wire Elchi's own release feed + updater signing key
-/// (`plugins.updater` in tauri.conf.json, `createUpdaterArtifacts`), then flip
-/// this to `true`. Until then the updater stays off so an Elchi build can never
-/// reach Handy's release feed.
-const SELF_UPDATE_AVAILABLE: bool = false;
+/// Whether this build ships a working self-updater: Elchi's own feed
+/// (speech.patientdesk.ai/downloads/elchi/latest.json), signed with Elchi's
+/// updater key (`plugins.updater` in tauri.conf.json).
+const SELF_UPDATE_AVAILABLE: bool = true;
 
 /// Update checks are forced off (without touching the persisted setting) when
 /// this build has no update feed, or when `HANDY_DISABLE_UPDATER` is set — e.g.
