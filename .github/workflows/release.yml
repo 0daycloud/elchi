@@ -78,6 +78,7 @@ jobs:
       sign-binaries: false
       asset-prefix: "elchi"
       upload-artifacts: false
+    secrets: inherit
       release-id: ${{ needs.create-release.outputs.release-id }}
       # Releases always build from scratch — never restore the Rust cache, so a
       # stale cached native lib can never be linked into a shipped artifact.

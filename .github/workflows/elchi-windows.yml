@@ -1,0 +1,19 @@
+name: "Elchi Windows build"
+
+# Builds the Windows (x64) installer with Elchi's updater signature and keeps
+# it as a workflow artifact; scripts/release/publish.sh takes it from there.
+on: workflow_dispatch
+
+jobs:
+  windows:
+    permissions:
+      contents: write
+    uses: ./.github/workflows/build.yml
+    with:
+      platform: windows-latest
+      target: x86_64-pc-windows-msvc
+      build-args: "--bundles nsis"
+      asset-prefix: "elchi"
+      upload-artifacts: true
+      sign-binaries: false
+    secrets: inherit
