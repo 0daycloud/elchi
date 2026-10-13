@@ -75,4 +75,5 @@ jobs:
           # The app is a GTK program even headless; a virtual display stands in.
           out=$(xvfb-run -a elchi -f tests/fixtures/duyu-tr-meeting.wav --model duyu-small --json 2>/dev/null | tail -1)
           echo "$out"
-          echo "$out" | python3 -c 'import json,sys; r=json.load(sys.stdin); assert "toplant" in r["text"], r["text"]; print("OK:", r["text"], f"({r[\"best_ms\"]} ms for {r[\"audio_secs\"]:.1f} s)")'
+          # No f-strings with quotes inside: Ubuntu 22.04's Python is 3.10.
+          echo "$out" | python3 -c 'import json,sys; r=json.load(sys.stdin); assert "toplant" in r["text"], r["text"]; print("OK:", r["text"], r["best_ms"], "ms for", round(r["audio_secs"], 1), "s")'
