@@ -4,7 +4,7 @@
 
 # Elchi
 
-Elchi is a free speech-to-text dictation app for macOS and Windows that runs entirely on your computer. Press a shortcut, speak in Turkish, English, or a mix of both, and the text appears wherever your cursor is. Your audio and your words stay on the machine unless you choose Elchi Pro.
+Elchi is a free speech-to-text dictation app for macOS and Windows. Press a shortcut, speak in Turkish, English, or a mix of both, and the text appears wherever your cursor is. For the first 7 days Elchi uses Duyu Pro, our full model in the cloud; after that it runs on your computer with Duyu-small, free and without limits, unless you subscribe to Elchi Pro. The interface is in Turkish, with English as the alternative.
 
 The name comes from the Turkish _elçi_, an envoy or messenger. Elchi carries what you say into text.
 
@@ -28,17 +28,17 @@ Elchi uses [Duyu-small](https://huggingface.co/KaanAydinli/Duyu-small) by defaul
 
 Elchi runs Duyu-small natively (`src-tauri/src/duyu/`, a Rust port of the model's reference engine) on ONNX Runtime, on the CPU. It downloads once, about 56 MB, from a pinned revision of the Hugging Face repository, and each file is checked against its SHA-256.
 
-The other models Elchi inherited from Handy, such as Whisper, Parakeet, and Moonshine, are still available in the model picker under **Settings > Models**. They cover more languages, but they are larger and we test Elchi mainly with Duyu-small.
+Elchi ships only our own models: Duyu-small on your computer and Duyu Pro in the cloud. Handy's other model families are not offered.
 
 ## Elchi Pro
 
-Elchi Pro is optional. It sends dictation to Duyu, the larger speech-to-text model that Duyu-small comes from, for higher accuracy on fast speech, names and numbers. It costs ₺200 a month; the first month is free and no card is needed. Turn it on under **Settings > Models**: start the free month, paste your key, and Elchi uses Duyu in the cloud. If the connection drops, Elchi carries on with Duyu-small on your computer.
+Duyu Pro is the larger speech-to-text model that Duyu-small comes from, with fewer mistakes on fast speech, names and numbers. Every install gets it for 7 days, starting the first time the computer opens Elchi (reinstalling does not restart the trial). After that Elchi switches to Duyu-small on your computer and offers Elchi Pro: ₺200 a month, the first month free, no card needed. **Get Elchi Pro** opens speech.patientdesk.ai, where you sign up or log in and activate it; Elchi notices within a few seconds. If Duyu Pro can't be reached, Elchi carries on with Duyu-small. Duyu Pro can be switched off under **Settings > Models**.
 
 ## Install
 
-There are no Elchi release downloads yet. For now, build it from source by following [BUILD.md](BUILD.md). It covers the prerequisites for macOS, Windows, and Linux, running a development build, and producing an installer.
+Download Elchi for macOS or Windows from [speech.patientdesk.ai/elchi](https://speech.patientdesk.ai/elchi). To build it yourself, follow [BUILD.md](BUILD.md); releases are made with `scripts/release/` (see the comments there).
 
-Automatic updates are turned off. We do not have a release feed or update signing key for Elchi yet, so the app will not check for or install updates on its own.
+Elchi updates itself from speech.patientdesk.ai. Updates are signed with Elchi's own key, and the app installs only bundles that carry that signature.
 
 On first launch, Elchi asks for microphone access and, on macOS, Accessibility access so it can paste into other apps. Then choose a shortcut in Settings and start dictating.
 
@@ -87,12 +87,14 @@ On macOS, call the binary inside the app bundle:
 
 ## Privacy
 
-Recording, voice activity detection, and transcription all happen on your computer. Elchi has no accounts or analytics, and it does not send audio or transcripts to a server unless you turn on Elchi Pro.
+Recording and voice activity detection happen on your computer, and with Duyu-small so does transcription. Elchi has no analytics.
 
-The network is used in three cases:
+The network is used in these cases:
 
 - **Model downloads.** A model is downloaded once, the first time you select it. After that it works offline.
-- **Elchi Pro, if you turn it on.** Each recording is sent to PatientDesk AI's Duyu API (`voice.patientdesk.ai`) to be transcribed. Turn Pro off and nothing leaves your computer again.
+- **Duyu Pro, during the 7-day trial and with Elchi Pro.** Each recording is sent to PatientDesk AI's Duyu API (`voice.patientdesk.ai`) to be transcribed. Switch off **Use Duyu Pro** under Settings > Models and nothing leaves your computer.
+- **Your plan.** A few times a day Elchi asks speech.patientdesk.ai which plan this computer has. It sends an install id (a one-way hash of the computer's id), the platform, the app version and the interface language.
+- **Updates.** Elchi checks speech.patientdesk.ai for a newer version.
 - **Post-processing, if you turn it on.** Post-processing is off by default. If you enable it and choose a remote provider, the transcript text is sent to that provider. A provider running on your own machine keeps it local.
 
 Transcription history, including the recordings it keeps, is stored in Elchi's app data directory, listed under [Settings and data locations](#settings-and-data-locations).
