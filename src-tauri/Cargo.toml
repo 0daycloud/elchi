@@ -1,6 +1,6 @@
 [package]
 name = "elchi"
-version = "0.9.8"
+version = "1.0.0"
 description = "Elchi: on-device speech-to-text dictation"
 authors = ["Elchi contributors"]
 edition = "2021"
