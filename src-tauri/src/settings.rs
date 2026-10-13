@@ -691,10 +691,10 @@ fn default_post_process_enabled() -> bool {
     false
 }
 
+/// Elchi's interface is Turkish by default, whatever the system language;
+/// English is the one alternative (Settings > General).
 fn default_app_language() -> String {
-    tauri_plugin_os::locale()
-        .map(|l| l.replace('_', "-"))
-        .unwrap_or_else(|| "en".to_string())
+    "tr".to_string()
 }
 
 fn default_show_tray_icon() -> bool {

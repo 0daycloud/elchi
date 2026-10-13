@@ -22,11 +22,12 @@ include!(concat!(env!("OUT_DIR"), "/tray_translations.rs"));
 
 /// Get localized tray menu strings based on the system locale.
 ///
-/// Lookup order: exact locale → Chinese script/region fallback → language code → English.
+/// Lookup order: exact locale → Chinese script/region fallback → language code
+/// → Turkish (Elchi's default) → English.
 pub fn get_tray_translations(locale: Option<String>) -> TrayStrings {
     let normalized = locale
         .as_deref()
-        .unwrap_or("en")
+        .unwrap_or("tr")
         .to_lowercase()
         .replace('_', "-");
     let language = normalized.split('-').next().unwrap_or("en");
@@ -42,6 +43,7 @@ pub fn get_tray_translations(locale: Option<String>) -> TrayStrings {
 
     exact_match
         .or_else(|| TRANSLATIONS.get(fallback))
+        .or_else(|| TRANSLATIONS.get("tr"))
         .or_else(|| TRANSLATIONS.get("en"))
         .cloned()
         .expect("English translations must exist")
@@ -53,18 +55,15 @@ mod tests {
 
     #[test]
     fn resolves_locale_fallbacks() {
+        // Elchi ships Turkish and English; anything else is Turkish.
         for (locale, expected) in [
-            ("zh-Hant-TW", "zh-TW"),
-            ("zh-Hant-HK", "zh-TW"),
-            ("zh-HK", "zh-TW"),
-            ("zh-MO", "zh-TW"),
-            ("ZH-TW", "zh-TW"),
-            ("zh_Hant_TW", "zh-TW"),
-            ("zh-Hans-CN", "zh"),
-            ("yue-Hant-HK", "zh-TW"),
-            ("yue-Hans-CN", "zh"),
-            ("fr-FR", "fr"),
-            ("xx-YY", "en"),
+            ("tr", "tr"),
+            ("tr-TR", "tr"),
+            ("en-US", "en"),
+            ("EN_gb", "en"),
+            ("fr-FR", "tr"),
+            ("zh-Hant-TW", "tr"),
+            ("xx-YY", "tr"),
         ] {
             assert_eq!(
                 format!("{:?}", get_tray_translations(Some(locale.into()))),

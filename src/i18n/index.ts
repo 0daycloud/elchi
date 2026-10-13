@@ -1,6 +1,5 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import { locale } from "@tauri-apps/plugin-os";
 import { LANGUAGE_METADATA } from "./languages";
 import { commands } from "@/bindings";
 import {
@@ -85,11 +84,11 @@ export const getSupportedLanguage = (
   return supported ? supported.code : null;
 };
 
-// Initialize i18n with English as default
+// Elchi's interface is Turkish unless the user switches to English.
 // Language will be synced from settings after init
 i18n.use(initReactI18next).init({
   resources,
-  lng: "en",
+  lng: "tr",
   fallbackLng: "en",
   interpolation: {
     escapeValue: false, // React already escapes values
@@ -108,13 +107,9 @@ export const syncLanguageFromSettings = async () => {
       if (supported && supported !== i18n.language) {
         await i18n.changeLanguage(supported);
       }
-    } else {
-      // Fall back to system locale detection if no saved preference
-      const systemLocale = await locale();
-      const supported = getSupportedLanguage(systemLocale);
-      if (supported && supported !== i18n.language) {
-        await i18n.changeLanguage(supported);
-      }
+    } else if (i18n.language !== "tr") {
+      // No saved preference: Turkish, whatever the system language.
+      await i18n.changeLanguage("tr");
     }
   } catch (e) {
     console.warn("Failed to sync language from settings:", e);
