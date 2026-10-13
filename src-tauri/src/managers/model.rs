@@ -1661,7 +1661,7 @@ impl ModelManager {
         fs::remove_file(&pointer).is_ok()
     }
 
-    fn auto_select_model_if_needed(&self) -> Result<()> {
+    pub(crate) fn auto_select_model_if_needed(&self) -> Result<()> {
         let mut settings = get_settings(&self.app_handle);
 
         // A model cannot remain selected after its files disappear. Catalog
@@ -2438,6 +2438,11 @@ impl ModelManager {
             "Downloaded {} from {}@{} to {:?}",
             model_id, repo_id, revision, final_dir
         );
+        // Onboarding no longer waits for this download (Duyu Pro covers the
+        // trial), so select it once it is on disk if nothing else is.
+        if let Err(e) = self.auto_select_model_if_needed() {
+            warn!("Auto-selecting {} after download failed: {}", model_id, e);
+        }
         Ok(())
     }
 

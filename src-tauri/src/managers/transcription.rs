@@ -1187,19 +1187,6 @@ impl TranscriptionManager {
             return Ok(String::new());
         }
 
-        // Check if model is loaded, if not try to load it
-        {
-            // If the model is loading, wait for it to complete.
-            let mut is_loading = self.is_loading.lock().unwrap();
-            while *is_loading {
-                is_loading = self.loading_condvar.wait(is_loading).unwrap();
-            }
-
-            if !self.is_model_loaded() {
-                return Err(anyhow::anyhow!("Model is not loaded for transcription."));
-            }
-        }
-
         // Get current settings for configuration
         let settings = get_settings(&self.app_handle);
 
@@ -1238,14 +1225,32 @@ impl TranscriptionManager {
             model_is_whisper: false,
         });
 
-        // Perform transcription with the appropriate engine.
-        let run = match (cloud, self.engine.loaded()) {
-            (Some(run), _) => run,
-            (None, Some(info)) => {
-                self.transcribe_cpp(info, audio, &settings, &validated_language, &active_model)?
-            }
-            (None, None) => {
-                self.transcribe_onnx(&audio, &settings, &validated_language, &active_model)?
+        // Otherwise the local model: wait for it if it is still loading. With
+        // Duyu Pro available, dictation works before Duyu-small is ready.
+        let run = match cloud {
+            Some(run) => run,
+            None => {
+                {
+                    let mut is_loading = self.is_loading.lock().unwrap();
+                    while *is_loading {
+                        is_loading = self.loading_condvar.wait(is_loading).unwrap();
+                    }
+                    if !self.is_model_loaded() {
+                        return Err(anyhow::anyhow!("Model is not loaded for transcription."));
+                    }
+                }
+                match self.engine.loaded() {
+                    Some(info) => self.transcribe_cpp(
+                        info,
+                        audio,
+                        &settings,
+                        &validated_language,
+                        &active_model,
+                    )?,
+                    None => {
+                        self.transcribe_onnx(&audio, &settings, &validated_language, &active_model)?
+                    }
+                }
             }
         };
 

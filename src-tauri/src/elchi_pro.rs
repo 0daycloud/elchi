@@ -245,6 +245,13 @@ impl ElchiPro {
         Ok(session)
     }
 
+    /// Whether recordings can go to Duyu Pro, from the cached plan (no
+    /// network): decides if dictation may start before Duyu-small is ready.
+    pub fn cloud_ready(&self) -> bool {
+        let settings = get_settings(&self.app);
+        settings.elchi_use_pro && settings.elchi_session.as_ref().is_some_and(|s| s.cloud)
+    }
+
     /// The token to send to Duyu Pro, refreshing it if it is about to expire.
     /// None when Duyu Pro is off, not in the plan, or unreachable.
     pub fn cloud_token(&self) -> Option<String> {

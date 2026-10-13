@@ -727,6 +727,20 @@ async setActiveModel(modelId: string) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Ends first-run onboarding without a model step: Elchi has one local model.
+ * If Duyu-small is on disk it is selected now; otherwise it downloads in the
+ * background and is selected when it lands (dictation meanwhile goes to Duyu
+ * Pro during the trial).
+ */
+async finishOnboarding() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("finish_onboarding") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async getCurrentModel() : Promise<Result<string, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("get_current_model") };

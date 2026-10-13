@@ -405,8 +405,12 @@ impl ShortcutAction for TranscribeAction {
         let kickoff_elapsed = kickoff_started.elapsed();
 
         // Don't open the mic if nothing can transcribe the recording; the load
-        // kicked off above fails and reports why.
-        if !tm.is_model_loaded() {
+        // kicked off above fails and reports why. Duyu Pro counts: during the
+        // trial dictation works before Duyu-small is on disk.
+        let cloud_ready = app
+            .try_state::<Arc<crate::elchi_pro::ElchiPro>>()
+            .is_some_and(|elchi| elchi.cloud_ready());
+        if !cloud_ready && !tm.is_model_loaded() {
             let selected_model = get_settings(app).selected_model;
             if let Err(e) = app
                 .state::<Arc<ModelManager>>()

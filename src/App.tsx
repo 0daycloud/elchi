@@ -284,10 +284,17 @@ function App() {
     }
   };
 
-  const handleAccessibilityComplete = () => {
-    // Returning users already have models, skip to main app
-    // New users need to select a model
-    setOnboardingStep(isReturningUser ? "done" : "model");
+  const handleAccessibilityComplete = async () => {
+    // Elchi has one local model, so there is no model step: the backend
+    // selects Duyu-small, or downloads it in the background while the Duyu Pro
+    // trial transcribes.
+    if (!isReturningUser) {
+      const result = await commands.finishOnboarding();
+      if (result.status === "error") {
+        console.error("Failed to finish onboarding:", result.error);
+      }
+    }
+    setOnboardingStep("done");
   };
 
   const handleModelSelected = () => {

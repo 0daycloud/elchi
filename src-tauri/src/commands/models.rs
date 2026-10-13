@@ -1,4 +1,4 @@
-use crate::managers::model::{ModelInfo, ModelManager};
+use crate::managers::model::{ModelInfo, ModelManager, DUYU_MODEL_ID};
 use crate::managers::transcription::{ModelStateEvent, TranscriptionManager};
 use crate::settings::{get_settings, write_settings, ModelUnloadTimeout};
 use log::error;
@@ -207,4 +207,33 @@ pub async fn cancel_download(
     model_manager
         .cancel_download(&model_id)
         .map_err(|e| e.to_string())
+}
+
+/// Ends first-run onboarding without a model step: Elchi has one local model.
+/// If Duyu-small is on disk it is selected now; otherwise it downloads in the
+/// background and is selected when it lands (dictation meanwhile goes to Duyu
+/// Pro during the trial).
+#[tauri::command]
+#[specta::specta]
+pub async fn finish_onboarding(app: AppHandle) -> Result<(), String> {
+    let model_manager = app.state::<Arc<ModelManager>>().inner().clone();
+    let mut settings = get_settings(&app);
+    settings.onboarding_completed = true;
+    write_settings(&app, settings);
+
+    let downloaded = model_manager
+        .get_model_info(DUYU_MODEL_ID)
+        .is_some_and(|m| m.is_downloaded);
+    if downloaded {
+        model_manager
+            .auto_select_model_if_needed()
+            .map_err(|e| e.to_string())?;
+    } else {
+        tauri::async_runtime::spawn(async move {
+            if let Err(e) = model_manager.download_model(DUYU_MODEL_ID).await {
+                error!("Background download of {} failed: {}", DUYU_MODEL_ID, e);
+            }
+        });
+    }
+    Ok(())
 }
