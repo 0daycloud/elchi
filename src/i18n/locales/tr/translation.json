@@ -105,8 +105,8 @@
       "selectModel": "Model seçilemedi."
     },
     "permissions": {
-      "title": "Gerekli izinler",
-      "description": "Elchi'nin düzgün çalışabilmesi için birkaç izin vermeniz gerekiyor.",
+      "title": "Başlamadan önce",
+      "description": "Elchi'nin sizi duyabilmesi ve metni imlecin olduğu yere yazabilmesi için izninize ihtiyacı var.",
       "microphone": {
         "title": "Mikrofon izni",
         "description": "Konuşmanızı yazıya dökebilmek için gereklidir."

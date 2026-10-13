@@ -11,7 +11,8 @@ import { toast } from "sonner";
 import { commands } from "@/bindings";
 import { useSettingsStore } from "@/stores/settingsStore";
 import ElchiLogo from "../icons/ElchiLogo";
-import { Keyboard, Mic, Check, Loader2 } from "lucide-react";
+import ElchiStar from "../icons/ElchiStar";
+import { Keyboard, Mic, Check, Loader2, type LucideIcon } from "lucide-react";
 
 interface AccessibilityOnboardingProps {
   onComplete: () => void;
@@ -301,119 +302,126 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
   if (isChecking) {
     return (
       <div className="h-screen w-full flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-text/50" />
+        <Loader2 className="w-8 h-8 animate-spin text-mid-gray" />
       </div>
     );
   }
 
-  // All permissions granted - show success briefly
-  if (allGranted) {
-    return (
-      <div className="h-screen w-full flex flex-col items-center justify-center gap-4">
-        <div className="p-4 rounded-full bg-emerald-500/20">
-          <Check className="w-12 h-12 text-emerald-400" />
-        </div>
-        <p className="text-lg font-medium text-text">
-          {t("onboarding.permissions.allGranted")}
-        </p>
-      </div>
-    );
-  }
-
-  // Show permissions request screen
   return (
-    <div className="h-screen w-full flex flex-col p-6 gap-6 items-center justify-center">
-      <div className="flex flex-col items-center gap-2">
-        <ElchiLogo size={44} />
-      </div>
-
-      <div className="max-w-md w-full flex flex-col items-center gap-4">
-        <div className="text-center mb-2">
-          <h2 className="text-xl font-semibold text-text mb-2">
-            {t("onboarding.permissions.title")}
-          </h2>
-          <p className="text-text/70">
-            {t("onboarding.permissions.description")}
-          </p>
+    <div className="h-screen w-screen flex overflow-hidden">
+      {/* Teal panel: what we ask for and why */}
+      <aside className="relative w-[38%] max-w-sm shrink-0 bg-header text-on-header px-9 py-10 flex flex-col gap-5 overflow-hidden">
+        <ElchiLogo size={22} color="var(--color-on-header)" />
+        <h1 className="font-display text-4xl font-bold leading-[1.08] tracking-tight mt-4">
+          {allGranted
+            ? t("onboarding.permissions.allGranted")
+            : t("onboarding.permissions.title")}
+        </h1>
+        <p className="text-base leading-relaxed text-on-header-muted">
+          {t("onboarding.permissions.description")}
+        </p>
+        <div className="absolute -right-20 -bottom-20">
+          <ElchiStar
+            size={280}
+            color="var(--color-star)"
+            eye="var(--color-header)"
+          />
         </div>
+      </aside>
 
-        {/* Microphone Permission Card */}
+      {/* The permissions */}
+      <main className="flex-1 min-w-0 flex flex-col justify-center px-9 py-10 gap-4 overflow-y-auto">
         {showMicrophonePermission && (
-          <div className="w-full p-4 rounded-lg bg-mid-gray/5 border border-mid-gray/20">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-logo-primary/20 shrink-0">
-                <Mic className="w-6 h-6 text-logo-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-text">
-                  {t("onboarding.permissions.microphone.title")}
-                </h3>
-                <p className="text-sm text-text/60 mb-3">
-                  {t("onboarding.permissions.microphone.description")}
-                </p>
-                {permissions.microphone === "granted" ? (
-                  <div className="flex items-center gap-2 text-emerald-400 text-sm">
-                    <Check className="w-4 h-4" />
-                    {t("onboarding.permissions.granted")}
-                  </div>
-                ) : permissions.microphone === "waiting" ? (
-                  <div className="flex items-center gap-2 text-text/50 text-sm">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    {t("onboarding.permissions.waiting")}
-                  </div>
-                ) : (
-                  <button
-                    onClick={handleGrantMicrophone}
-                    className="px-4 py-2 rounded-lg bg-logo-primary hover:bg-logo-primary/90 text-background text-sm font-medium transition-colors"
-                  >
-                    {isWindows
-                      ? t("accessibility.openSettings")
-                      : t("onboarding.permissions.grant")}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
+          <PermissionCard
+            icon={Mic}
+            title={t("onboarding.permissions.microphone.title")}
+            description={t("onboarding.permissions.microphone.description")}
+            status={permissions.microphone}
+            actionLabel={
+              isWindows
+                ? t("accessibility.openSettings")
+                : t("onboarding.permissions.grant")
+            }
+            onAction={handleGrantMicrophone}
+          />
         )}
-
-        {/* Accessibility Permission Card */}
         {showAccessibilityPermission && (
-          <div className="w-full p-4 rounded-lg bg-mid-gray/5 border border-mid-gray/20">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-logo-primary/20 shrink-0">
-                <Keyboard className="w-6 h-6 text-logo-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-text">
-                  {t("onboarding.permissions.accessibility.title")}
-                </h3>
-                <p className="text-sm text-text/60 mb-3">
-                  {t("onboarding.permissions.accessibility.description")}
-                </p>
-                {permissions.accessibility === "granted" ? (
-                  <div className="flex items-center gap-2 text-emerald-400 text-sm">
-                    <Check className="w-4 h-4" />
-                    {t("onboarding.permissions.granted")}
-                  </div>
-                ) : permissions.accessibility === "waiting" ? (
-                  <div className="flex items-center gap-2 text-text/50 text-sm">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    {t("onboarding.permissions.waiting")}
-                  </div>
-                ) : (
-                  <button
-                    onClick={handleGrantAccessibility}
-                    className="px-4 py-2 rounded-lg bg-logo-primary hover:bg-logo-primary/90 text-background text-sm font-medium transition-colors"
-                  >
-                    {t("onboarding.permissions.grant")}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
+          <PermissionCard
+            icon={Keyboard}
+            title={t("onboarding.permissions.accessibility.title")}
+            description={t("onboarding.permissions.accessibility.description")}
+            status={permissions.accessibility}
+            actionLabel={t("onboarding.permissions.grant")}
+            onAction={handleGrantAccessibility}
+          />
+        )}
+      </main>
+    </div>
+  );
+};
+
+interface PermissionCardProps {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  status: PermissionStatus;
+  actionLabel: string;
+  onAction: () => void;
+}
+
+/** One permission: what it is for, then grant / waiting / granted. */
+const PermissionCard: React.FC<PermissionCardProps> = ({
+  icon: Icon,
+  title,
+  description,
+  status,
+  actionLabel,
+  onAction,
+}) => {
+  const { t } = useTranslation();
+  const granted = status === "granted";
+  return (
+    <section
+      className={`flex gap-4 items-start rounded-2xl p-5 transition-colors ${
+        granted ? "bg-surface" : "border-2 border-border"
+      }`}
+    >
+      <span
+        className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center ${
+          granted
+            ? "bg-logo-primary text-background"
+            : "bg-surface text-logo-primary"
+        }`}
+      >
+        {granted ? (
+          <Check className="w-5 h-5" aria-hidden={true} />
+        ) : (
+          <Icon className="w-5 h-5" aria-hidden={true} />
+        )}
+      </span>
+      <div className="flex-1 min-w-0">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        <p className="text-sm text-mid-gray mt-0.5 mb-3">{description}</p>
+        {granted ? (
+          <p className="flex items-center gap-2 text-sm font-semibold text-logo-primary">
+            {t("onboarding.permissions.granted")}
+          </p>
+        ) : status === "waiting" ? (
+          <p className="flex items-center gap-2 text-sm text-mid-gray">
+            <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+            {t("onboarding.permissions.waiting")}
+          </p>
+        ) : (
+          <button
+            type="button"
+            onClick={onAction}
+            className="rounded-xl bg-coral px-5 py-2.5 text-sm font-semibold text-on-coral hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/50 focus-visible:ring-offset-2"
+          >
+            {actionLabel}
+          </button>
         )}
       </div>
-    </div>
+    </section>
   );
 };
 

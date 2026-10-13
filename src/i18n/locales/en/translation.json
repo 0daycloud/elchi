@@ -105,8 +105,8 @@
       "selectModel": "Failed to select model"
     },
     "permissions": {
-      "title": "Permissions Required",
-      "description": "Elchi needs a couple of permissions to work properly.",
+      "title": "Before we start",
+      "description": "Elchi needs your permission to hear you and to type the text where your cursor is.",
       "microphone": {
         "title": "Microphone Access",
         "description": "Required to hear your voice for transcription."
