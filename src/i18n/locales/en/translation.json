@@ -18,6 +18,7 @@
     "debug": "Debug",
     "about": "About",
     "label": "Sections",
+    "summary": "Summary",
     "dictionary": "Dictionary"
   },
   "onboarding": {
@@ -817,6 +818,33 @@
       "trial_other": "Duyu Pro · {{count}} days",
       "pro": "Elchi Pro"
     }
+  },
+  "summary": {
+    "eyebrow": "This week",
+    "words_one": "{{n}} word",
+    "words_other": "{{n}} words",
+    "saved": "~{{time}} saved",
+    "savedNone": "It adds up as you speak",
+    "hoursMinutes": "{{h}} h {{m}} min",
+    "minutes": "{{m}} min",
+    "today": "Today",
+    "speed": "Your speed",
+    "speedValue": "{{wpm}} words/min",
+    "faster": "{{x}}× faster than typing",
+    "streak": "Streak",
+    "streakDays_one": "{{count}} day",
+    "streakDays_other": "{{count}} days",
+    "streakHint": "At least one dictation a day",
+    "chart": "Last 7 days, words",
+    "totals": "{{words}} words in all · {{dictations}} dictations · ~{{time}} saved",
+    "share": "Share",
+    "copied": "Copied to the clipboard",
+    "shareText": "This week I wrote {{words}} words with Elchi and saved ~{{time}}. Free Turkish dictation: speech.patientdesk.ai/elchi",
+    "emptyTitle": "Waiting for your first dictation",
+    "emptyBody": "Hold the shortcut, speak, let go. What you write adds up here.",
+    "upsellFree": "Fewer corrections with Duyu Pro: more accurate with fast speech, names and numbers.",
+    "upsellTrial_one": "{{count}} day left in your Duyu Pro trial.",
+    "upsellTrial_other": "{{count}} days left in your Duyu Pro trial."
   },
   "dictionary": {
     "title": "Dictionary",

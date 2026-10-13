@@ -18,6 +18,7 @@
     "debug": "Hata ayıklama",
     "about": "Hakkında",
     "label": "Bölümler",
+    "summary": "Özet",
     "dictionary": "Sözlük"
   },
   "onboarding": {
@@ -817,6 +818,33 @@
       "trial_other": "Duyu Pro · {{count}} gün",
       "pro": "Elchi Pro"
     }
+  },
+  "summary": {
+    "eyebrow": "Bu hafta",
+    "words_one": "{{n}} kelime",
+    "words_other": "{{n}} kelime",
+    "saved": "~{{time}} kazandın",
+    "savedNone": "Konuştukça burada birikir",
+    "hoursMinutes": "{{h}} sa {{m}} dk",
+    "minutes": "{{m}} dk",
+    "today": "Bugün",
+    "speed": "Hızın",
+    "speedValue": "{{wpm}} kelime/dk",
+    "faster": "klavyeden {{x}} kat hızlı",
+    "streak": "Seri",
+    "streakDays_one": "{{count}} gün",
+    "streakDays_other": "{{count}} gün",
+    "streakHint": "Her gün en az bir dikte",
+    "chart": "Son 7 gün, kelime",
+    "totals": "Toplam {{words}} kelime · {{dictations}} dikte · ~{{time}} kazanıldı",
+    "share": "Paylaş",
+    "copied": "Panoya kopyalandı",
+    "shareText": "Bu hafta Elchi ile {{words}} kelime yazdım ve ~{{time}} kazandım. Ücretsiz Türkçe dikte: speech.patientdesk.ai/elchi",
+    "emptyTitle": "İlk diktenizi bekliyoruz",
+    "emptyBody": "Kısayolu basılı tutun, konuşun, bırakın. Yazdıklarınız burada birikir.",
+    "upsellFree": "Duyu Pro ile daha az düzeltme: hızlı konuşmada, isimlerde ve sayılarda daha isabetli.",
+    "upsellTrial_one": "Duyu Pro denemenizde {{count}} gün kaldı.",
+    "upsellTrial_other": "Duyu Pro denemenizde {{count}} gün kaldı."
   },
   "dictionary": {
     "title": "Sözlük",

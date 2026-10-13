@@ -153,6 +153,15 @@ pub async fn update_recording_retention_period(
     Ok(())
 }
 
+/// Words written, time saved and the streak, for the summary screen.
+#[tauri::command]
+#[specta::specta]
+pub fn get_dictation_stats(
+    history_manager: State<'_, Arc<HistoryManager>>,
+) -> Result<crate::managers::stats::DictationStats, String> {
+    history_manager.dictation_stats().map_err(|e| e.to_string())
+}
+
 /// Saves the user's correction of a dictation and teaches the dictionary from it
 /// (crate::dictionary). Returns the words it learned.
 #[tauri::command]

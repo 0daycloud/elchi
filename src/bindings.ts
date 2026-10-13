@@ -309,6 +309,17 @@ async setDictionaryLearning(enabled: boolean) : Promise<void> {
     await TAURI_INVOKE("set_dictionary_learning", { enabled });
 },
 /**
+ * Words written, time saved and the streak, for the summary screen.
+ */
+async getDictationStats() : Promise<Result<DictationStats, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_dictation_stats") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
  * Saves the user's correction of a dictation and teaches the dictionary from it
  * (crate::dictionary). Returns the words it learned.
  */
@@ -1146,6 +1157,24 @@ export type ChineseScript =
 "as_transcribed" | "simplified" | "traditional"
 export type ClipboardHandling = "dont_modify" | "copy_to_clipboard"
 export type CustomSounds = { start: boolean; stop: boolean }
+export type DayStat = { 
+/**
+ * YYYY-MM-DD, local time.
+ */
+day: string; words: number; dictations: number }
+export type DictationStats = { today_words: number; week_words: number; week_dictations: number; week_minutes_saved: number; total_words: number; total_dictations: number; total_minutes_saved: number; 
+/**
+ * Words per minute while dictating, over all time; None before the first dictation.
+ */
+speaking_wpm: number | null; typing_wpm: number; 
+/**
+ * Days in a row with at least one dictation, ending today (or yesterday).
+ */
+streak_days: number; 
+/**
+ * The last seven days, oldest first, today last.
+ */
+days: DayStat[] }
 export type DictionaryWord = { 
 /**
  * As the user writes it: "Kaan", "PatientDesk".

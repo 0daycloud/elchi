@@ -11,6 +11,7 @@ import {
   AboutSettings,
   PostProcessingSettings,
   ModelsSettings,
+  SummarySettings,
   DictionarySettings,
 } from "./settings";
 
@@ -23,6 +24,11 @@ interface SectionConfig {
 }
 
 export const SECTIONS_CONFIG = {
+  summary: {
+    labelKey: "sidebar.summary",
+    component: SummarySettings,
+    enabled: () => true,
+  },
   general: {
     labelKey: "sidebar.general",
     component: GeneralSettings,

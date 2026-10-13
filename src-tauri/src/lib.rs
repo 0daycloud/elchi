@@ -700,6 +700,7 @@ pub fn run(cli_args: CliArgs) {
             dictionary::add_dictionary_word,
             dictionary::remove_dictionary_word,
             dictionary::set_dictionary_learning,
+            commands::history::get_dictation_stats,
             commands::history::edit_history_text,
             shortcut::change_post_process_model_setting,
             shortcut::set_post_process_provider,

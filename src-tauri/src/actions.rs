@@ -762,6 +762,7 @@ impl ShortcutAction for TranscribeAction {
                                 let final_text = processed.final_text;
                                 let pasted_text = final_text.clone();
                                 let rm_for_paste = Arc::clone(&rm);
+                                let hm_for_stats = Arc::clone(&hm);
                                 ah.run_on_main_thread(move || {
                                     if rm_for_paste.was_cancelled_since(cancel_generation) {
                                         debug!("Transcription operation cancelled before paste");
@@ -775,6 +776,10 @@ impl ShortcutAction for TranscribeAction {
                                             debug!(
                                                 "Text pasted successfully in {:?}",
                                                 paste_time.elapsed()
+                                            );
+                                            hm_for_stats.record_dictation(
+                                                &pasted_text,
+                                                sample_count as f64 / 16_000.0,
                                             );
                                             // Watch the field for corrections to learn from.
                                             #[cfg(target_os = "macos")]

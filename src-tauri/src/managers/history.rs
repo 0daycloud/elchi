@@ -31,6 +31,15 @@ static MIGRATIONS: &[M] = &[
     M::up("ALTER TABLE transcription_history ADD COLUMN post_processed_text TEXT;"),
     M::up("ALTER TABLE transcription_history ADD COLUMN post_process_prompt TEXT;"),
     M::up("ALTER TABLE transcription_history ADD COLUMN post_process_requested BOOLEAN NOT NULL DEFAULT 0;"),
+    // Elchi's word counts per day (managers/stats.rs).
+    M::up(
+        "CREATE TABLE IF NOT EXISTS daily_stats (
+            day TEXT PRIMARY KEY,
+            words INTEGER NOT NULL DEFAULT 0,
+            dictations INTEGER NOT NULL DEFAULT 0,
+            audio_ms INTEGER NOT NULL DEFAULT 0
+        );",
+    ),
 ];
 
 #[derive(Clone, Debug, Serialize, Deserialize, Type)]
@@ -132,7 +141,36 @@ impl HistoryManager {
             debug!("Database already at latest version {}", version_after);
         }
 
+        if let Err(e) = super::stats::backfill_if_empty(&conn) {
+            error!("Could not count earlier dictations for stats: {}", e);
+        }
+
         Ok(())
+    }
+
+    /// Counts a pasted dictation in the day's stats.
+    pub fn record_dictation(&self, text: &str, audio_secs: f64) {
+        let words = super::stats::count_words(text);
+        if words == 0 {
+            return;
+        }
+        let day = Local::now().format("%Y-%m-%d").to_string();
+        let result = self.get_connection().and_then(|c| {
+            Ok(super::stats::record(
+                &c,
+                &day,
+                words,
+                (audio_secs * 1000.0) as u64,
+            )?)
+        });
+        if let Err(e) = result {
+            error!("Could not record dictation stats: {}", e);
+        }
+    }
+
+    pub fn dictation_stats(&self) -> Result<super::stats::DictationStats> {
+        let conn = self.get_connection()?;
+        Ok(super::stats::summary(&conn, Local::now().date_naive())?)
     }
 
     /// Migrate from tauri-plugin-sql's migration tracking to rusqlite_migration's.
