@@ -1,5 +1,5 @@
 {
-  description = "Handy - A free, open source, and extensible speech-to-text application that works completely offline";
+  description = "Elchi - A free, open source, and extensible speech-to-text application that works completely offline";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -86,8 +86,8 @@
           };
         in
         {
-          handy = pkgs.rustPlatform.buildRustPackage {
-            pname = "handy";
+          elchi = pkgs.rustPlatform.buildRustPackage {
+            pname = "elchi";
             inherit version;
             src = self;
 
@@ -178,14 +178,13 @@
 
             meta = {
               description = "A free, open source, and extensible speech-to-text application that works completely offline";
-              homepage = "https://github.com/cjpais/Handy";
               license = lib.licenses.mit;
-              mainProgram = "handy";
+              mainProgram = "elchi";
               platforms = supportedSystems;
             };
           };
 
-          default = self.packages.${system}.handy;
+          default = self.packages.${system}.elchi;
         }
       );
 
@@ -194,7 +193,7 @@
         { lib, pkgs, ... }:
         {
           imports = [ ./nix/module.nix ];
-          programs.handy.package = lib.mkDefault self.packages.${pkgs.stdenv.hostPlatform.system}.handy;
+          programs.elchi.package = lib.mkDefault self.packages.${pkgs.stdenv.hostPlatform.system}.elchi;
         };
 
       # Home-manager module for per-user service
@@ -202,7 +201,7 @@
         { lib, pkgs, ... }:
         {
           imports = [ ./nix/hm-module.nix ];
-          services.handy.package = lib.mkDefault self.packages.${pkgs.stdenv.hostPlatform.system}.handy;
+          services.elchi.package = lib.mkDefault self.packages.${pkgs.stdenv.hostPlatform.system}.elchi;
         };
 
       # Development shell for building from source
@@ -242,7 +241,7 @@
             XDG_DATA_DIRS = "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:${pkgs.hicolor-icon-theme}/share";
 
             shellHook = ''
-              echo "Handy development environment"
+              echo "Elchi development environment"
               bun install
               echo "Run 'bun run tauri dev' to start"
             '';

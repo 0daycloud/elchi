@@ -20,13 +20,15 @@ export const DebugPaths: React.FC<DebugPathsProps> = ({
       descriptionMode={descriptionMode}
       grouped={grouped}
     >
-      <div className="text-sm text-gray-600 space-y-2">
+      <div className="text-sm text-mid-gray space-y-2">
         <div>
           <span className="font-medium">
             {t("settings.debug.paths.appData")}
           </span>{" "}
           {/* eslint-disable-next-line i18next/no-literal-string */}
-          <span className="font-mono text-xs select-text">%APPDATA%/handy</span>
+          <span className="font-mono text-xs select-text">
+            %APPDATA%/com.elchi.app
+          </span>
         </div>
         <div>
           <span className="font-medium">
@@ -34,7 +36,7 @@ export const DebugPaths: React.FC<DebugPathsProps> = ({
           </span>{" "}
           {/* eslint-disable-next-line i18next/no-literal-string */}
           <span className="font-mono text-xs select-text">
-            %APPDATA%/handy/models
+            %APPDATA%/com.elchi.app/models
           </span>
         </div>
         <div>
@@ -43,7 +45,7 @@ export const DebugPaths: React.FC<DebugPathsProps> = ({
           </span>{" "}
           {/* eslint-disable-next-line i18next/no-literal-string */}
           <span className="font-mono text-xs select-text">
-            %APPDATA%/handy/settings_store.json
+            %APPDATA%/com.elchi.app/settings_store.json
           </span>
         </div>
       </div>

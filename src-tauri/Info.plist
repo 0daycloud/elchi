@@ -3,6 +3,6 @@
 <plist version="1.0">
 <dict>
   <key>NSMicrophoneUsageDescription</key>
-  <string>Request microphone access to transcribe audio locally</string>
+  <string>Elchi uses the microphone to turn your speech into text. Audio is transcribed on this Mac and never leaves it.</string>
 </dict>
 </plist>

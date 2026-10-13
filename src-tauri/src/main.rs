@@ -2,7 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use clap::Parser;
-use handy_app_lib::CliArgs;
+use elchi_app_lib::CliArgs;
 
 fn main() {
     #[cfg(target_os = "linux")]
@@ -20,7 +20,7 @@ fn main() {
         // Avoid overlay/capture layer crashes (#2049). Set before backend
         // initialization, preserving user overrides.
         if std::env::var_os("VK_LOADER_LAYERS_DISABLE").is_none()
-            && !handy_app_lib::env_flag_enabled("HANDY_KEEP_VULKAN_IMPLICIT_LAYERS")
+            && !elchi_app_lib::env_flag_enabled("HANDY_KEEP_VULKAN_IMPLICIT_LAYERS")
         {
             std::env::set_var("VK_LOADER_LAYERS_DISABLE", "~implicit~");
         }
@@ -29,10 +29,10 @@ fn main() {
     // Transcription worker: runs transcribe.cpp in isolation and never touches
     // Tauri, the CLI, or single-instance handling. Checked after the env setup
     // above so the worker inherits it (e.g. the Vulkan layer opt-out).
-    if handy_app_lib::engine_supervisor::is_worker_invocation() {
-        std::process::exit(handy_app_lib::engine_supervisor::run_worker());
+    if elchi_app_lib::engine_supervisor::is_worker_invocation() {
+        std::process::exit(elchi_app_lib::engine_supervisor::run_worker());
     }
 
     let cli_args = CliArgs::parse();
-    handy_app_lib::run(cli_args)
+    elchi_app_lib::run(cli_args)
 }
