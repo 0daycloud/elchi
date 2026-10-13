@@ -366,7 +366,7 @@ impl fmt::Debug for SecretMap {
     }
 }
 
-/// A single secret (the Elchi Pro key): serialized as a plain string,
+/// A single secret (the Elchi Pro token): serialized as a plain string,
 /// redacted in Debug output so it never reaches the logs.
 #[derive(Clone, Default, Serialize, Deserialize, Type)]
 #[serde(transparent)]
@@ -493,12 +493,16 @@ pub struct AppSettings {
     pub post_process_providers: Vec<PostProcessProvider>,
     #[serde(default = "default_post_process_api_keys")]
     pub post_process_api_keys: SecretMap,
-    /// Elchi Pro: send dictation to Duyu in the cloud (opt-in, see
-    /// crate::elchi_pro). Off by default; everything stays on device.
+    /// Use Duyu Pro (the cloud model) whenever the plan includes it: the
+    /// first 7 days, and for Elchi Pro subscribers. See crate::elchi_pro.
+    #[serde(default = "default_true")]
+    pub elchi_use_pro: bool,
+    /// The last answer from speech.patientdesk.ai (plan, token).
     #[serde(default)]
-    pub elchi_pro_enabled: bool,
+    pub elchi_session: Option<crate::elchi_pro::ElchiSession>,
+    /// The end of the trial has been shown to the user once.
     #[serde(default)]
-    pub elchi_pro_api_key: SecretString,
+    pub elchi_trial_end_seen: bool,
     #[serde(default = "default_post_process_models")]
     pub post_process_models: HashMap<String, String>,
     #[serde(default = "default_post_process_prompts")]
@@ -689,6 +693,10 @@ fn default_theme() -> Theme {
 
 fn default_post_process_enabled() -> bool {
     false
+}
+
+fn default_true() -> bool {
+    true
 }
 
 /// Elchi's interface is Turkish by default, whatever the system language;
@@ -1023,8 +1031,9 @@ pub fn get_default_settings() -> AppSettings {
         post_process_provider_id: default_post_process_provider_id(),
         post_process_providers: default_post_process_providers(),
         post_process_api_keys: default_post_process_api_keys(),
-        elchi_pro_enabled: false,
-        elchi_pro_api_key: SecretString::default(),
+        elchi_use_pro: true,
+        elchi_session: None,
+        elchi_trial_end_seen: false,
         post_process_models: default_post_process_models(),
         post_process_prompts: default_post_process_prompts(),
         post_process_selected_prompt_id: None,

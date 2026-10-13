@@ -219,6 +219,11 @@ fn initialize_core_logic(app_handle: &AppHandle) {
     app_handle.manage(history_manager.clone());
     app_handle.manage(tray::TrayState::new());
 
+    // Duyu Pro plan (trial / subscription), checked in the background.
+    let elchi_pro = elchi_pro::ElchiPro::new(app_handle);
+    elchi_pro.start();
+    app_handle.manage(elchi_pro);
+
     // Note: Shortcuts are NOT initialized here.
     // The frontend is responsible for calling the `initialize_shortcuts` command
     // after permissions are confirmed (on macOS) or after onboarding completes.
@@ -685,10 +690,10 @@ pub fn run(cli_args: CliArgs) {
             shortcut::change_post_process_base_url_setting,
             shortcut::change_post_process_api_format_setting,
             shortcut::change_post_process_api_key_setting,
-            commands::elchi_pro::get_elchi_pro_info,
-            commands::elchi_pro::connect_elchi_pro,
-            commands::elchi_pro::set_elchi_pro_enabled,
-            commands::elchi_pro::disconnect_elchi_pro,
+            commands::elchi_pro::get_elchi_pro_status,
+            commands::elchi_pro::refresh_elchi_pro,
+            commands::elchi_pro::open_elchi_upgrade,
+            commands::elchi_pro::set_elchi_use_pro,
             shortcut::change_post_process_model_setting,
             shortcut::set_post_process_provider,
             shortcut::fetch_post_process_models,

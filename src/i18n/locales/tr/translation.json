@@ -164,37 +164,9 @@
       "deleteConfirm": "{{modelName}} modelini silmek istediğinizden emin misiniz? Kullanmak için tekrar indirmeniz gerekecek.",
       "deleteActiveConfirm": "{{modelName}} aktif modelinizdir. Silmek, yeni bir model seçene kadar transkripsiyonları durduracaktır. Emin misiniz?",
       "deleteTitle": "Modeli Sil",
-      "filters": {
-        "allLanguages": "Tüm Diller",
-        "streaming": "Canlı transkripsiyonu destekleyen modelleri filtrele",
-        "translation": "İngilizce'ye çeviriyi destekleyen modelleri filtrele"
-      },
-      "noModelsMatch": "Bu filtreyle eşleşen model yok.",
-      "yourModels": "İndirilen Modeller",
-      "availableModels": "İndirilebilir",
-      "searchPlaceholder": "Modelleri ada göre ara…",
-      "rescan": {
-        "label": "Yeniden Tara",
-        "tooltip": "Elchi dışından modeller klasörüne veya Hugging Face önbelleğine eklenen modelleri yeniden tara"
-      },
-      "pro": {
-        "eyebrow": "Elchi Pro",
-        "title": "Tam modelimiz Duyu ile dikte edin",
-        "body": "Duyu, Duyu-small'un büyük kardeşi. Hızlı konuşmada, isimlerde ve sayılarda daha az hata yapar; Türkçe sohbet, okuma ve çağrı merkezi kayıtlarında ölçtüğümüz en düşük kelime hata oranı onda.",
-        "pricePerMonth": "Aylık {{price}}",
-        "freeMonth": "İlk ay ücretsiz · Kart gerekmez",
-        "startFree": "Ücretsiz ayı başlat",
-        "haveKey": "Anahtarım var",
-        "benchmarks": "Ölçüm sonuçları",
-        "keyLabel": "Elchi Pro anahtarı",
-        "keyHelp": "Anahtarınızı PatientDesk geliştirici panelinden oluşturun.",
-        "keyHelpLink": "Geliştirici panelini aç",
-        "connect": "Bağlan",
-        "connecting": "Kontrol ediliyor…",
-        "useCloud": "Duyu'yu bulutta kullan",
-        "useCloudDescription": "Kapalıyken Elchi, Duyu-small ile bu bilgisayarda yazıya döker.",
-        "disconnect": "Anahtarı kaldır",
-        "privacy": "Pro açıkken kayıtlarınız yazıya dökülmek üzere PatientDesk AI sunucularına gönderilir. Pro kapalıyken hiçbir şey bu bilgisayardan çıkmaz. Bağlantı koparsa Elchi, Duyu-small ile devam eder."
+      "onDevice": {
+        "title": "Bu bilgisayarda",
+        "description": "Duyu-small internet olmadan da çalışır. Duyu Pro'ya ulaşılamadığında Elchi onunla devam eder."
       }
     },
     "general": {
@@ -748,5 +720,31 @@
     "learnMore": "Bu nasıl düzeltilir",
     "recorderBlocked": "Şu anda kısayol kaydedilemiyor — macOS Secure Input tuş olaylarını engelliyor. Önce Secure Input uyarısını giderin.",
     "dismiss": "Kapat"
+  },
+  "elchiPro": {
+    "cta": "Elchi Pro'ya geç",
+    "pricePerMonth": "Aylık {{price}}",
+    "freeMonth": "İlk ay ücretsiz, kart gerekmez",
+    "upgradeFailed": "Tarayıcı açılamadı. speech.patientdesk.ai/elchi adresinden devam edebilirsiniz.",
+    "card": {
+      "eyebrow": "Duyu Pro",
+      "title": "Tam modelimiz: Duyu Pro",
+      "detail": "Duyu Pro, Duyu-small'un büyük kardeşi. Hızlı konuşmada, isimlerde ve sayılarda daha az hata yapar.",
+      "trialTitle_one": "Duyu Pro denemesi: {{count}} gün kaldı",
+      "trialTitle_other": "Duyu Pro denemesi: {{count}} gün kaldı",
+      "proTitle": "Elchi Pro açık",
+      "proDetail": "Kayıtlarınız Duyu Pro ile yazıya dökülüyor. Aboneliğiniz {{date}} tarihine kadar geçerli.",
+      "freeTitle": "Duyu Pro denemeniz bitti",
+      "freeDetail": "Elchi şimdi bu bilgisayarda Duyu-small ile çalışıyor: ücretsiz ve sınırsız. Duyu Pro'ya dönmek için Elchi Pro'ya geçin.",
+      "useCloud": "Duyu Pro'yu kullan",
+      "useCloudDescription": "Açıkken kayıtlar PatientDesk AI sunucularında Duyu Pro ile yazıya dökülür; kapalıyken bu bilgisayarda Duyu-small ile."
+    },
+    "banner": {
+      "trial_one": "Duyu Pro denemeniz: {{count}} gün kaldı.",
+      "trial_other": "Duyu Pro denemeniz: {{count}} gün kaldı.",
+      "ended": "Duyu Pro denemeniz bitti.",
+      "endedDetail": "Elchi artık Duyu-small ile çalışıyor. Elchi Pro'ya geçin: ilk ay ücretsiz, kart gerekmez.",
+      "dismiss": "Kapat"
+    }
   }
 }

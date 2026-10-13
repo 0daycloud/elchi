@@ -1134,6 +1134,37 @@ impl TranscriptionManager {
         .emit(&self.app_handle);
     }
 
+    /// Duyu Pro, when the plan includes it. One retry with a fresh token if
+    /// the token was refused; None means "use the local model".
+    fn transcribe_cloud(&self, audio: &[f32], hint: Option<&str>) -> Option<String> {
+        use crate::elchi_pro::{CloudError, ElchiPro};
+        let elchi = self.app_handle.try_state::<Arc<ElchiPro>>()?;
+        for attempt in 0..2 {
+            let token = elchi.cloud_token()?;
+            match crate::elchi_pro::transcribe(&token, audio, hint) {
+                Ok(text) => {
+                    info!("Transcribed with Duyu Pro ({})", crate::elchi_pro::MODEL);
+                    return Some(text);
+                }
+                Err(CloudError::Unauthorized) if attempt == 0 => {
+                    if let Err(e) = elchi.refresh() {
+                        warn!("Duyu Pro token refresh failed: {:#}", e);
+                        return None;
+                    }
+                }
+                Err(CloudError::NotEntitled) => {
+                    elchi.mark_not_entitled();
+                    return None;
+                }
+                Err(e) => {
+                    warn!("Duyu Pro failed, using Duyu-small: {}", e);
+                    return None;
+                }
+            }
+        }
+        None
+    }
+
     pub fn transcribe(&self, audio: Vec<f32>) -> Result<String> {
         #[cfg(debug_assertions)]
         if std::env::var("HANDY_FORCE_TRANSCRIPTION_FAILURE").is_ok() {
@@ -1194,31 +1225,18 @@ impl TranscriptionManager {
             );
         }
 
-        // Elchi Pro sends the audio to Duyu in the cloud; any failure falls
-        // back to the local model so dictation keeps working offline.
-        let cloud = if settings.elchi_pro_enabled && !settings.elchi_pro_api_key.0.is_empty() {
-            let hint = matches!(validated_language.as_str(), "tr" | "en")
-                .then_some(validated_language.as_str());
-            match crate::elchi_pro::transcribe(&settings.elchi_pro_api_key.0, &audio, hint) {
-                Ok(text) => {
-                    info!("Transcribed with Elchi Pro ({})", crate::elchi_pro::MODEL);
-                    Some(RunOutcome {
-                        text,
-                        languages: vec!["tr".to_string(), "en".to_string()],
-                        applied_language_hint: hint.map(str::to_string),
-                        output_was_translated: false,
-                        model_detected_language: None,
-                        model_is_whisper: false,
-                    })
-                }
-                Err(e) => {
-                    warn!("Elchi Pro failed, using the local model: {:#}", e);
-                    None
-                }
-            }
-        } else {
-            None
-        };
+        // Duyu Pro (the trial, or Elchi Pro) transcribes in the cloud; any
+        // failure falls back to the local model so dictation keeps working.
+        let hint = matches!(validated_language.as_str(), "tr" | "en")
+            .then_some(validated_language.as_str());
+        let cloud = self.transcribe_cloud(&audio, hint).map(|text| RunOutcome {
+            text,
+            languages: vec!["tr".to_string(), "en".to_string()],
+            applied_language_hint: hint.map(str::to_string),
+            output_was_translated: false,
+            model_detected_language: None,
+            model_is_whisper: false,
+        });
 
         // Perform transcription with the appropriate engine.
         let run = match (cloud, self.engine.loaded()) {
