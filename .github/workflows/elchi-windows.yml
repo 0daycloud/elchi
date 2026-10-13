@@ -1,7 +1,9 @@
 name: "Elchi Windows build"
 
 # Builds the Windows (x64) installer with Elchi's updater signature and keeps
-# it as a workflow artifact; scripts/release/publish.sh takes it from there.
+# it as a workflow artifact; scripts/release/publish.py takes it from there.
+# A smoke test then installs it on a clean runner and transcribes a Turkish
+# clip with Duyu-small, so a broken build never gets published.
 on: workflow_dispatch
 
 jobs:
@@ -17,3 +19,51 @@ jobs:
       upload-artifacts: true
       sign-binaries: false
     secrets: inherit
+
+  smoke-test:
+    needs: windows
+    runs-on: windows-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: tests/fixtures
+
+      - name: Download the installer
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: gh run download "${{ github.run_id }}" -R "${{ github.repository }}" -n elchi-x86_64-pc-windows-msvc -D installer
+
+      - name: Install silently
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem installer -Recurse -Filter "*-setup.exe" | Select-Object -First 1
+          Write-Host "Installing $($setup.Name)"
+          Start-Process -FilePath $setup.FullName -ArgumentList "/S" -Wait
+          $exe = Get-ChildItem "$env:LOCALAPPDATA","$env:ProgramFiles" -Recurse -Filter "elchi.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $exe) { throw "elchi.exe not found after install" }
+          Write-Host "Installed at $($exe.FullName)"
+          "ELCHI_EXE=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Fetch Duyu-small (int8, pinned revision)
+        shell: pwsh
+        run: |
+          $rev = "5b7f76972cd82ae6c2d66ec8e8c7b6782d5c8803"
+          $dir = Join-Path $env:APPDATA "com.elchi.app\models\duyu-small-int8"
+          New-Item -ItemType Directory -Force -Path (Join-Path $dir "int8") | Out-Null
+          foreach ($f in @("engine.json","spm.model","fbank.npz","passes.npz","int8/encoder_pre.onnx","int8/encoder_pass.onnx","int8/encoder_post.onnx","int8/decoder.onnx")) {
+            Invoke-WebRequest -Uri "https://huggingface.co/KaanAydinli/Duyu-small/resolve/$rev/$f" -OutFile (Join-Path $dir $f)
+          }
+          Get-ChildItem $dir -Recurse | Format-Table Name, Length
+
+      - name: Transcribe a Turkish clip with the installed app
+        shell: pwsh
+        run: |
+          $out = & $env:ELCHI_EXE -f tests/fixtures/duyu-tr-meeting.wav --model duyu-small --json 2>$null | Select-Object -Last 1
+          Write-Host $out
+          $r = $out | ConvertFrom-Json
+          if ($r.text -notmatch "toplant") { throw "unexpected transcription: $($r.text)" }
+          Write-Host "OK: $($r.text) ($($r.best_ms) ms for $($r.audio_secs) s)"
