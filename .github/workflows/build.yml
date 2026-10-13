@@ -872,8 +872,10 @@ jobs:
 
           # Administrative install extracts the MSI payload without elevation.
           $msiPackages = Get-ChildItem (Join-Path $bundleBase "msi") -Filter "*.msi" -ErrorAction SilentlyContinue
+          # Elchi ships the NSIS installer only (`--bundles nsis`); audit MSIs
+          # when a build makes them.
           if (-not $msiPackages) {
-            throw "No MSI packages found under $bundleBase for runtime DLL audit"
+            Write-Host "No MSI packages under $bundleBase (NSIS-only build); skipping the MSI audit"
           }
 
           foreach ($pkg in $msiPackages) {
