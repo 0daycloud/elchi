@@ -160,6 +160,25 @@ export const getUniqueCapabilityLanguages = (
   });
 };
 
-export const getLanguageLabel = (languageCode: string): string | undefined =>
-  LANGUAGE_LABELS.get(languageCode) ??
-  LANGUAGE_LABELS.get(recognitionLanguage(languageCode));
+/** A language's name in the interface language (document `lang`, kept in
+ *  sync by i18n), e.g. "Türkçe" in the Turkish UI; undefined for "auto",
+ *  whose label is a translation key. Falls back to the English label. */
+export const getLanguageLabel = (languageCode: string): string | undefined => {
+  if (languageCode === "auto") return undefined;
+  const locale =
+    (typeof document !== "undefined" && document.documentElement.lang) || "tr";
+  try {
+    const name = new Intl.DisplayNames([locale], { type: "language" }).of(
+      recognitionLanguage(languageCode),
+    );
+    if (name && name !== recognitionLanguage(languageCode)) {
+      return name.charAt(0).toLocaleUpperCase(locale) + name.slice(1);
+    }
+  } catch {
+    // Older WebViews without Intl.DisplayNames: English names below.
+  }
+  return (
+    LANGUAGE_LABELS.get(languageCode) ??
+    LANGUAGE_LABELS.get(recognitionLanguage(languageCode))
+  );
+};

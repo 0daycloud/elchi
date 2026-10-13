@@ -1,36 +1,40 @@
 {
   "tray": {
     "settings": "Ayarlar...",
-    "checkUpdates": "Güncellemeleri Kontrol Et...",
-    "copyLastTranscript": "Son Transkripti Kopyala",
-    "unloadModel": "Modeli Boşalt",
+    "checkUpdates": "Güncellemeleri denetle...",
+    "copyLastTranscript": "Son metni kopyala",
+    "unloadModel": "Modeli bellekten çıkar",
     "model": "Model",
-    "quit": "Çıkış",
+    "quit": "Çık",
     "cancel": "İptal",
-    "secureInputWarning": "⚠ Kısayollar Secure Input tarafından engelleniyor"
+    "secureInputWarning": "⚠ Kısayollar Güvenli Klavye Girişi nedeniyle engellendi"
   },
   "sidebar": {
     "general": "Genel",
     "models": "Modeller",
     "advanced": "Gelişmiş",
-    "postProcessing": "Son İşlem",
+    "postProcessing": "Son işlem",
     "history": "Geçmiş",
-    "debug": "Hata Ayıklama",
+    "debug": "Hata ayıklama",
     "about": "Hakkında"
   },
   "onboarding": {
-    "subtitle": "Başlamak için bir transkripsiyon modeli seçin",
-    "existingModelsTitle": "Uyumlu Modeller",
-    "downloadModelsTitle": "İndirilebilir",
+    "subtitle": "Başlamak için bu bilgisayarda çalışacak bir model seçin",
+    "existingModelsTitle": "İndirilen modeller",
+    "downloadModelsTitle": "İndirilebilir modeller",
     "showAllModels": "{{total}} modelin tümünü göster",
     "showFewerModels": "Daha az model göster",
     "recommended": "Önerilen",
-    "customModelDescription": "Resmi olarak desteklenmiyor",
+    "customModelDescription": "Resmî olarak desteklenmiyor",
     "modelCard": {
       "accuracy": "doğruluk",
       "speed": "hız"
     },
     "models": {
+      "duyu-small": {
+        "name": "Duyu-small",
+        "description": "Türkçe ve İngilizce konuşmayı, aynı cümlede karışsa bile tanır. Büyük harfleri ve noktalamayı kendisi koyar. Bu bilgisayarda çalışır."
+      },
       "small": {
         "name": "Whisper Small",
         "description": "Hızlı ve oldukça doğru."
@@ -57,15 +61,15 @@
       },
       "moonshine-base": {
         "name": "Moonshine Base",
-        "description": "Çok hızlı, yalnızca İngilizce. Aksanları iyi işler."
+        "description": "Çok hızlı, yalnızca İngilizce. Aksanları iyi tanır."
       },
       "moonshine-tiny-streaming-en": {
         "name": "Moonshine V2 Tiny",
-        "description": "Ultra hızlı, yalnızca İngilizce"
+        "description": "Çok hızlı, yalnızca İngilizce."
       },
       "moonshine-small-streaming-en": {
         "name": "Moonshine V2 Small",
-        "description": "Hızlı, yalnızca İngilizce. Hız ve doğruluk arasında iyi denge."
+        "description": "Hızlı, yalnızca İngilizce. Hız ile doğruluk arasında iyi bir denge."
       },
       "moonshine-medium-streaming-en": {
         "name": "Moonshine V2 Medium",
@@ -73,7 +77,7 @@
       },
       "breeze-asr": {
         "name": "Breeze ASR",
-        "description": "Tayvan Mandarin Çincesi için optimize edilmiş. Dil değiştirme desteği."
+        "description": "Tayvan Mandarin Çincesi için uyarlanmış. Diller arasında geçişi destekler."
       },
       "sense-voice-int8": {
         "name": "SenseVoice",
@@ -89,134 +93,134 @@
       },
       "canary-1b-v2": {
         "name": "Canary 1B v2",
-        "description": "Doğru çok dilli. 25 Avrupa dili. Çeviri desteği."
+        "description": "Doğru, çok dilli. 25 Avrupa dili. Çeviri desteği."
       },
       "cohere-int8": {
         "name": "Cohere",
-        "description": "Büyük, daha yavaş, ancak çok doğru çok dilli bir model."
+        "description": "Büyük ve daha yavaş, ancak çok doğru, çok dilli bir model."
       }
     },
     "errors": {
-      "selectModel": "Model seçilemedi"
+      "selectModel": "Model seçilemedi."
     },
     "permissions": {
-      "title": "İzinler Gerekli",
-      "description": "Elchi'nin düzgün çalışması için birkaç izin gerekiyor.",
+      "title": "Gerekli izinler",
+      "description": "Elchi'nin düzgün çalışabilmesi için birkaç izin vermeniz gerekiyor.",
       "microphone": {
-        "title": "Mikrofon Erişimi",
-        "description": "Sesinizi transkripsiyon için alabilmek için gereklidir."
+        "title": "Mikrofon izni",
+        "description": "Konuşmanızı yazıya dökebilmek için gereklidir."
       },
       "accessibility": {
-        "title": "Erişilebilirlik Erişimi",
-        "description": "Transkribe edilen metni uygulamalarınıza yazabilmek için gereklidir."
+        "title": "Erişilebilirlik izni",
+        "description": "Yazıya dökülen metni kullandığınız uygulamalara yazabilmek için gereklidir."
       },
-      "grant": "İzin Ver",
+      "grant": "İzin ver",
       "granted": "Verildi",
       "waiting": "Bekleniyor...",
-      "allGranted": "Her şey hazır!",
+      "allGranted": "Her şey hazır.",
       "errors": {
-        "checkFailed": "İzinler kontrol edilemedi. Lütfen tekrar deneyin.",
-        "requestFailed": "İzin isteği başarısız oldu. Lütfen tekrar deneyin."
+        "checkFailed": "İzinler denetlenemedi. Lütfen yeniden deneyin.",
+        "requestFailed": "İzin istenemedi. Lütfen yeniden deneyin."
       }
     }
   },
   "modelSelector": {
     "custom": "Özel",
-    "streaming": "Akış",
-    "active": "Aktif",
+    "streaming": "Canlı",
+    "active": "Etkin",
     "noModelsAvailable": "Kullanılabilir model yok",
     "verifying": "{{modelName}} doğrulanıyor...",
     "verifyingGeneric": "Doğrulanıyor...",
-    "extracting": "{{modelName}} çıkarılıyor...",
-    "extractingMultiple": "{{count}} model çıkarılıyor...",
-    "extractingGeneric": "Çıkarılıyor...",
-    "downloading": "%{{percentage}} indiriliyor",
+    "extracting": "{{modelName}} ayıklanıyor...",
+    "extractingMultiple": "{{count}} model ayıklanıyor...",
+    "extractingGeneric": "Ayıklanıyor...",
+    "downloading": "İndiriliyor: %{{percentage}}",
     "downloadingMultiple": "{{count}} model indiriliyor...",
-    "modelReady": "Model Hazır",
+    "modelReady": "Model hazır",
     "loading": "{{modelName}} yükleniyor...",
     "loadingGeneric": "Yükleniyor...",
-    "modelError": "Model Hatası",
-    "modelUnloaded": "Model Boşaltıldı",
-    "noModelDownloadRequired": "Model Yok – İndirme Gerekli",
-    "deleteModel": "{{modelName}} Sil",
-    "switching": "Değiştiriliyor...",
-    "downloadSpeed": "{{speed}} MB/s",
+    "modelError": "Model hatası",
+    "modelUnloaded": "Model bellekte değil",
+    "noModelDownloadRequired": "Model yok, indirmeniz gerekiyor",
+    "deleteModel": "{{modelName}} modelini sil",
+    "switching": "Geçiliyor...",
+    "downloadSpeed": "{{speed}} MB/sn",
     "capabilities": {
-      "languageSelection": "Birden fazla giriş dilini destekler",
+      "languageSelection": "Birden çok dili tanır",
       "languageCount": "{{total}} dil",
-      "translation": "İngilizce'ye çevirebilir",
-      "translate": "İngilizce'ye çevir",
-      "singleLanguage": "Yalnızca bu dili destekler",
+      "translation": "İngilizceye çevirebilir",
+      "translate": "Çeviri",
+      "singleLanguage": "Yalnızca bu dili tanır",
       "languageOnly": "Yalnızca {{language}}",
-      "streaming": "Konuşurken canlı transkripsiyon gösterir"
+      "streaming": "Siz konuşurken metni canlı gösterir"
     },
     "cancel": "İptal",
     "cancelDownload": "İndirmeyi iptal et",
-    "legacy": "Eski"
+    "legacy": "Eski sürüm"
   },
   "settings": {
     "modelSettings": {
-      "title": "{{model}} Ayarları"
+      "title": "{{model}} ayarları"
     },
     "models": {
-      "title": "Transkripsiyon Modelleri",
-      "description": "Bir transkripsiyon modeli seçin veya ek modeller indirin. Farklı modeller değişen doğruluk ve hız seviyeleri sunar.",
-      "deleteConfirm": "{{modelName}} modelini silmek istediğinizden emin misiniz? Kullanmak için tekrar indirmeniz gerekecek.",
-      "deleteActiveConfirm": "{{modelName}} aktif modelinizdir. Silmek, yeni bir model seçene kadar transkripsiyonları durduracaktır. Emin misiniz?",
-      "deleteTitle": "Modeli Sil",
+      "title": "Modeller",
+      "description": "Konuşmanızın nerede yazıya döküleceğini seçin: bulutta Duyu Pro ile ya da bu bilgisayarda Duyu-small ile.",
+      "deleteConfirm": "{{modelName}} modelini silmek istediğinizden emin misiniz? Yeniden kullanmak için tekrar indirmeniz gerekir.",
+      "deleteActiveConfirm": "{{modelName}} şu anda kullandığınız model. Silerseniz yeni bir model seçene kadar dikte çalışmaz. Emin misiniz?",
+      "deleteTitle": "Modeli sil",
       "onDevice": {
         "title": "Bu bilgisayarda",
-        "description": "Duyu-small internet olmadan da çalışır. Duyu Pro'ya ulaşılamadığında Elchi onunla devam eder."
+        "description": "Duyu-small internet bağlantısı olmadan çalışır. Duyu Pro'ya ulaşılamadığında Elchi, Duyu-small ile devam eder."
       }
     },
     "general": {
       "title": "Genel",
       "shortcut": {
-        "title": "Elchi Kısayolları",
-        "description": "Sesle yazma kaydını başlatmak için klavye kısayollarını yapılandırın",
+        "title": "Elchi kısayolları",
+        "description": "Dikteyi başlatan klavye kısayollarını ayarlayın",
         "loading": "Kısayollar yükleniyor...",
-        "none": "Kısayol yapılandırılmadı",
+        "none": "Kısayol ayarlanmadı",
         "notFound": "Kısayol bulunamadı",
         "pressKeys": "Tuşlara basın...",
         "bindings": {
           "transcribe": {
-            "name": "Transkripsiyon Kısayolu",
-            "description": "Sesinizi kaydetmek ve metne dönüştürmek için klavye kısayolu."
+            "name": "Dikte kısayolu",
+            "description": "Sesinizi kaydedip yazıya döken klavye kısayolu."
           },
           "cancel": {
-            "name": "İptal Kısayolu",
-            "description": "Mevcut kaydı iptal etmek için klavye kısayolu."
+            "name": "İptal kısayolu",
+            "description": "Süren kaydı iptal eden klavye kısayolu."
           },
           "transcribe_with_post_process": {
-            "name": "Son İşlem Kısayolu",
-            "description": "İsteğe bağlı: Transkripsiyonunuza her zaman yapay zekâ ile son işlem uygulayan özel bir kısayol tuşu."
+            "name": "Son işlem kısayolu",
+            "description": "İsteğe bağlı: Metninize her zaman yapay zekâyla son işlem uygulayan ayrı bir kısayol."
           }
         },
         "errors": {
-          "restore": "Orijinal kısayol geri yüklenemedi",
+          "restore": "Önceki kısayol geri yüklenemedi",
           "set": "Kısayol ayarlanamadı: {{error}}",
-          "reset": "Kısayol orijinal değerine sıfırlanamadı"
+          "reset": "Kısayol sıfırlanamadı"
         }
       },
       "language": {
         "title": "Dil",
-        "description": "Konuşma tanıma dilini seçin. 'Otomatik' seçeneği dili kendisi belirler, ancak belirli bir dil seçmek o dildeki doğruluğu artırabilir.",
+        "description": "Konuşma tanıma dilini seçin. Otomatik seçenekte dil kendiliğinden algılanır; belirli bir dil seçmek o dilde doğruluğu artırabilir.",
         "searchPlaceholder": "Dil ara...",
         "noResults": "Dil bulunamadı",
         "auto": "Otomatik"
       },
       "shortcutActivation": {
         "title": "Kısayol davranışı",
-        "description": "Transkripsiyon kısayolunun kaydı nasıl başlatıp durduracağını seçin.",
+        "description": "Dikte kısayolunun kaydı nasıl başlatıp durduracağını seçin.",
         "options": {
           "holdOrToggle": "Otomatik",
           "pushToTalk": "Basılı tut",
-          "toggle": "Aç/Kapat"
+          "toggle": "Aç/kapat"
         },
         "descriptions": {
-          "hold_or_toggle": "Kaydetmek için basılı tutun veya açıp kapatmak için dokunun",
+          "hold_or_toggle": "Kaydetmek için basılı tutun ya da kaydı açıp kapatmak için bir kez basın",
           "push_to_talk": "Kısayolu basılı tuttuğunuz sürece kaydeder",
-          "toggle": "Kaydı başlatmak için kısayola dokunun, durdurmak için tekrar dokunun"
+          "toggle": "Kaydı başlatmak için kısayola bir kez basın, durdurmak için yeniden basın"
         }
       }
     },
@@ -224,76 +228,76 @@
       "title": "Ses",
       "microphone": {
         "title": "Mikrofon",
-        "description": "Tercih ettiğiniz mikrofon cihazını seçin",
+        "description": "Kullanmak istediğiniz mikrofonu seçin",
         "placeholder": "Mikrofon seçin...",
         "loading": "Yükleniyor..."
       },
       "channel": {
-        "title": "Giriş Kanalı",
-        "description": "Kayıt yapılacak giriş kanalını seçin. Ses arabiriminizde birden fazla giriş varsa bu seçeneği kullanın.",
+        "title": "Giriş kanalı",
+        "description": "Hangi giriş kanalından kayıt yapılacağını seçin. Ses arabiriminizde birden çok giriş varsa bu ayarı kullanın.",
         "average": "Tüm kanalların ortalaması",
         "channel": "Kanal {{n}}"
       },
       "audioFeedback": {
-        "label": "Sesli Geri Bildirim",
-        "description": "Kayıt başladığında ve bittiğinde ses çalar"
+        "label": "Sesli geri bildirim",
+        "description": "Kayıt başlarken ve biterken ses çalar"
       },
       "outputDevice": {
-        "title": "Çıkış Cihazı",
-        "description": "Geri bildirim sesleri için ses çıkış cihazını seçin",
-        "placeholder": "Çıkış cihazı seçin...",
+        "title": "Çıkış aygıtı",
+        "description": "Geri bildirim seslerinin çalınacağı aygıtı seçin",
+        "placeholder": "Çıkış aygıtı seçin...",
         "loading": "Yükleniyor..."
       },
       "volume": {
-        "title": "Ses Seviyesi",
-        "description": "Sesli geri bildirimlerin ses seviyesini ayarlayın"
+        "title": "Ses düzeyi",
+        "description": "Geri bildirim seslerinin düzeyini ayarlayın"
       }
     },
     "advanced": {
       "groups": {
         "app": "Uygulama",
         "output": "Çıktı",
-        "transcription": "Transkripsiyon",
+        "transcription": "Yazıya dökme",
         "history": "Geçmiş",
         "experimental": "Deneysel"
       },
       "experimentalToggle": {
-        "label": "Deneysel Özellikler",
-        "description": "Hala geliştirme aşamasında olan deneysel özellikleri etkinleştir."
+        "label": "Deneysel özellikler",
+        "description": "Henüz geliştirilmekte olan özellikleri açar."
       },
       "lazyStreamClose": {
-        "label": "Transkripsiyonlar Arasında Mikrofonu Açık Tut",
-        "description": "Kayıt durdurulduktan sonra mikrofon akışını 30 saniye açık tutar, ardışık transkripsiyonlarda gecikmeyi azaltır. Etkinken Bluetooth ses kalitesini düşürebilir."
+        "label": "Kayıtlar arasında mikrofonu açık tut",
+        "description": "Kayıt bittikten sonra mikrofonu 30 saniye açık tutar; art arda dikte ederken gecikmeyi azaltır. Açıkken Bluetooth ses kalitesi düşebilir."
       },
       "acceleration": {
         "transcribe": {
-          "title": "transcribe.cpp Hızlandırması",
-          "description": "transcribe.cpp (Whisper ailesi) modelleri için donanım hızlandırması. Otomatik mod, mevcutsa GPU kullanır (macOS'ta Metal, Windows/Linux'ta Vulkan)."
+          "title": "transcribe.cpp hızlandırması",
+          "description": "transcribe.cpp (Whisper ailesi) modelleri için donanım hızlandırması. Otomatik seçenekte varsa GPU kullanılır (macOS'te Metal, Windows ve Linux'ta Vulkan)."
         },
         "ort": {
-          "title": "ONNX Hızlandırma",
-          "description": "ONNX modelleri için donanım hızlandırma (Parakeet, Canary, Moonshine vb.). Windows'ta DirectML deneyseldir. Modeller transkripsiyon yapamayabilir."
+          "title": "ONNX hızlandırması",
+          "description": "ONNX modelleri için donanım hızlandırması. Windows'taki DirectML desteği deneyseldir; modeller yazıya dökme sırasında hata verebilir."
         },
         "gpuDevice": {
           "auto": "Otomatik"
         }
       },
       "startHidden": {
-        "label": "Gizli Başlat",
-        "description": "Pencereyi açmadan sistem tepsisinde başlatır."
+        "label": "Gizli başlat",
+        "description": "Pencereyi açmadan sistem tepsisinde başlar."
       },
       "autostart": {
-        "label": "Başlangıçta Çalıştır",
-        "description": "Bilgisayarınızda oturum açtığınızda Elchi otomatik olarak başlar."
+        "label": "Oturum açılınca başlat",
+        "description": "Bilgisayarınızda oturum açtığınızda Elchi kendiliğinden başlar."
       },
       "showTrayIcon": {
-        "label": "Tepsi Simgesini Göster",
-        "description": "Elchi simgesini sistem tepsisinde göster."
+        "label": "Tepsi simgesini göster",
+        "description": "Elchi simgesini sistem tepsisinde gösterir."
       },
       "overlay": {
         "style": {
-          "title": "Ekran Katmanı",
-          "description": "Kayıt sırasında gösterilecek ekran katmanını seçin: 'Yok' katmanı gizler, 'Sade' küçük bir gösterge gösterir, 'Canlı' siz konuşurken transkripsiyonu gerçek zamanlı gösterir (yalnızca akış destekli modeller — model seçicide 'Akış' rozetini arayın). Linux'ta 'Yok' önerilir.",
+          "title": "Kayıt göstergesi",
+          "description": "Kayıt sırasında ekranda ne gösterileceğini seçin. Yok: hiçbir şey göstermez. Sade: küçük bir gösterge gösterir. Canlı: siz konuşurken metni anında gösterir (yalnızca canlı yazıya dökmeyi destekleyen modellerde). Linux'ta Yok önerilir.",
           "options": {
             "none": "Yok",
             "minimal": "Sade",
@@ -301,45 +305,45 @@
           }
         },
         "position": {
-          "title": "Ekran Katmanı Konumu",
-          "description": "Ekran katmanının kayıt ve transkripsiyon sırasında nerede görüneceğini belirler.",
+          "title": "Göstergenin konumu",
+          "description": "Kayıt ve yazıya dökme sırasında göstergenin ekranda nerede görüneceğini belirler.",
           "options": {
-            "bottom": "Alt",
-            "top": "Üst"
+            "bottom": "Altta",
+            "top": "Üstte"
           }
         }
       },
       "pasteMethod": {
-        "title": "Yapıştırma Yöntemi",
-        "description": "Metnin nasıl ekleneceğini seçin. Doğrudan: sistem girişiyle yazmayı simüle eder. Yok: yapıştırmayı atlar, sadece geçmişi/panoyu günceller.",
+        "title": "Yapıştırma yöntemi",
+        "description": "Metnin nasıl ekleneceğini seçin. Doğrudan: metni klavyeden yazılıyormuş gibi girer. Yok: yapıştırmaz, yalnızca geçmişi ve panoyu günceller.",
         "options": {
           "clipboard": "Pano ({{modifier}}+V)",
           "clipboardCtrlShiftV": "Pano (Ctrl+Shift+V)",
           "clipboardShiftInsert": "Pano (Shift+Insert)",
           "direct": "Doğrudan",
           "none": "Yok",
-          "externalScript": "Harici Betik"
+          "externalScript": "Harici betik"
         },
-        "externalScriptPlaceholder": "/dosya/yolu/betik.sh"
+        "externalScriptPlaceholder": "/betik/yolu/betik.sh"
       },
       "typingTool": {
-        "title": "Yazma Aracı",
-        "description": "Doğrudan yapıştırma yöntemi için hangi Linux yazma aracının kullanılacağını seçin. Otomatik seçeneği, sisteminiz için mevcut en iyi aracı algılar ve kullanır.",
+        "title": "Yazma aracı",
+        "description": "Doğrudan yapıştırma yönteminde hangi Linux yazma aracının kullanılacağını seçin. Otomatik seçenek, sisteminizdeki en uygun aracı bulup kullanır.",
         "options": {
-          "auto": "Otomatik (Önerilen)"
+          "auto": "Otomatik (önerilen)"
         }
       },
       "clipboardHandling": {
-        "title": "Pano Yönetimi",
-        "description": "Panoyu Değiştirme, transkripsiyon sonrası mevcut pano içeriğini korur. Panoya Kopyala ise yapıştırma işleminden sonra transkripsiyon sonucunu panoda bırakır.",
+        "title": "Pano kullanımı",
+        "description": "Panoyu değiştirme: yazıya dökmeden sonra panonuzun önceki içeriğini korur. Panoya kopyala: yapıştırdıktan sonra metni panoda bırakır.",
         "options": {
-          "dontModify": "Panoyu Değiştirme",
-          "copyToClipboard": "Panoya Kopyala"
+          "dontModify": "Panoyu değiştirme",
+          "copyToClipboard": "Panoya kopyala"
         }
       },
       "autoSubmit": {
-        "title": "Otomatik Gönder",
-        "description": "Metin eklendikten sonra seçilen tuş kombinasyonunu otomatik olarak gönderir. macOS'ta Cmd+Enter, Windows/Linux'ta Super+Enter geçerlidir.",
+        "title": "Otomatik gönder",
+        "description": "Metin eklendikten sonra seçilen tuş bileşimine kendiliğinden basar. macOS'te Cmd+Enter, Windows ve Linux'ta Super+Enter kullanılır.",
         "options": {
           "off": "Kapalı",
           "enter": "Enter",
@@ -349,52 +353,52 @@
         }
       },
       "translateToEnglish": {
-        "label": "İngilizce'ye Çevir",
-        "description": "Transkripsiyon sırasında diğer dillerden İngilizce'ye otomatik olarak çevirir."
+        "label": "İngilizceye çevir",
+        "description": "Başka dillerdeki konuşmayı yazıya dökerken İngilizceye çevirir."
       },
       "modelUnload": {
-        "title": "Modeli Boşalt",
-        "description": "Belirtilen süre boyunca kullanılmadığında modelin GPU/CPU belleğini otomatik olarak serbest bırakır.",
+        "title": "Modeli bellekten çıkar",
+        "description": "Model belirtilen süre boyunca kullanılmazsa GPU ve CPU belleğini boşaltır.",
         "options": {
-          "never": "Asla",
+          "never": "Hiçbir zaman",
           "immediately": "Hemen",
           "min2": "2 dakika sonra",
           "min5": "5 dakika sonra",
           "min10": "10 dakika sonra",
           "min15": "15 dakika sonra",
           "hour1": "1 saat sonra",
-          "sec15": "15 saniye sonra (Debug)"
+          "sec15": "15 saniye sonra (hata ayıklama)"
         }
       },
       "customWords": {
-        "title": "Özel Kelimeler",
-        "description": "Desteklenen modellerin adları ve özel terimleri tanımasına yardımcı olun. Bulanık düzeltme şu anda A–Z harflerini ve rakamları kullanan sözcüklerle sınırlıdır.",
-        "placeholder": "Kelime ekle",
+        "title": "Özel sözcükler",
+        "description": "Desteklenen modellerin özel adları ve terimleri tanımasına yardımcı olun. Benzer sözcükleri düzeltme özelliği şimdilik yalnızca A–Z harfleri ve rakamlardan oluşan sözcüklerde çalışır.",
+        "placeholder": "Sözcük ekleyin",
         "add": "Ekle",
-        "remove": "{{word}} Kaldır",
-        "duplicate": "\"{{word}}\" zaten mevcut"
+        "remove": "{{word}} sözcüğünü kaldır",
+        "duplicate": "\"{{word}}\" zaten listede"
       },
       "voiceActivityDetection": {
-        "title": "Ses Etkinliği Algılama",
-        "description": "Kayıtlardaki sessizliği filtreler. Akış destekli modeller daha uzun bir VAD kuyruğu kullanır; VAD devre dışı bırakıldığında ham ses kaydedilir."
+        "title": "Ses etkinliği algılama",
+        "description": "Kayıtlardaki sessiz bölümleri ayıklar. Canlı yazıya dökmeyi destekleyen modellerde sessizlik payı daha uzun tutulur. Kapalıyken ses olduğu gibi kaydedilir."
       },
       "vadBackend": {
-        "title": "Ses Etkinliği Arka Ucu",
-        "description": "Sessizliği filtrelemek için kullanılan algılayıcıyı seçin. Earshot deneyseldir; konuşma kesiliyorsa veya gürültü korunuyorsa Silero'ya geri dönün.",
+        "title": "Ses etkinliği algılayıcısı",
+        "description": "Sessizliği ayıklamak için kullanılacak algılayıcıyı seçin. Earshot deneyseldir; konuşmanın bir kısmı kesiliyorsa veya gürültü ayıklanmıyorsa Silero'ya dönün.",
         "options": {
           "silero": "Silero",
           "earshot": "Earshot"
         }
       },
       "fillerWordRemoval": {
-        "title": "Dolgu Sözcüklerini Kaldır",
-        "description": "Transkripsiyonlardaki yaygın duraksama sözcüklerini kaldırır. Bunları korumak için kapatın."
+        "title": "Dolgu sözcüklerini kaldır",
+        "description": "Metinden yaygın duraksama sözcüklerini kaldırır. Bunları korumak için kapatın."
       },
       "chineseScript": {
-        "title": "Çince yazı",
-        "description": "Mandarin ve Kantonca transkripsiyonları Basitleştirilmiş veya Geleneksel karakterlerle yazar. Diğer diller değiştirilmez.",
+        "title": "Çince yazı sistemi",
+        "description": "Mandarin ve Kantonca metinleri Basitleştirilmiş ya da Geleneksel karakterlerle yazar. Diğer diller değişmez.",
         "options": {
-          "asTranscribed": "Transkripsiyondaki gibi",
+          "asTranscribed": "Tanındığı gibi",
           "simplified": "Basitleştirilmiş",
           "traditional": "Geleneksel"
         }
@@ -402,7 +406,7 @@
     },
     "postProcessing": {
       "hotkey": {
-        "title": "Kısayol Tuşu"
+        "title": "Kısayol"
       },
       "api": {
         "title": "API",
@@ -411,203 +415,203 @@
           "description": "OpenAI veya Anthropic uyumlu bir sağlayıcı seçin."
         },
         "apiFormat": {
-          "title": "API Biçimi",
+          "title": "API biçimi",
           "description": "Özel uç noktanızın beklediği istek biçimi.",
           "options": {
-            "openai": "OpenAI Uyumlu (Chat Completions)",
+            "openai": "OpenAI uyumlu (Chat Completions)",
             "anthropic": "Anthropic Messages"
           }
         },
         "appleIntelligence": {
-          "unavailable": "Apple Intelligence bu cihazda kullanılamıyor. macOS Tahoe (26.0) veya üzeri ve Sistem Ayarları'nda Apple Intelligence etkin olan bir Apple Silicon Mac gerektirir."
+          "unavailable": "Apple Intelligence bu aygıtta kullanılamıyor. macOS Tahoe (26.0) veya sonraki bir sürümün yüklü olduğu ve Sistem Ayarları'nda Apple Intelligence'ın açık olduğu, Apple Silicon işlemcili bir Mac gerekir."
         },
         "baseUrl": {
           "title": "Temel URL",
-          "description": "Seçili sağlayıcı için API temel URL'si. Yalnızca özel sağlayıcı düzenlenebilir.",
+          "description": "Seçilen sağlayıcının API temel URL'si. Yalnızca özel sağlayıcıda düzenlenebilir.",
           "placeholder": "https://api.openai.com/v1",
           "placeholderAnthropic": "https://api.anthropic.com/v1"
         },
         "apiKey": {
-          "title": "API Anahtarı",
-          "description": "Seçili sağlayıcı için API anahtarı.",
+          "title": "API anahtarı",
+          "description": "Seçilen sağlayıcının API anahtarı.",
           "placeholder": "sk-..."
         },
         "model": {
           "title": "Model",
-          "descriptionCustom": "Özel uç noktanızın beklediği model tanımlayıcısını girin.",
-          "descriptionDefault": "Seçili sağlayıcının sunduğu bir modeli seçin.",
-          "placeholderWithOptions": "Model ara veya seç",
-          "placeholderNoOptions": "Model adı yazın",
-          "refreshModels": "Modelleri Yenile"
+          "descriptionCustom": "Özel uç noktanızın beklediği model kimliğini girin.",
+          "descriptionDefault": "Seçilen sağlayıcının sunduğu modellerden birini seçin.",
+          "placeholderWithOptions": "Model arayın veya seçin",
+          "placeholderNoOptions": "Model adını yazın",
+          "refreshModels": "Modelleri yenile"
         }
       },
       "prompts": {
-        "title": "Prompt",
+        "title": "İstem",
         "selectedPrompt": {
-          "title": "Seçili Prompt",
-          "description": "Transkripsiyonları iyileştirmek için bir şablon seçin veya yeni bir tane oluşturun. Yakalanan transkripte referans vermek için prompt metni içinde ${output} kullanın."
+          "title": "Seçili istem",
+          "description": "Metni iyileştirmek için bir şablon seçin ya da yenisini oluşturun. İstem metninde yazıya dökülen metni belirtmek için ${output} kullanın."
         },
-        "noPrompts": "Kullanılabilir prompt yok",
-        "selectPrompt": "Prompt Seç",
-        "createNew": "Yeni Prompt Oluştur",
-        "promptLabel": "Prompt Etiketi",
-        "promptLabelPlaceholder": "Prompt adı girin",
-        "promptInstructions": "Prompt Talimatları",
-        "promptInstructionsPlaceholder": "Transkripsiyondan sonra çalıştırılacak talimatları yazın. Örnek: Aşağıdaki metnin dilbilgisini ve açıklığını iyileştir: ${output}",
-        "promptTip": "İpucu: Transkribe edilen metni promptunuza eklemek için <code>${output}</code> kullanın.",
-        "updatePrompt": "Promptu Güncelle",
-        "deletePrompt": "Promptu Sil",
-        "createPrompt": "Prompt Oluştur",
+        "noPrompts": "Kayıtlı istem yok",
+        "selectPrompt": "İstem seçin",
+        "createNew": "Yeni istem oluştur",
+        "promptLabel": "İstem adı",
+        "promptLabelPlaceholder": "İstem adını girin",
+        "promptInstructions": "İstem talimatları",
+        "promptInstructionsPlaceholder": "Yazıya dökmeden sonra uygulanacak talimatları yazın. Örnek: Aşağıdaki metnin dil bilgisini ve anlaşılırlığını iyileştir: ${output}",
+        "promptTip": "İpucu: Yazıya dökülen metni isteminize eklemek için <code>${output}</code> kullanın.",
+        "updatePrompt": "İstemi güncelle",
+        "deletePrompt": "İstemi sil",
+        "createPrompt": "İstem oluştur",
         "cancel": "İptal",
-        "selectToEdit": "Ayrıntılarını görüntülemek ve düzenlemek için yukarıdan bir prompt seçin.",
-        "createFirst": "İlk son işlem promptunuzu oluşturmak için yukarıdaki “Yeni Prompt Oluştur” seçeneğine tıklayın."
+        "selectToEdit": "Ayrıntılarını görmek ve düzenlemek için yukarıdan bir istem seçin.",
+        "createFirst": "İlk son işlem isteminizi oluşturmak için yukarıdaki “Yeni istem oluştur” düğmesine tıklayın."
       }
     },
     "history": {
       "title": "Geçmiş",
-      "openFolder": "Kayıtlar Klasörünü Aç",
+      "openFolder": "Kayıt klasörünü aç",
       "loading": "Geçmiş yükleniyor...",
-      "empty": "Henüz transkripsiyon yok. Geçmişinizi oluşturmak için kayda başlayın!",
-      "copyToClipboard": "Transkripsiyonu panoya kopyala",
-      "copyError": "Transkripsiyon panoya kopyalanamadı.",
-      "save": "Transkripsiyonu kaydet",
-      "unsave": "Kaydedilenlerden kaldır",
+      "empty": "Henüz bir şey yazıya dökülmedi. Dikte ettikleriniz burada görünecek.",
+      "copyToClipboard": "Metni panoya kopyala",
+      "copyError": "Metin panoya kopyalanamadı.",
+      "save": "Kaydedilenlere ekle",
+      "unsave": "Kaydedilenlerden çıkar",
       "delete": "Kaydı sil",
-      "deleteError": "Kayıt silinemedi. Lütfen tekrar deneyin.",
-      "retranscribe": "Yeniden transkribe et",
-      "retranscribeError": "Yeniden transkripsiyon başarısız oldu. Lütfen tekrar deneyin.",
-      "transcribing": "Transkribe ediliyor...",
-      "transcriptionFailed": "Transkripsiyon başarısız oldu. Yeniden deneme simgesini kullanarak tekrar transkribe edebilirsiniz."
+      "deleteError": "Kayıt silinemedi. Lütfen yeniden deneyin.",
+      "retranscribe": "Yeniden yazıya dök",
+      "retranscribeError": "Kayıt yeniden yazıya dökülemedi. Lütfen yeniden deneyin.",
+      "transcribing": "Yazıya dökülüyor...",
+      "transcriptionFailed": "Kayıt yazıya dökülemedi. Yeniden denemek için yeniden deneme simgesini kullanabilirsiniz."
     },
     "debug": {
-      "title": "Hata Ayıklama",
+      "title": "Hata ayıklama",
       "logDirectory": {
-        "title": "Log Dizini",
-        "description": "Log dosyalarının saklandığı konum"
+        "title": "Günlük klasörü",
+        "description": "Günlük dosyalarının bulunduğu konum"
       },
       "logLevel": {
-        "title": "Log Seviyesi",
-        "description": "Loglamanın ayrıntı düzeyini ayarla"
+        "title": "Günlük düzeyi",
+        "description": "Günlüklere ne kadar ayrıntı yazılacağını belirleyin"
       },
       "liveLogs": {
-        "title": "Canlı Loglar",
-        "description": "Sorunları log dosyasını açmadan teşhis etmek için uygulama loglarını gerçek zamanlı olarak akıtın. Yalnızca bu panel açıkken oluşturulan loglar gösterilir; yukarıdaki Log Seviyesi ayarına uyar.",
+        "title": "Canlı günlükler",
+        "description": "Sorunları günlük dosyasını açmadan incelemek için uygulama günlüklerini anlık olarak izleyin. Yalnızca bu panel açıkken oluşan kayıtlar gösterilir; yukarıdaki günlük düzeyi ayarı geçerlidir.",
         "live": "Canlı",
         "paused": "Duraklatıldı",
         "pause": "Duraklat",
         "resume": "Sürdür",
         "copied": "Kopyalandı",
         "lineCount": "{{count}} satır",
-        "empty": "Loglar bekleniyor… Uygulama logları ürettikçe girişler burada görünür."
+        "empty": "Günlük bekleniyor… Uygulama kayıt ürettikçe burada görünür."
       },
       "updateChecks": {
-        "label": "Güncellemeleri Kontrol Et",
-        "description": "Elchi'nin yeni sürümlerini otomatik olarak kontrol eder",
-        "lockedDescription": "Sistem yapılandırması tarafından devre dışı bırakıldı (HANDY_DISABLE_UPDATER)"
+        "label": "Güncellemeleri denetle",
+        "description": "Elchi'nin yeni sürümlerini otomatik olarak denetler",
+        "lockedDescription": "Sistem yapılandırmasıyla kapatıldı (HANDY_DISABLE_UPDATER)"
       },
       "soundTheme": {
-        "label": "Ses Teması",
-        "description": "Kayıt başlangıç ve bitişi için sesli geri bildirim temasını seçin"
+        "label": "Ses teması",
+        "description": "Kayıt başlarken ve biterken çalınacak sesleri seçin"
       },
       "wordCorrectionThreshold": {
-        "title": "Kelime Düzeltme Eşiği",
-        "description": "Özel kelime düzeltmeleri için hassasiyet"
+        "title": "Sözcük düzeltme eşiği",
+        "description": "Özel sözcük düzeltmelerinin hassasiyeti"
       },
       "historyLimit": {
-        "title": "Geçmiş Limiti",
-        "description": "Saklanacak maksimum geçmiş kaydı sayısı",
+        "title": "Geçmiş sınırı",
+        "description": "Saklanacak en fazla geçmiş kaydı sayısı",
         "entries": "kayıt"
       },
       "recordingRetention": {
-        "title": "Kayıtları Otomatik Sil",
-        "description": "Alan tasarrufu için eski kayıtları otomatik olarak siler",
-        "never": "Asla",
-        "preserveLimit": "Son {{count}} kaydı tut",
+        "title": "Kayıtları otomatik sil",
+        "description": "Yer açmak için eski ses kayıtlarını otomatik olarak siler",
+        "never": "Hiçbir zaman",
+        "preserveLimit": "Son {{count}} kaydı sakla",
         "days3": "3 gün sonra",
         "weeks2": "2 hafta sonra",
         "months3": "3 ay sonra",
-        "placeholder": "Saklama süresi seçin..."
+        "placeholder": "Saklama süresini seçin..."
       },
       "alwaysOnMicrophone": {
-        "label": "Mikrofon Her Zaman Açık",
-        "description": "Daha hızlı yanıt için mikrofonu aktif tutar"
+        "label": "Mikrofon hep açık",
+        "description": "Daha hızlı tepki için mikrofonu sürekli açık tutar"
       },
       "clamshellMicrophone": {
-        "title": "Kapalı Kapak Mikrofonu",
-        "description": "Dizüstü bilgisayar kapağı kapalıyken kullanılacak mikrofon"
+        "title": "Kapak kapalıyken mikrofon",
+        "description": "Dizüstü bilgisayarın kapağı kapalıyken kullanılacak mikrofon"
       },
       "postProcessingToggle": {
-        "label": "Son İşlem",
-        "description": "Transkripsiyon sonrası yapay zekâ destekli metin iyileştirmeyi etkinleştirir"
+        "label": "Son işlem",
+        "description": "Yazıya dökmeden sonra metni yapay zekâyla iyileştirir"
       },
       "muteWhileRecording": {
-        "label": "Kayıt Sırasında Sessize Al",
-        "description": "Kayıt sırasında sistem sesini kapatır"
+        "label": "Kayıt sırasında sesi kapat",
+        "description": "Kayıt sürerken sistem sesini kapatır"
       },
       "appendTrailingSpace": {
-        "label": "Sonuna Boşluk Ekle",
-        "description": "Yapıştırılan transkripsiyondan sonra boşluk ekler"
+        "label": "Sonuna boşluk ekle",
+        "description": "Yapıştırılan metnin sonuna bir boşluk ekler"
       },
       "keyboardImplementation": {
-        "title": "Klavye Uygulaması",
+        "title": "Klavye altyapısı",
         "description": "Klavye kısayolları için kullanılacak altyapıyı seçin.",
-        "bindingsReset": "Klavye kısayolları uyumsuzdu ve varsayılan ayarlara sıfırlandı"
+        "bindingsReset": "Klavye kısayolları uyumsuz olduğu için varsayılanlara döndürüldü"
       },
       "paths": {
-        "appData": "Uygulama Verileri:",
+        "appData": "Uygulama verileri:",
         "models": "Modeller:",
         "settings": "Ayarlar:"
       },
       "pasteDelay": {
-        "title": "Yapıştırma Gecikmesi (Önce)",
-        "description": "Metin kopyalandıktan sonra, yapıştırma tuşu gönderilmeden önceki gecikme (milisaniye cinsinden). Hiçbir şey yapıştırılmıyorsa artırın."
+        "title": "Yapıştırma gecikmesi (önce)",
+        "description": "Metin kopyalandıktan sonra yapıştırma tuşlarına basılmadan önce beklenecek süre (milisaniye). Hiçbir şey yapıştırılmıyorsa artırın."
       },
       "pasteDelayAfter": {
-        "title": "Yapıştırma Gecikmesi (Sonra)",
-        "description": "Yapıştırma tuşundan sonra, önceki panonuz geri yüklenmeden önceki gecikme (milisaniye cinsinden). Transkripsiyon yerine eski pano içeriği yapıştırılıyorsa artırın."
+        "title": "Yapıştırma gecikmesi (sonra)",
+        "description": "Yapıştırma tuşlarına basıldıktan sonra, panonun önceki içeriği geri yüklenmeden önce beklenecek süre (milisaniye). Yeni metin yerine panonun eski içeriği yapıştırılıyorsa artırın."
       },
       "holdThreshold": {
         "title": "Basılı tutma eşiği",
-        "description": "Yalnızca Otomatik modda: kısayolun dokunma yerine basılı tutma sayılması için ne kadar süre (milisaniye) basılı tutulması gerektiği. Kısa basılı tutmalardan sonra kayıt açık kalmaya devam ediyorsa azaltın; bilinçli dokunmalar basılı tutma olarak algılanıyorsa artırın."
+        "description": "Yalnızca Otomatik modda: kısayolun kısa basış değil basılı tutma sayılması için ne kadar süre (milisaniye) basılı tutulması gerektiği. Kısa süre basılı tuttuktan sonra kayıt açık kalıyorsa azaltın; bilerek yaptığınız kısa basışlar basılı tutma sayılıyorsa artırın."
       },
       "reliablePaste": {
-        "title": "Güvenilir Yapıştırma (Beta)",
-        "description": "Panoyu sabit bir gecikmenin ardından değil, hedef uygulama transkripsiyonu gerçekten okuduktan sonra geri yükler. Sistem yükü altında eski pano içeriğinin yapıştırılması sorununu gidermeyi amaçlar. Pano üzerinden çalışan bir yapıştırma yöntemi gerektirir; yalnızca macOS ve Windows."
+        "title": "Güvenilir yapıştırma (beta)",
+        "description": "Panoyu sabit bir süre beklemek yerine, hedef uygulama metni gerçekten okuduktan sonra geri yükler. Sistem yoğunken panonun eski içeriğinin yapıştırılması sorununu gidermek içindir. Pano kullanan bir yapıştırma yöntemi gerektirir; yalnızca macOS ve Windows'ta çalışır."
       },
       "recordingBuffer": {
-        "title": "Ekstra Kayıt Tamponu",
-        "description": "Tuşu bıraktıktan sonra arka plandaki sesi yakalamak için kaydı sürdürme süresi (milisaniye). 0 = ekstra tampon yok."
+        "title": "Ek kayıt süresi",
+        "description": "Tuşu bıraktıktan sonra son sözcüklerin kesilmemesi için kayda devam edilecek ek süre (milisaniye). 0 = ek süre yok."
       },
       "keyboardDiagnostic": {
-        "title": "Klavye Tanılaması",
-        "description": "Klavye olaylarının Elchi'ye ulaşıp ulaşmadığını denetler. Yalnızca olay sayıları kaydedilir — hangi tuşlara bastığınız asla kaydedilmez.",
-        "run": "10 sn'lik tanılamayı çalıştır",
-        "running": "Dinleniyor… kısayolunuza birkaç kez basın (ör. Option+Space)",
-        "secureInputLabel": "Secure Input",
-        "enabled": "etkin",
-        "disabled": "devre dışı",
-        "holder": "{{name}} tarafından tutuluyor (pid {{pid}})",
-        "holderUnknown": "görünür bir sahip yok",
-        "keyDown": "Tuş basma",
-        "keyUp": "Tuş bırakma",
-        "flagsChanged": "Değiştiriciler",
+        "title": "Klavye tanılaması",
+        "description": "Klavye olaylarının Elchi'ye ulaşıp ulaşmadığını denetler. Yalnızca olay sayıları kaydedilir; hangi tuşlara bastığınız kaydedilmez.",
+        "run": "10 saniyelik tanılamayı başlat",
+        "running": "Dinleniyor… Kısayolunuza birkaç kez basın (ör. Option+Space)",
+        "secureInputLabel": "Güvenli Klavye Girişi",
+        "enabled": "açık",
+        "disabled": "kapalı",
+        "holder": "{{name}} tarafından açık tutuluyor (pid {{pid}})",
+        "holderUnknown": "açık tutan uygulama görünmüyor",
+        "keyDown": "Tuşa basma",
+        "keyUp": "Tuşu bırakma",
+        "flagsChanged": "Değiştirici tuşlar",
         "mouse": "Fare",
-        "verdictBlocked": "Secure Input tuş olaylarını engelliyor — normal tuş içeren kısayollar bu sorun çözülene kadar çalışamaz.",
-        "verdictSuspicious": "Değiştirici olayları geldi ancak hiç tuş olayı gelmedi — Secure Input devre dışı görünmesine rağmen bir şey tuşları bastırıyor. Lütfen bunu GitHub'da bildirin.",
-        "verdictOk": "Tuş olayları Elchi'ye normal şekilde ulaşıyor.",
-        "verdictNoEvents": "Hiç olay yakalanmadı — test sırasında herhangi bir tuşa bastınız mı?",
-        "failed": "Tanılama başarısız: {{error}}"
+        "verdictBlocked": "Güvenli Klavye Girişi tuş olaylarını engelliyor. Bu sorun çözülene kadar normal tuş içeren kısayollar çalışmaz.",
+        "verdictSuspicious": "Değiştirici tuş olayları geldi ama hiç tuş olayı gelmedi. Güvenli Klavye Girişi kapalı görünse de bir şey tuşları engelliyor. Lütfen bunu GitHub'da bildirin.",
+        "verdictOk": "Tuş olayları Elchi'ye sorunsuz ulaşıyor.",
+        "verdictNoEvents": "Hiç olay yakalanmadı. Test sırasında bir tuşa bastınız mı?",
+        "failed": "Tanılama başarısız oldu: {{error}}"
       },
       "whatsNewPreview": {
-        "title": "Yenilikleri Önizle",
-        "description": "En son paketlenmiş sürüm notunu görüldü olarak işaretlemeden aç",
+        "title": "Yenilikleri önizle",
+        "description": "Uygulamayla gelen en son sürüm notunu, görüldü olarak işaretlemeden açar",
         "button": "Önizle",
-        "noNotes": "Paketlenmiş sürüm notu bulunamadı",
+        "noNotes": "Uygulamayla gelen sürüm notu bulunamadı",
         "error": "Sürüm notları önizlenemedi"
       },
       "onboardingPreview": {
         "title": "İlk kurulum önizlemesi",
-        "description": "İzinleri, modelleri veya tamamlanma durumunu değiştirmeden ilk kurulum ekranlarını önizleyin",
+        "description": "İzinleri, modelleri veya kurulumun tamamlanma durumunu değiştirmeden ilk kurulum ekranlarını önizleyin",
         "permissionsButton": "İzinler",
         "modelsButton": "Model seçimi",
         "exitButton": "Önizlemeden çık"
@@ -617,46 +621,46 @@
       "title": "Hakkında",
       "version": {
         "title": "Sürüm",
-        "description": "Elchi'nin mevcut sürümü"
+        "description": "Elchi'nin yüklü sürümü"
       },
       "appDataDirectory": {
-        "title": "Uygulama Veri Dizini",
+        "title": "Uygulama veri klasörü",
         "description": "Elchi'nin verilerini sakladığı konum"
       },
       "acknowledgments": {
         "title": "Teşekkürler",
         "handy": {
           "title": "Handy",
-          "description": "Elchi'nin üzerine kurulduğu açık kaynaklı dikte uygulaması",
-          "details": "Elchi, CJ Pais ve katkıda bulunanların geliştirdiği, MIT lisansıyla yayımlanan Handy'ye dayanır. Açık kaynak olarak paylaştıkları için teşekkür ederiz.",
+          "description": "Elchi'nin temel aldığı açık kaynaklı dikte uygulaması",
+          "details": "Elchi, CJ Pais ve katkıda bulunanların geliştirdiği, MIT lisansıyla yayımlanan Handy'yi temel alır. Açık kaynak olarak paylaştıkları için teşekkür ederiz.",
           "button": "GitHub'da görüntüle"
         },
         "ggml": {
-          "title": "ggml",
-          "description": "Cihaz üzerinde makine öğrenmesi çıkarımı için yüksek performanslı tensör kütüphanesi",
-          "details": "Elchi'nin yerel konuşmadan metne dönüştürme özelliği transcribe.cpp ve ggml üzerine kuruludur. Georgi Gerganov'a ve katkıda bulunanlara harika çalışmaları için teşekkür ederiz."
+          "title": "ONNX Runtime",
+          "description": "Makine öğrenmesi modellerini cihaz üzerinde çalıştıran yüksek başarımlı çıkarım motoru",
+          "details": "Duyu-small bu bilgisayarda ONNX Runtime ile çalışır. Microsoft'a ve ONNX Runtime'a katkıda bulunanlara teşekkür ederiz."
         }
       },
       "whatsNewUpdates": {
-        "label": "Yenilikleri Göster",
-        "description": "Elchi güncellendikten sonra sürüm notlarını göster"
+        "label": "Yenilikleri göster",
+        "description": "Elchi güncellendikten sonra sürüm notlarını gösterir"
       }
     }
   },
   "footer": {
-    "checkingUpdates": "Güncellemeler kontrol ediliyor...",
-    "updateAvailableShort": "Güncelleme mevcut",
+    "checkingUpdates": "Güncellemeler denetleniyor...",
+    "updateAvailableShort": "Güncelleme var",
     "upToDate": "Güncel",
-    "updateCheckingDisabled": "Güncelleme Kontrolü Devre Dışı",
+    "updateCheckingDisabled": "Güncelleme denetimi kapalı",
     "downloading": "İndiriliyor... %{{progress}}",
-    "installing": "Yükleniyor...",
+    "installing": "Kuruluyor...",
     "preparing": "Hazırlanıyor...",
-    "checkForUpdates": "Güncellemeleri kontrol et",
-    "portableUpdateTitle": "Manuel güncelleme gerekli",
-    "portableUpdateMessage": "Taşınabilir kurulumlar otomatik olarak güncellenemez. Aşağıdan sisteminize uygun yükleyiciyi indirin, çalıştırın ve aynı klasöre kurun — Data/ klasörünüz (ayarlar, modeller, kayıtlar) yerinde kalır.",
+    "checkForUpdates": "Güncellemeleri denetle",
+    "portableUpdateTitle": "Elle güncelleme gerekiyor",
+    "portableUpdateMessage": "Taşınabilir sürüm kendiliğinden güncellenemez. Aşağıdan sisteminize uygun yükleyiciyi indirip çalıştırın ve aynı klasöre kurun. Data/ klasörünüz (ayarlar, modeller, kayıtlar) olduğu gibi kalır.",
     "portableUpdateButton": "Yükleyiciyi indir",
-    "portableUpdateBrowseMessage": "Taşınabilir kurulumlar otomatik olarak güncellenemez. Sisteminize uygun en son sürümü GitHub Releases’ten indirin ve aynı klasöre kurun — Data/ klasörünüz (ayarlar, modeller, kayıtlar) yerinde kalır.",
-    "portableUpdateBrowseButton": "GitHub Releases’i aç"
+    "portableUpdateBrowseMessage": "Taşınabilir sürüm kendiliğinden güncellenemez. Sisteminize uygun son sürümü speech.patientdesk.ai/elchi adresinden indirip aynı klasöre kurun. Data/ klasörünüz (ayarlar, modeller, kayıtlar) olduğu gibi kalır.",
+    "portableUpdateBrowseButton": "İndirme sayfasını aç"
   },
   "common": {
     "loading": "Yükleniyor...",
@@ -665,37 +669,42 @@
     "open": "Aç",
     "copy": "Kopyala",
     "clear": "Temizle",
-    "noOptionsFound": "Seçenek bulunamadı"
+    "noOptionsFound": "Seçenek bulunamadı",
+    "unknownError": "Bilinmeyen hata",
+    "moreInformation": "Daha fazla bilgi",
+    "copyToClipboard": "Panoya kopyala",
+    "previewSoundTheme": "Ses temasını dinle (önce başlangıç, sonra bitiş)",
+    "selectOption": "Bir seçenek belirleyin…"
   },
   "accessibility": {
-    "permissionsDescription": "Elchi, yazıya dökülen metni yazabilmek için erişilebilirlik iznine ihtiyaç duyar.",
-    "openSettings": "Sistem Ayarlarını Aç"
+    "permissionsDescription": "Elchi'nin yazıya döktüğü metni yazabilmesi için Erişilebilirlik izni gerekiyor.",
+    "openSettings": "Sistem Ayarları'nı aç"
   },
   "errors": {
-    "loadDirectory": "Dizin yüklenirken hata oluştu: {{error}}",
+    "loadDirectory": "Klasör yüklenemedi: {{error}}",
     "micPermissionDeniedTitle": "Mikrofon erişimi reddedildi",
     "micPermissionDenied": {
-      "generic": "Mikrofon erişimi işletim sistemi tarafından reddedildi. Lütfen sistem ayarlarından mikrofon iznini verin.",
-      "windows": "Ayarlar → Gizlilik ve güvenlik → Mikrofon (masaüstü uygulama erişimi dahil) bölümünden mikrofon erişimini etkinleştirin.",
-      "macos": "Sistem Ayarları → Gizlilik ve Güvenlik → Mikrofon bölümünden mikrofon erişimini verin.",
-      "linux": "Sisteminizin ses veya gizlilik ayarlarından mikrofon erişimini verin."
+      "generic": "İşletim sistemi mikrofon erişimini reddetti. Lütfen sistem ayarlarından mikrofon izni verin.",
+      "windows": "Ayarlar → Gizlilik ve güvenlik → Mikrofon bölümünden mikrofon erişimini açın (masaüstü uygulamalarının erişimi dahil).",
+      "macos": "Sistem Ayarları → Gizlilik ve Güvenlik → Mikrofon bölümünden Elchi'ye mikrofon erişimi verin.",
+      "linux": "Sisteminizin ses veya gizlilik ayarlarından mikrofon erişimi verin."
     },
     "noInputDeviceTitle": "Mikrofon bulunamadı",
-    "noInputDevice": "Ses giriş aygıtı algılanamadı. Lütfen bir mikrofon veya kulaklık bağlayın ve tekrar deneyin.",
+    "noInputDevice": "Ses giriş aygıtı bulunamadı. Lütfen bir mikrofon veya kulaklık bağlayıp yeniden deneyin.",
     "recordingFailed": "Kayıt başlatılamadı: {{error}}",
     "modelLoadFailed": "Model yüklenemedi: {{model}}",
     "modelLoadFailedUnknown": "bilinmeyen model",
     "pasteFailedTitle": "Metin yapıştırılamadı",
     "pasteFailed": "Metin etkin uygulamaya yapıştırılamadı.",
-    "transcriptionFailedTitle": "Transkripsiyon başarısız oldu"
+    "transcriptionFailedTitle": "Kayıt yazıya dökülemedi"
   },
   "appLanguage": {
-    "title": "Uygulama Dili",
+    "title": "Uygulama dili",
     "description": "Elchi arayüzünün dilini değiştirin"
   },
   "theme": {
-    "title": "Uygulama Teması",
-    "description": "Elchi'nin sistem temasına uymasını ya da hep açık veya koyu kalmasını seçin",
+    "title": "Uygulama teması",
+    "description": "Elchi'nin görünümünü seçin: sistemle aynı, açık veya koyu",
     "options": {
       "system": "Sistem",
       "light": "Açık",
@@ -703,47 +712,47 @@
     }
   },
   "overlay": {
-    "transcribing": "Transkribe ediliyor...",
+    "transcribing": "Yazıya dökülüyor...",
     "processing": "İşleniyor...",
     "loadingModel": "Model yükleniyor..."
   },
   "whatsNew": {
-    "title": "Elchi v{{version}} yenilikleri"
+    "title": "Elchi {{version}} sürümündeki yenilikler"
   },
   "secureInput": {
-    "blockedWithCulprit_one": "{{name}} 1 kısayolu engelliyor olabilir",
-    "blockedWithCulprit_other": "{{name}} {{count}} kısayolu engelliyor olabilir",
-    "blockedNoCulprit_one": "macOS geçici olarak 1 kısayolu engelliyor",
-    "blockedNoCulprit_other": "macOS geçici olarak {{count}} kısayolu engelliyor",
-    "recorderBlockedWithCulprit": "{{name}} kısayol değişikliklerini engelliyor olabilir",
-    "recorderBlockedNoCulprit": "macOS geçici olarak kısayol değişikliklerini engelliyor",
-    "learnMore": "Bu nasıl düzeltilir",
-    "recorderBlocked": "Şu anda kısayol kaydedilemiyor — macOS Secure Input tuş olaylarını engelliyor. Önce Secure Input uyarısını giderin.",
+    "blockedWithCulprit_one": "{{name}} uygulaması 1 kısayolu engelliyor olabilir",
+    "blockedWithCulprit_other": "{{name}} uygulaması {{count}} kısayolu engelliyor olabilir",
+    "blockedNoCulprit_one": "macOS 1 kısayolu geçici olarak engelliyor",
+    "blockedNoCulprit_other": "macOS {{count}} kısayolu geçici olarak engelliyor",
+    "recorderBlockedWithCulprit": "{{name}} uygulaması kısayol değişikliklerini engelliyor olabilir",
+    "recorderBlockedNoCulprit": "macOS kısayol değişikliklerini geçici olarak engelliyor",
+    "learnMore": "Nasıl düzeltilir?",
+    "recorderBlocked": "Şu anda kısayol kaydedilemiyor: macOS'in Güvenli Klavye Girişi özelliği tuş olaylarını engelliyor. Önce Güvenli Klavye Girişi uyarısını giderin.",
     "dismiss": "Kapat"
   },
   "elchiPro": {
     "cta": "Elchi Pro'ya geç",
     "pricePerMonth": "Aylık {{price}}",
-    "freeMonth": "İlk ay ücretsiz, kart gerekmez",
+    "freeMonth": "İlk ay ücretsiz, kart bilgisi gerekmez",
     "upgradeFailed": "Tarayıcı açılamadı. speech.patientdesk.ai/elchi adresinden devam edebilirsiniz.",
     "card": {
       "eyebrow": "Duyu Pro",
       "title": "Tam modelimiz: Duyu Pro",
-      "detail": "Duyu Pro, Duyu-small'un büyük kardeşi. Hızlı konuşmada, isimlerde ve sayılarda daha az hata yapar.",
+      "detail": "Duyu Pro, Duyu-small'un daha büyük sürümüdür. Hızlı konuşmada, isimlerde ve sayılarda daha az hata yapar.",
       "trialTitle_one": "Duyu Pro denemesi: {{count}} gün kaldı",
       "trialTitle_other": "Duyu Pro denemesi: {{count}} gün kaldı",
-      "proTitle": "Elchi Pro açık",
+      "proTitle": "Elchi Pro etkin",
       "proDetail": "Kayıtlarınız Duyu Pro ile yazıya dökülüyor. Aboneliğiniz {{date}} tarihine kadar geçerli.",
-      "freeTitle": "Duyu Pro denemeniz bitti",
-      "freeDetail": "Elchi şimdi bu bilgisayarda Duyu-small ile çalışıyor: ücretsiz ve sınırsız. Duyu Pro'ya dönmek için Elchi Pro'ya geçin.",
+      "freeTitle": "Duyu Pro denemeniz sona erdi",
+      "freeDetail": "Elchi artık bu bilgisayarda Duyu-small ile çalışıyor: ücretsiz ve sınırsız. Duyu Pro'yu yeniden kullanmak için Elchi Pro'ya geçin.",
       "useCloud": "Duyu Pro'yu kullan",
-      "useCloudDescription": "Açıkken kayıtlar PatientDesk AI sunucularında Duyu Pro ile yazıya dökülür; kapalıyken bu bilgisayarda Duyu-small ile."
+      "useCloudDescription": "Açıkken kayıtlarınız PatientDesk AI sunucularında Duyu Pro ile, kapalıyken bu bilgisayarda Duyu-small ile yazıya dökülür."
     },
     "banner": {
-      "trial_one": "Duyu Pro denemeniz: {{count}} gün kaldı.",
-      "trial_other": "Duyu Pro denemeniz: {{count}} gün kaldı.",
-      "ended": "Duyu Pro denemeniz bitti.",
-      "endedDetail": "Elchi artık Duyu-small ile çalışıyor. Elchi Pro'ya geçin: ilk ay ücretsiz, kart gerekmez.",
+      "trial_one": "Duyu Pro denemenizin bitmesine {{count}} gün kaldı.",
+      "trial_other": "Duyu Pro denemenizin bitmesine {{count}} gün kaldı.",
+      "ended": "Duyu Pro denemeniz sona erdi.",
+      "endedDetail": "Elchi artık Duyu-small ile çalışıyor. Elchi Pro'ya geçin: ilk ay ücretsiz, kart bilgisi gerekmez.",
       "dismiss": "Kapat"
     }
   }

@@ -158,7 +158,9 @@ function App() {
         });
       } else {
         toast.error(
-          t("errors.recordingFailed", { error: detail ?? "Unknown error" }),
+          t("errors.recordingFailed", {
+            error: detail ?? t("common.unknownError"),
+          }),
         );
       }
     });

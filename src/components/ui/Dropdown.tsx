@@ -25,7 +25,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
   onSelect,
   className = "",
   menuClassName,
-  placeholder = "Select an option...",
+  placeholder,
   disabled = false,
   onOpen,
 }) => {
@@ -73,7 +73,9 @@ export const Dropdown: React.FC<DropdownProps> = ({
         onClick={handleToggle}
         disabled={disabled}
       >
-        <span className="truncate">{selectedOption?.label || placeholder}</span>
+        <span className="truncate">
+          {selectedOption?.label || placeholder || t("common.selectOption")}
+        </span>
         <svg
           className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "transform rotate-180" : ""}`}
           fill="none"

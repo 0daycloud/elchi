@@ -83,14 +83,23 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   }, [isOpen]);
 
   const availableLanguages = useMemo(() => {
-    if (!supportedLanguages || supportedLanguages.length === 0)
-      return LANGUAGES;
-    return LANGUAGES.filter((lang) =>
-      lang.value === "auto"
-        ? supportsLanguageDetection
-        : supportsLanguageCode(supportedLanguages, lang.value),
-    );
-  }, [supportedLanguages, supportsLanguageDetection]);
+    const list =
+      !supportedLanguages || supportedLanguages.length === 0
+        ? LANGUAGES
+        : LANGUAGES.filter((lang) =>
+            lang.value === "auto"
+              ? supportsLanguageDetection
+              : supportsLanguageCode(supportedLanguages, lang.value),
+          );
+    // Names in the interface language ("Türkçe"), "auto" from translations.
+    return list.map((lang) => ({
+      ...lang,
+      label:
+        lang.value === "auto"
+          ? t("settings.general.language.auto")
+          : (getLanguageLabel(lang.value) ?? lang.label),
+    }));
+  }, [supportedLanguages, supportsLanguageDetection, t]);
 
   const filteredLanguages = useMemo(
     () =>
