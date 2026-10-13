@@ -74,6 +74,8 @@ export const SECTIONS_CONFIG = {
 interface AppHeaderProps {
   activeSection: SidebarSection;
   onSectionChange: (section: SidebarSection) => void;
+  /** Back to the home feed (the wordmark). */
+  onHome?: () => void;
 }
 
 /** The Çini tile behind the header: eight-point stars with a coral eye. */
@@ -148,6 +150,7 @@ const PlanBadge: React.FC = () => {
 export const AppHeader: React.FC<AppHeaderProps> = ({
   activeSection,
   onSectionChange,
+  onHome,
 }) => {
   const { t } = useTranslation();
   const { settings } = useSettings();
@@ -160,7 +163,18 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     <header className="relative shrink-0 bg-header text-on-header overflow-hidden">
       <TilePattern />
       <div className="relative flex items-center gap-3 px-6 pt-4">
-        <ElchiLogo size={22} color="var(--color-on-header)" />
+        <button
+          type="button"
+          onClick={onHome}
+          title={t("home.home")}
+          aria-label={t("home.home")}
+          className="inline-flex items-center gap-2 rounded-lg -ml-1 px-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-on-header"
+        >
+          <span aria-hidden="true" className="text-lg leading-none">
+            ←
+          </span>
+          <ElchiLogo size={22} color="var(--color-on-header)" />
+        </button>
         <div className="flex-1" />
         <PlanBadge />
       </div>

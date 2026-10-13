@@ -20,6 +20,7 @@ import SecureInputWarning from "./components/SecureInputWarning";
 import Footer from "./components/footer";
 import Onboarding, { AccessibilityOnboarding } from "./components/onboarding";
 import WelcomeTour from "./components/onboarding/WelcomeTour";
+import { HomeFeed } from "./components/home/HomeFeed";
 import {
   DebugSettings,
   type OnboardingPreviewStep,
@@ -66,7 +67,13 @@ function App() {
   // (vs a new user who needs full onboarding including model selection)
   const [isReturningUser, setIsReturningUser] = useState(false);
   const [currentSection, setCurrentSection] =
-    useState<SidebarSection>("summary");
+    useState<SidebarSection>("general");
+  // Elchi opens on its home feed; the gear there opens these settings.
+  const [view, setView] = useState<"home" | "settings">("home");
+  const openSettings = (section?: SidebarSection) => {
+    if (section) setCurrentSection(section);
+    setView("settings");
+  };
   const { settings, updateSetting } = useSettings();
   const direction = getLanguageDirection(i18n.language);
   const refreshAudioDevices = useSettingsStore(
@@ -390,6 +397,15 @@ function App() {
     content = <Onboarding onModelSelected={handleModelSelected} />;
   } else if (onboardingStep === "welcome") {
     content = <WelcomeTour onDone={() => setOnboardingStep("done")} />;
+  } else if (view === "home") {
+    content = (
+      <div dir={direction}>
+        <ErrorBoundary context="What's New">
+          <WhatsNewGate />
+        </ErrorBoundary>
+        <HomeFeed onOpenSettings={openSettings} />
+      </div>
+    );
   } else {
     content = (
       <div
@@ -402,6 +418,7 @@ function App() {
         <AppHeader
           activeSection={currentSection}
           onSectionChange={setCurrentSection}
+          onHome={() => setView("home")}
         />
         {/* Main content area that takes remaining space */}
         <div className="flex-1 flex overflow-hidden">
