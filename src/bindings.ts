@@ -1047,7 +1047,11 @@ export type EngineType =
  * Voxtral, Qwen3-ASR, Nemotron, …). The architecture is auto-detected from
  * the file, so this one variant covers the whole transcribe-cpp family.
  */
-"TranscribeCpp" | "Parakeet" | "Moonshine" | "MoonshineStreaming" | "SenseVoice" | "GigaAM" | "Canary" | "Cohere"
+"TranscribeCpp" | "Parakeet" | "Moonshine" | "MoonshineStreaming" | "SenseVoice" | "GigaAM" | "Canary" | "Cohere" | 
+/**
+ * Duyu-small, Elchi's Turkish + English recognizer (crate::duyu).
+ */
+"Duyu"
 export type GpuDeviceOption = { id: string; name: string; total_vram_mb: number }
 export type HistoryEntry = { id: number; file_name: string; timestamp: number; saved: boolean; title: string; transcription_text: string; post_processed_text: string | null; post_process_prompt: string | null; post_process_requested: boolean }
 export type HistoryUpdatePayload = { action: "added"; entry: HistoryEntry } | { action: "updated"; entry: HistoryEntry } | { action: "deleted"; id: number } | { action: "toggled"; id: number }
@@ -1089,6 +1093,13 @@ sha256: string | null } } |
  */
 { HuggingFace: { repo_id: string; revision: string } } | 
 /**
+ * A model that is a directory of files in a Hugging Face repo, fetched
+ * file by file at a pinned revision into `<models_dir>/<filename>/`
+ * (the model is `is_directory`, so on-disk resolution and delete use the
+ * directory paths).
+ */
+{ HuggingFaceDir: { repo_id: string; revision: string; files: RemoteFile[] } } | 
+/**
  * Already present on disk — a user-provided custom model, or one discovered
  * in a shared cache. Nothing to download.
  */
@@ -1121,6 +1132,11 @@ export type PostProcessApiFormat =
 "anthropic"
 export type PostProcessProvider = { id: string; label: string; base_url: string; allow_base_url_edit?: boolean; models_endpoint?: string | null; supports_structured_output?: boolean; api_format?: PostProcessApiFormat }
 export type RecordingRetentionPeriod = "never" | "preserve_limit" | "days_3" | "weeks_2" | "months_3"
+/**
+ * One file of a multi-file model in a Hugging Face repo, pinned by size and
+ * SHA-256.
+ */
+export type RemoteFile = { path: string; size_bytes: number; sha256: string }
 export type SecretMap = Partial<{ [key in string]: string }>
 export type SecureInputStatus = { 
 /**

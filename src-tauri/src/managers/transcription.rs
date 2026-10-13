@@ -191,6 +191,7 @@ enum OnnxEngine {
     GigaAM(GigaAMModel),
     Canary(CanaryModel),
     Cohere(CohereModel),
+    Duyu(Box<crate::duyu::DuyuModel>),
 }
 
 /// RAII guard that clears the `is_loading` flag and notifies waiters on drop.
@@ -740,6 +741,14 @@ impl TranscriptionManager {
                     anyhow::anyhow!(error_msg)
                 })?;
                 Some(OnnxEngine::Cohere(engine))
+            }
+            EngineType::Duyu => {
+                let engine = crate::duyu::DuyuModel::load(&model_path, "int8").map_err(|e| {
+                    let error_msg = format!("Failed to load Duyu model {}: {:#}", model_id, e);
+                    emit_loading_failed(&error_msg);
+                    anyhow::anyhow!(error_msg)
+                })?;
+                Some(OnnxEngine::Duyu(Box::new(engine)))
             }
         };
 
@@ -1452,6 +1461,21 @@ impl TranscriptionManager {
                         .transcribe(audio, &options)
                         .map(|r| r.text)
                         .map_err(|e| anyhow::anyhow!("Cohere transcription failed: {}", e))
+                }
+                OnnxEngine::Duyu(duyu_engine) => {
+                    // "auto" is Duyu's <mix> prompt: it writes whatever is
+                    // spoken, Turkish and English in one sentence.
+                    let lang = match validated_language {
+                        "tr" => crate::duyu::LangPrompt::Tr,
+                        "en" => crate::duyu::LangPrompt::En,
+                        _ => crate::duyu::LangPrompt::Mix,
+                    };
+                    if matches!(validated_language, "tr" | "en") {
+                        applied_language_hint = Some(validated_language.to_string());
+                    }
+                    duyu_engine
+                        .transcribe(audio, lang)
+                        .map_err(|e| anyhow::anyhow!("Duyu transcription failed: {:#}", e))
                 }
             }
         }));

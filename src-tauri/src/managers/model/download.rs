@@ -156,6 +156,51 @@ impl ModelManager {
         .await
     }
 
+    /// [`Self::download_http_resumable`] for one file of a multi-file model:
+    /// progress is reported against the whole model (`done` of `total` bytes
+    /// already fetched), so the UI shows one bar rather than one per file.
+    /// Per-file verification is silent; it is quick next to the transfer.
+    #[allow(clippy::too_many_arguments)]
+    pub(super) async fn download_http_resumable_part(
+        &self,
+        model_id: &str,
+        url: &str,
+        partial_path: &Path,
+        size: u64,
+        sha256: &str,
+        (done, total): (u64, u64),
+        cancel_token: &CancellationToken,
+    ) -> Result<HttpDownloadOutcome> {
+        let app_handle = self.app_handle.clone();
+        Self::download_http_resumable_with_events(
+            model_id,
+            url,
+            partial_path,
+            Some(size),
+            Some(sha256),
+            cancel_token,
+            &move |event| {
+                if let HttpDownloadEvent::Progress(p) = event {
+                    let downloaded = done + p.downloaded;
+                    let _ = app_handle.emit(
+                        "model-download-progress",
+                        &DownloadProgress {
+                            model_id: p.model_id.clone(),
+                            downloaded,
+                            total,
+                            percentage: if total > 0 {
+                                downloaded as f64 / total as f64 * 100.0
+                            } else {
+                                0.0
+                            },
+                        },
+                    );
+                }
+            },
+        )
+        .await
+    }
+
     /// The one resumable HTTP downloader, shared by the mirror fallback and
     /// URL-sourced models: fetch `url` into `partial_path`, resuming what's
     /// already there, and leave verified bytes in `partial_path` on success —

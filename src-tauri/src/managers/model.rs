@@ -23,6 +23,9 @@ mod download;
 
 use download::{HttpDownloadOutcome, DOWNLOAD_STALL_TIMEOUT};
 
+/// Elchi's default model.
+pub const DUYU_MODEL_ID: &str = "duyu-small";
+
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub enum EngineType {
     /// Any GGML/GGUF model loaded through transcribe-cpp (Whisper, Parakeet,
@@ -36,6 +39,17 @@ pub enum EngineType {
     GigaAM,
     Canary,
     Cohere,
+    /// Duyu-small, Elchi's Turkish + English recognizer (crate::duyu).
+    Duyu,
+}
+
+/// One file of a multi-file model in a Hugging Face repo, pinned by size and
+/// SHA-256.
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct RemoteFile {
+    pub path: String,
+    pub size_bytes: u64,
+    pub sha256: String,
 }
 
 /// Where a model comes from and how Handy obtains it — the routing discriminant
@@ -52,6 +66,15 @@ pub enum ModelSource {
     /// HF cache (so other tools reuse it). The file within the repo is
     /// [`ModelInfo::filename`].
     HuggingFace { repo_id: String, revision: String },
+    /// A model that is a directory of files in a Hugging Face repo, fetched
+    /// file by file at a pinned revision into `<models_dir>/<filename>/`
+    /// (the model is `is_directory`, so on-disk resolution and delete use the
+    /// directory paths).
+    HuggingFaceDir {
+        repo_id: String,
+        revision: String,
+        files: Vec<RemoteFile>,
+    },
     /// Already present on disk — a user-provided custom model, or one discovered
     /// in a shared cache. Nothing to download.
     Local,
@@ -182,6 +205,7 @@ pub struct ModelDescriptor {
     /// Whether this is part of the small curated set shown to new users in
     /// onboarding (and badged "Recommended"). A model can be ranked for ordering
     /// without being in this set.
+    #[allow(dead_code)] // Elchi recommends only Duyu-small; see render_model_info.
     pub recommended: bool,
 }
 
@@ -246,7 +270,9 @@ impl ModelDescriptor {
             accuracy_score: self.accuracy_score,
             speed_score: self.speed_score,
             supports_translation: self.caps.supports_translation.unwrap_or(false),
-            is_recommended: self.recommended && is_default,
+            // Elchi recommends only its own Duyu-small; catalog models stay
+            // available but unbadged.
+            is_recommended: false,
             supports_language_selection: languages.len() > 1,
             supported_languages: languages,
             // Catalog models are always HF-sourced downloads, never user-dropped
@@ -806,7 +832,7 @@ impl ModelManager {
                 accuracy_score: 0.80,
                 speed_score: 0.85,
                 supports_translation: false,
-                is_recommended: true,
+                is_recommended: false,
                 supported_languages: parakeet_v3_languages,
                 supports_language_selection: false,
                 is_custom: false,
@@ -978,6 +1004,89 @@ impl ModelManager {
                 supports_translation: false,
                 is_recommended: false,
                 supported_languages: sense_voice_languages,
+                supports_language_selection: true,
+                is_custom: false,
+                supports_streaming: false,
+                supports_language_detection: true,
+            },
+        );
+
+        // Duyu-small: Elchi's own Turkish + English model, the default.
+        // int8 graphs at a pinned revision of the Hugging Face repo.
+        let duyu_files = [
+            (
+                "engine.json",
+                540,
+                "66a661f4234fadac70d6e7910fd700be6307f2c2691563ff75553bb3c357b7dc",
+            ),
+            (
+                "spm.model",
+                30775,
+                "3e2367ec7844d3ea222819bcb51a48068ae0169ef15e6b32d6cc57054b6e1205",
+            ),
+            (
+                "fbank.npz",
+                84344,
+                "6d4f916ae5e170a56f73fc95f8f63b02e1d73c81b62cfd823609da9603bc7ad6",
+            ),
+            (
+                "passes.npz",
+                3600,
+                "feacbb3296889a175d274d0e7e5f7fcb019811d51e083ce8f6209e03af0115a2",
+            ),
+            (
+                "int8/encoder_pre.onnx",
+                1288378,
+                "4953211efcf5ac624be5a78f7d5a8871355c0e0c5c78c7b4de554730c023274c",
+            ),
+            (
+                "int8/encoder_pass.onnx",
+                47593016,
+                "2a43a3bd75ee7da8796f9c41e5b41a00f7a9518907f65c210ca9a76f2eff22bd",
+            ),
+            (
+                "int8/encoder_post.onnx",
+                533747,
+                "c0600b87e63596f60140c84c64836b9b40db9f3d10add2aab2067bb338b2bd03",
+            ),
+            (
+                "int8/decoder.onnx",
+                6417328,
+                "d580c32ccfaeaf45439f8eaff6908181b3568d818a3b6c12658545ce0364cab6",
+            ),
+        ]
+        .into_iter()
+        .map(|(path, size_bytes, sha256)| RemoteFile {
+            path: path.to_string(),
+            size_bytes,
+            sha256: sha256.to_string(),
+        })
+        .collect::<Vec<_>>();
+        let duyu_size_mb = duyu_files.iter().map(|f| f.size_bytes).sum::<u64>() / 1_000_000;
+        available_models.insert(
+            DUYU_MODEL_ID.to_string(),
+            ModelInfo {
+                id: DUYU_MODEL_ID.to_string(),
+                name: "Duyu-small".to_string(),
+                description: "Turkish and English, mixed freely. Cased and punctuated. Runs on this computer."
+                    .to_string(),
+                filename: "duyu-small-int8".to_string(),
+                source: ModelSource::HuggingFaceDir {
+                    repo_id: "KaanAydinli/Duyu-small".to_string(),
+                    revision: "5b7f76972cd82ae6c2d66ec8e8c7b6782d5c8803".to_string(),
+                    files: duyu_files,
+                },
+                size_mb: duyu_size_mb,
+                is_downloaded: false,
+                is_downloading: false,
+                partial_size: 0,
+                is_directory: true,
+                engine_type: EngineType::Duyu,
+                accuracy_score: 0.85,
+                speed_score: 0.95,
+                supports_translation: false,
+                is_recommended: true,
+                supported_languages: vec!["tr".to_string(), "en".to_string()],
                 supports_language_selection: true,
                 is_custom: false,
                 supports_streaming: false,
@@ -1190,9 +1299,11 @@ impl ModelManager {
         // priority), then any other recommended model, then by accuracy, speed,
         // and name. `ModelInfo` doesn't carry rank, so resolve it by id from the
         // catalog here.
+        // Duyu-small, Elchi's own model, always leads.
         list.sort_by(|a, b| {
-            crate::catalog::rank_of(&a.id)
-                .cmp(&crate::catalog::rank_of(&b.id))
+            (a.id != DUYU_MODEL_ID)
+                .cmp(&(b.id != DUYU_MODEL_ID))
+                .then(crate::catalog::rank_of(&a.id).cmp(&crate::catalog::rank_of(&b.id)))
                 .then((!a.is_recommended).cmp(&(!b.is_recommended)))
                 .then(b.accuracy_score.total_cmp(&a.accuracy_score))
                 .then(b.speed_score.total_cmp(&a.speed_score))
@@ -2219,6 +2330,108 @@ impl ModelManager {
         }
     }
 
+    /// Fetches every file of a [`ModelSource::HuggingFaceDir`] model into a
+    /// staging directory, verifying each against its pinned size and SHA-256,
+    /// then moves the directory into place. Files finished on an earlier
+    /// attempt are kept, so a cancelled or failed download resumes.
+    async fn download_hf_dir(
+        &self,
+        model_info: &ModelInfo,
+        repo_id: &str,
+        revision: &str,
+        files: &[RemoteFile],
+    ) -> Result<()> {
+        let model_id = model_info.id.clone();
+        let final_dir = self.models_dir.join(&model_info.filename);
+        if final_dir.is_dir() {
+            self.update_download_status()?;
+            return Ok(());
+        }
+        let staging = self
+            .models_dir
+            .join(format!("{}.downloading", &model_info.filename));
+        fs::create_dir_all(&staging)?;
+
+        {
+            let mut models = self.available_models.lock().unwrap();
+            if let Some(model) = models.get_mut(&model_id) {
+                model.is_downloading = true;
+            }
+        }
+        let cancel_token = CancellationToken::new();
+        self.cancel_flags
+            .lock()
+            .unwrap()
+            .insert(model_id.clone(), cancel_token.clone());
+        let mut cleanup = DownloadCleanup {
+            available_models: &self.available_models,
+            cancel_flags: &self.cancel_flags,
+            model_id: model_id.clone(),
+            disarmed: false,
+        };
+
+        let total: u64 = files.iter().map(|f| f.size_bytes).sum();
+        let mut done = 0u64;
+        for file in files {
+            let dest = staging.join(&file.path);
+            if dest.exists() {
+                done += file.size_bytes;
+                continue;
+            }
+            if let Some(parent) = dest.parent() {
+                fs::create_dir_all(parent)?;
+            }
+            let partial = PathBuf::from(format!("{}.partial", dest.display()));
+            let url = format!(
+                "https://huggingface.co/{}/resolve/{}/{}",
+                repo_id, revision, file.path
+            );
+            match self
+                .download_http_resumable_part(
+                    &model_id,
+                    &url,
+                    &partial,
+                    file.size_bytes,
+                    &file.sha256,
+                    (done, total),
+                    &cancel_token,
+                )
+                .await?
+            {
+                HttpDownloadOutcome::Cancelled => {
+                    info!("Download cancelled for: {}", model_id);
+                    return Ok(());
+                }
+                HttpDownloadOutcome::Completed => {
+                    fs::rename(&partial, &dest)?;
+                    done += file.size_bytes;
+                }
+            }
+        }
+
+        if final_dir.exists() {
+            fs::remove_dir_all(&final_dir)?;
+        }
+        fs::rename(&staging, &final_dir)?;
+
+        cleanup.disarmed = true;
+        {
+            let mut models = self.available_models.lock().unwrap();
+            if let Some(model) = models.get_mut(&model_id) {
+                model.is_downloading = false;
+                model.is_downloaded = true;
+                model.partial_size = 0;
+            }
+        }
+        self.cancel_flags.lock().unwrap().remove(&model_id);
+        let _ = self.app_handle.emit("model-download-complete", &model_id);
+        info!(
+            "Downloaded {} from {}@{} to {:?}",
+            model_id, repo_id, revision, final_dir
+        );
+        Ok(())
+    }
+
     pub async fn download_model(&self, model_id: &str) -> Result<()> {
         let model_info = {
             let models = self.available_models.lock().unwrap();
@@ -2233,6 +2446,15 @@ impl ModelManager {
             ModelSource::HuggingFace { repo_id, revision } => {
                 return self
                     .download_hf_model(&model_info, repo_id.clone(), revision.clone())
+                    .await;
+            }
+            ModelSource::HuggingFaceDir {
+                repo_id,
+                revision,
+                files,
+            } => {
+                return self
+                    .download_hf_dir(&model_info, repo_id, revision, files)
                     .await;
             }
             ModelSource::Local => {
@@ -3000,10 +3222,10 @@ mod tests {
         };
         let status = DiskStatus::default();
 
-        // Default quant: plain name, badge intact.
+        // Default quant: plain name. No badge: Elchi recommends only Duyu-small.
         let default_info = desc.to_model_info(&status);
         assert_eq!(default_info.name, "Model");
-        assert!(default_info.is_recommended);
+        assert!(!default_info.is_recommended);
 
         // Alternate quant: suffixed name, own id, no badge.
         let alt_info = desc.to_model_info_for_file(&desc.files[0], &status);
