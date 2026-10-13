@@ -4,9 +4,10 @@ name: "Main Branch Build"
 # caught before a manual release is triggered. Artifacts are kept for 30 days
 # so any commit on main has a downloadable, testable build.
 
-on:
-  push:
-    branches: [main]
+# Elchi: manual only. The full matrix (two macOS, three Linux, two Windows
+# runners) on every push is expensive on a private repository; the test and
+# code-quality workflows still run on push.
+on: workflow_dispatch
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
