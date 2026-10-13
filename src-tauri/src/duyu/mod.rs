@@ -6,6 +6,10 @@
 //! gates -> `encoder_post` (CTC) -> attention beam search with CTC rescoring
 //! over `decoder`. Everything runs on the CPU through ONNX Runtime.
 //!
+//! Ported from Python to Rust, and changed, from `duyu_small/` in that
+//! repository by the Duyu-small authors, licensed under the Apache License 2.0
+//! (https://www.apache.org/licenses/LICENSE-2.0); see THIRD_PARTY_NOTICES.md.
+//!
 //! Model directory layout (the Hugging Face repo's):
 //! `engine.json`, `spm.model`, `fbank.npz`, `passes.npz`, `<quant>/{encoder_pre,
 //! encoder_pass,encoder_post,decoder}.onnx`.
