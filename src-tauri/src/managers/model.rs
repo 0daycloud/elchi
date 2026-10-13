@@ -26,6 +26,13 @@ use download::{HttpDownloadOutcome, DOWNLOAD_STALL_TIMEOUT};
 /// Elchi's default model.
 pub const DUYU_MODEL_ID: &str = "duyu-small";
 
+/// Elchi ships only its own models. Handy's model registry (built-in list,
+/// bundled catalog, on-disk discovery) is left in place to keep merges with
+/// upstream simple, and filtered down to these ids wherever it is filled.
+fn is_elchi_model(id: &str) -> bool {
+    id == DUYU_MODEL_ID
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub enum EngineType {
     /// Any GGML/GGUF model loaded through transcribe-cpp (Whisper, Parakeet,
@@ -1266,6 +1273,8 @@ impl ModelManager {
         // Auto-discover transcribe-cpp GGUF models already in the shared HF cache.
         Self::discover_hf_cache_models(&mut available_models);
 
+        available_models.retain(|id, _| is_elchi_model(id));
+
         let manager = Self {
             app_handle: app_handle.clone(),
             models_dir,
@@ -1379,7 +1388,7 @@ impl ModelManager {
         let mut added = 0usize;
         {
             let mut live = self.available_models.lock().unwrap();
-            for (id, info) in snapshot {
+            for (id, info) in snapshot.into_iter().filter(|(id, _)| is_elchi_model(id)) {
                 if let std::collections::hash_map::Entry::Vacant(entry) = live.entry(id) {
                     entry.insert(info);
                     added += 1;
