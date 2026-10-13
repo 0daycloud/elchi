@@ -141,12 +141,11 @@ bunx tauri signer sign "$TARBALL" >/dev/null
 [ -f "$TARBALL.sig" ] || fail "updater signature was not written"
 
 echo "==> DMG"
+# The window it opens: the branded drag-to-Applications background
+# (scripts/brand/dmg_background.html), laid out by dmgbuild without driving Finder.
 DMG="$OUT/Elchi_${VERSION}_${ARCH_LABEL}.dmg"
-STAGE="$(mktemp -d)"
-ditto "$APP" "$STAGE/Elchi.app"
-ln -s /Applications "$STAGE/Applications"
-hdiutil create -volname "Elchi" -srcfolder "$STAGE" -fs HFS+ -format UDZO -ov "$DMG" >/dev/null
-rm -rf "$STAGE"
+uvx -q dmgbuild -s "$ROOT/scripts/release/dmg_settings.py" -D app="$APP" \
+  -D background="$ROOT/scripts/release/dmg/background.tiff" "Elchi" "$DMG"
 if [ -n "$IDENTITY" ]; then
   codesign --sign "$IDENTITY" --timestamp "$DMG"
 fi

@@ -1,0 +1,62 @@
+<!doctype html>
+<!--
+  The DMG window's background, 660x420 points: "İznik Bahçesi", an İznik tile garden on
+  riso paper in the style of the launch films (cream stock, cobalt ink, the tulip, saz
+  and rosette motifs of video/src/film/motifs.ts). scripts/brand/gen_dmg_background.py
+  renders it at 1x and 2x. Elchi and Applications are placed at (165, 200) and
+  (495, 200) by scripts/release/dmg_settings.py, inside the two cartouches; Finder draws
+  their labels dark on a picture background, so the paper under them stays light.
+-->
+<meta charset=utf-8><style>
+@font-face { font-family: Karla; src: url(../../node_modules/@fontsource-variable/karla/files/karla-latin-ext-wght-normal.woff2); font-weight: 200 800; }
+@font-face { font-family: Karla; src: url(../../node_modules/@fontsource-variable/karla/files/karla-latin-wght-normal.woff2); font-weight: 200 800; }
+@font-face { font-family: Outfit; src: url(../../node_modules/@fontsource-variable/outfit/files/outfit-latin-ext-wght-normal.woff2); font-weight: 100 900; }
+@font-face { font-family: Outfit; src: url(../../node_modules/@fontsource-variable/outfit/files/outfit-latin-wght-normal.woff2); font-weight: 100 900; }
+html, body { margin: 0; width: 660px; height: 420px; overflow: hidden; }
+body { position: relative; font-family: Outfit, sans-serif; }
+svg.art { position: absolute; inset: 0; }
+.cap { position: absolute; left: 0; right: 0; text-align: center; }
+</style>
+<style>body{background:#efe6d2;}</style>
+<svg class="art" width="660" height="420"><defs>
+<filter id="grain" x="0" y="0" width="100%" height="100%">
+  <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="7" stitchTiles="stitch"/>
+  <feColorMatrix values="0 0 0 0 0.35  0 0 0 0 0.28  0 0 0 0 0.18  0 0 0 0.55 -0.12"/>
+</filter>
+<symbol id="tulip" viewBox="-50 -50 100 100" overflow="visible">
+  <path d="M-2 22 L2 22 L3 48 L-3 48 Z M1 40 C14 30 26 30 34 20 C24 38 12 42 1 44 Z M-1 36 C-12 26 -24 24 -32 12 C-24 32 -12 38 -1 40 Z" fill="var(--leaf)"/><path d="M0 -46 C10 -30 22 -22 22 -2 C22 14 10 22 0 22 C-10 22 -22 14 -22 -2 C-22 -22 -10 -30 0 -46 Z M-22 -2 C-34 -18 -30 -36 -26 -44 C-18 -30 -12 -20 -8 -6 Z M22 -2 C34 -18 30 -36 26 -44 C18 -30 12 -20 8 -6 Z" fill="var(--petal)"/><path d="M0 -30 C5 -16 5 6 0 16 C-5 6 -5 -16 0 -30 Z" fill="var(--ink)"/></symbol>
+<symbol id="saz" viewBox="-50 -50 100 100" overflow="visible"><path d="M0 -48 C18 -30 24 0 10 28 C6 38 2 44 0 48 C-2 44 -8 38 -12 28 C-24 0 -18 -30 0 -48 Z" fill="var(--leaf)"/><path d="M0 -40 C7 -12 5 18 0 44 C3 18 3 -12 0 -40 Z" fill="var(--ink)"/></symbol>
+<symbol id="rosette" viewBox="-50 -50 100 100" overflow="visible">
+  <g fill="var(--petal)"><ellipse cx="24.0" cy="0.0" rx="17" ry="9" transform="rotate(0.0 24.0 0.0)"/><ellipse cx="17.0" cy="17.0" rx="17" ry="9" transform="rotate(45.0 17.0 17.0)"/><ellipse cx="0.0" cy="24.0" rx="17" ry="9" transform="rotate(90.0 0.0 24.0)"/><ellipse cx="-17.0" cy="17.0" rx="17" ry="9" transform="rotate(135.0 -17.0 17.0)"/><ellipse cx="-24.0" cy="0.0" rx="17" ry="9" transform="rotate(180.0 -24.0 0.0)"/><ellipse cx="-17.0" cy="-17.0" rx="17" ry="9" transform="rotate(225.0 -17.0 -17.0)"/><ellipse cx="-0.0" cy="-24.0" rx="17" ry="9" transform="rotate(270.0 -0.0 -24.0)"/><ellipse cx="17.0" cy="-17.0" rx="17" ry="9" transform="rotate(315.0 17.0 -17.0)"/></g><circle r="11" fill="var(--ink)"/><circle r="4" fill="var(--cream)"/></symbol>
+<symbol id="star" viewBox="0 0 100 100"><path d="M50 4 61 27 86 18 77 43 96 50 77 57 86 82 61 73 50 96 39 73 14 82 23 57 4 50 23 43 14 18 39 27Z"/></symbol>
+
+  <pattern id="border" width="28" height="28" patternUnits="userSpaceOnUse">
+    <rect width="28" height="28" fill="#1c3a94"/>
+    <g transform="translate(14 14) scale(0.24)"><use href="#rosette" x="-50.0" y="-50.0" width="100" height="100" transform="translate(0 0) rotate(0)" style="--petal:#3fb8c0;--ink:#efe6d2;--cream:#f0654a"/></g></pattern></defs>
+  <!-- tile frame -->
+  <rect x="0" y="0" width="660" height="420" fill="url(#border)"/>
+  <rect x="16" y="16" width="628" height="388" rx="6" fill="#efe6d2"/>
+  <rect x="22" y="22" width="616" height="376" rx="4" fill="none" stroke="#1c3a94" stroke-width="1.2"/>
+  <!-- corner sprays -->
+  <use href="#saz" x="-60.0" y="-60.0" width="120" height="120" transform="translate(60 352) rotate(-38)" style="--leaf:#3fb8c0;--ink:#1c3a94"/>
+  <use href="#tulip" x="-42.0" y="-42.0" width="84" height="84" transform="translate(92 330) rotate(-14)" style="--petal:#c8452b;--leaf:#0b6e79;--ink:#efe6d2"/>
+  <use href="#saz" x="-60.0" y="-60.0" width="120" height="120" transform="translate(600 352) rotate(38)" style="--leaf:#3fb8c0;--ink:#1c3a94"/>
+  <use href="#tulip" x="-42.0" y="-42.0" width="84" height="84" transform="translate(568 330) rotate(14)" style="--petal:#c8452b;--leaf:#0b6e79;--ink:#efe6d2"/>
+  <use href="#rosette" x="-22.0" y="-22.0" width="44" height="44" transform="translate(60 64) rotate(0)" style="--petal:#7c98d9;--ink:#1c3a94;--cream:#efe6d2"/>
+  <use href="#rosette" x="-22.0" y="-22.0" width="44" height="44" transform="translate(600 64) rotate(0)" style="--petal:#7c98d9;--ink:#1c3a94;--cream:#efe6d2"/>
+  <!-- cartouches -->
+  <g fill="none" stroke="#1c3a94" stroke-width="1.6">
+    <path d="M165 112 C205 112 236 140 240 180 C254 196 254 222 240 238 C236 270 205 296 165 296 C125 296 94 270 90 238 C76 222 76 196 90 180 C94 140 125 112 165 112 Z"/>
+    <path d="M495 112 C535 112 566 140 570 180 C584 196 584 222 570 238 C566 270 535 296 495 296 C455 296 424 270 420 238 C406 222 406 196 420 180 C424 140 455 112 495 112 Z" stroke="#c8452b" stroke-dasharray="4 5"/>
+  </g>
+  <!-- the vine: drag along it -->
+  <path d="M232 214 C262 168 300 160 330 176 C360 192 384 186 404 170" fill="none" stroke="#0b6e79" stroke-width="3" stroke-linecap="round"/>
+  <use href="#saz" x="-15.0" y="-15.0" width="30" height="30" transform="translate(268 170) rotate(-60)" style="--leaf:#3fb8c0;--ink:#1c3a94"/>
+  <use href="#saz" x="-13.0" y="-13.0" width="26" height="26" transform="translate(318 196) rotate(150)" style="--leaf:#3fb8c0;--ink:#1c3a94"/>
+  <use href="#saz" x="-13.0" y="-13.0" width="26" height="26" transform="translate(360 172) rotate(-40)" style="--leaf:#3fb8c0;--ink:#1c3a94"/>
+  <use href="#tulip" x="-17.0" y="-17.0" width="34" height="34" transform="translate(414 166) rotate(72)" style="--petal:#c8452b;--leaf:#0b6e79;--ink:#efe6d2"/>
+  <rect width="660" height="420" filter="url(#grain)" style="mix-blend-mode:multiply"/>
+</svg>
+<div class="cap" style="top:34px;color:#1c3a94;font-family:Karla;font-weight:700;font-size:24px;letter-spacing:.6px">Elchi</div>
+<div class="cap" style="bottom:40px;color:#1c3a94;font-size:14.5px;font-weight:500">Elchi’yi Uygulamalar’a sürükleyin
+  <div style="font-size:11.5px;color:#4d5f99;font-weight:400;margin-top:2px">Drag Elchi to Applications</div></div>
