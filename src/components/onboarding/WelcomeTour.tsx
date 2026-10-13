@@ -116,8 +116,12 @@ const WelcomeTour: React.FC<WelcomeTourProps> = ({ onDone }) => {
     practiceRef.current?.focus();
     const unlisten = events.historyUpdatePayload.listen((e) => {
       const p = e.payload;
-      if (p.action === "added" && p.entry.transcription_text.trim()) {
-        setTried((cur) => cur || p.entry.transcription_text.trim());
+      if (p.action !== "added") return;
+      const text = (
+        p.entry.post_processed_text ?? p.entry.transcription_text
+      ).trim();
+      if (text) {
+        setTried((cur) => cur || text);
       }
     });
     return () => {

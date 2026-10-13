@@ -92,7 +92,8 @@ Recording and voice activity detection happen on your computer, and with Duyu-sm
 The network is used in these cases:
 
 - **Model downloads.** A model is downloaded once, the first time you select it. After that it works offline.
-- **Duyu Pro, during the 7-day trial and with Elchi Pro.** Each recording is sent to PatientDesk AI's Duyu API (`voice.patientdesk.ai`) to be transcribed. Switch off **Use Duyu Pro** under Settings > Models and nothing leaves your computer.
+- **Duyu Pro, during the 7-day trial and with Elchi Pro.** Each recording is sent to PatientDesk AI's Duyu API (`voice.patientdesk.ai`) to be transcribed. Switch off **Use Duyu Pro** under Settings > Models and no audio leaves your computer.
+- **Smart formatting, on every plan, on by default.** The transcript text (never the audio) is sent to Elchi's formatter on the same servers (`voice.patientdesk.ai/v1/elchi/format`), which runs an open model we host ourselves: no third party sees it, and it is not stored. It comes back with fillers and self-corrections removed, spoken "new line" applied, lists and paragraphs laid out. If the formatter is slow or unreachable, the text is pasted as transcribed. Switch off **Smart formatting** under Settings > General and, with Duyu Pro off too, nothing leaves your computer.
 - **Your plan.** A few times a day Elchi asks speech.patientdesk.ai which plan this computer has. It sends an install id (a one-way hash of the computer's id), the platform, the app version and the interface language.
 - **Updates.** Elchi checks speech.patientdesk.ai for a newer version.
 - **Post-processing, if you turn it on.** Post-processing is off by default. If you enable it and choose a remote provider, the transcript text is sent to that provider. A provider running on your own machine keeps it local.

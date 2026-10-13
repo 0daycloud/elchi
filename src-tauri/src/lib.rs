@@ -694,6 +694,7 @@ pub fn run(cli_args: CliArgs) {
             commands::elchi_pro::refresh_elchi_pro,
             commands::elchi_pro::open_elchi_upgrade,
             commands::elchi_pro::set_elchi_use_pro,
+            commands::elchi_pro::set_elchi_format,
             shortcut::change_post_process_model_setting,
             shortcut::set_post_process_provider,
             shortcut::fetch_post_process_models,

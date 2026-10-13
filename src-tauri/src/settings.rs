@@ -503,6 +503,10 @@ pub struct AppSettings {
     /// The end of the trial has been shown to the user once.
     #[serde(default)]
     pub elchi_trial_end_seen: bool,
+    /// Lay dictated text out before pasting it (Elchi's formatter on our
+    /// servers; see crate::elchi_pro). On by default, on every plan.
+    #[serde(default = "default_true")]
+    pub elchi_format: bool,
     #[serde(default = "default_post_process_models")]
     pub post_process_models: HashMap<String, String>,
     #[serde(default = "default_post_process_prompts")]
@@ -1034,6 +1038,7 @@ pub fn get_default_settings() -> AppSettings {
         elchi_use_pro: true,
         elchi_session: None,
         elchi_trial_end_seen: false,
+        elchi_format: true,
         post_process_models: default_post_process_models(),
         post_process_prompts: default_post_process_prompts(),
         post_process_selected_prompt_id: None,

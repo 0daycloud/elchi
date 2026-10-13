@@ -287,6 +287,12 @@ async openElchiUpgrade() : Promise<Result<null, string>> {
 async setElchiUsePro(enabled: boolean) : Promise<ElchiProStatus> {
     return await TAURI_INVOKE("set_elchi_use_pro", { enabled });
 },
+/**
+ * Whether dictated text goes to Elchi's formatter before it is pasted.
+ */
+async setElchiFormat(enabled: boolean) : Promise<ElchiProStatus> {
+    return await TAURI_INVOKE("set_elchi_format", { enabled });
+},
 async changePostProcessModelSetting(providerId: string, model: string) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("change_post_process_model_setting", { providerId, model }) };
@@ -1056,7 +1062,12 @@ elchi_session?: ElchiSession | null;
 /**
  * The end of the trial has been shown to the user once.
  */
-elchi_trial_end_seen?: boolean; post_process_models?: Partial<{ [key in string]: string }>; post_process_prompts?: LLMPrompt[]; post_process_selected_prompt_id?: string | null; mute_while_recording?: boolean; append_trailing_space?: boolean; app_language?: string; theme?: Theme; experimental_enabled?: boolean; lazy_stream_close?: boolean; keyboard_implementation?: KeyboardImplementation; show_tray_icon?: boolean; paste_delay_ms?: number; paste_delay_after_ms?: number; 
+elchi_trial_end_seen?: boolean; 
+/**
+ * Lay dictated text out before pasting it (Elchi's formatter on our
+ * servers; see crate::elchi_pro). On by default, on every plan.
+ */
+elchi_format?: boolean; post_process_models?: Partial<{ [key in string]: string }>; post_process_prompts?: LLMPrompt[]; post_process_selected_prompt_id?: string | null; mute_while_recording?: boolean; append_trailing_space?: boolean; app_language?: string; theme?: Theme; experimental_enabled?: boolean; lazy_stream_close?: boolean; keyboard_implementation?: KeyboardImplementation; show_tray_icon?: boolean; paste_delay_ms?: number; paste_delay_after_ms?: number; 
 /**
  * Debug-gated ("beta") receipt-sequenced paste: restore the clipboard only
  * after the target app actually reads the transcript, instead of after a
@@ -1110,11 +1121,20 @@ plan: Plan | null;
 /**
  * Whether recordings go to Duyu Pro right now.
  */
-cloud_active: boolean; use_pro: boolean; trial_ends_at: string | null; pro_until: string | null; price_try_monthly: number; free_months: number }
+cloud_active: boolean; use_pro: boolean; 
+/**
+ * Whether dictated text is sent to the formatter.
+ */
+format: boolean; trial_ends_at: string | null; pro_until: string | null; price_try_monthly: number; free_months: number }
 /**
  * The server's answer, cached in settings so the app knows its plan offline.
  */
-export type ElchiSession = { plan: Plan; cloud: boolean; trial_ends_at: string | null; pro_until: string | null; token: SecretString | null; token_expires_at: string | null; upgrade_url: string; price_try_monthly: number; free_months: number }
+export type ElchiSession = { plan: Plan; cloud: boolean; trial_ends_at: string | null; pro_until: string | null; token: SecretString | null; token_expires_at: string | null; 
+/**
+ * For the formatter alone, on every plan. Absent from sessions cached
+ * before formatting existed.
+ */
+format_token?: SecretString | null; format_token_expires_at?: string | null; upgrade_url: string; price_try_monthly: number; free_months: number }
 export type EngineType = 
 /**
  * Any GGML/GGUF model loaded through transcribe-cpp (Whisper, Parakeet,

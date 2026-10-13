@@ -39,6 +39,11 @@ const IconButton: React.FC<{
 
 const PAGE_SIZE = 30;
 
+/** What was pasted: the formatted text when formatting (or a custom prompt)
+ *  produced one, the transcript as heard otherwise. */
+const pastedText = (entry: HistoryEntry) =>
+  entry.post_processed_text ?? entry.transcription_text;
+
 interface OpenRecordingsButtonProps {
   onClick: () => void;
   label: string;
@@ -251,7 +256,7 @@ export const HistorySettings: React.FC = () => {
                 key={entry.id}
                 entry={entry}
                 onToggleSaved={() => toggleSaved(entry.id)}
-                onCopyText={() => copyToClipboard(entry.transcription_text)}
+                onCopyText={() => copyToClipboard(pastedText(entry))}
                 getAudioUrl={getAudioUrl}
                 deleteAudio={deleteAudioEntry}
                 retryTranscription={retryHistoryEntry}
@@ -308,7 +313,7 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
   const [showCopied, setShowCopied] = useState(false);
   const [retrying, setRetrying] = useState(false);
 
-  const hasTranscription = entry.transcription_text.trim().length > 0;
+  const hasTranscription = pastedText(entry).trim().length > 0;
 
   const handleLoadAudio = useCallback(
     () => getAudioUrl(entry.file_name),
@@ -435,7 +440,7 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
         {retrying
           ? t("settings.history.transcribing")
           : hasTranscription
-            ? entry.transcription_text
+            ? pastedText(entry)
             : t("settings.history.transcriptionFailed")}
       </p>
 

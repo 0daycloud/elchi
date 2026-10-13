@@ -53,3 +53,19 @@ pub fn set_elchi_use_pro(
     let _ = app.emit("elchi-pro-changed", status.clone());
     status
 }
+
+/// Whether dictated text goes to Elchi's formatter before it is pasted.
+#[tauri::command]
+#[specta::specta]
+pub fn set_elchi_format(
+    app: AppHandle,
+    elchi: State<'_, Arc<ElchiPro>>,
+    enabled: bool,
+) -> ElchiProStatus {
+    let mut settings = get_settings(&app);
+    settings.elchi_format = enabled;
+    write_settings(&app, settings);
+    let status = elchi.status();
+    let _ = app.emit("elchi-pro-changed", status.clone());
+    status
+}

@@ -7,6 +7,13 @@
 //! with `POST /api/elchi/session`, which answers with the plan and, while the
 //! cloud is allowed, a short-lived token for the transcription API. Any cloud
 //! failure falls back to Duyu-small, so dictation keeps working offline.
+//!
+//! Every install, on any plan, also gets a formatting token. Dictated text,
+//! from either model, goes to Elchi's formatter (an open model on our own
+//! servers beside Duyu Pro) to be laid out as it would have been typed:
+//! fillers and self-corrections gone, lists and paragraphs made. Formatting is
+//! a setting, on by default; when it is off, slow or unreachable, the text is
+//! pasted as transcribed.
 
 use std::io::Cursor;
 use std::sync::{Arc, Mutex};
@@ -25,7 +32,11 @@ use crate::settings::{get_settings, write_settings, SecretString};
 pub const SITE_URL: &str = "https://speech.patientdesk.ai";
 pub const API_URL: &str = "https://voice.patientdesk.ai/v1/audio/transcriptions";
 pub const MODEL: &str = "duyu-1";
+pub const FORMAT_URL: &str = "https://voice.patientdesk.ai/v1/elchi/format";
 const TRANSCRIBE_TIMEOUT: Duration = Duration::from_secs(30);
+/// The server gives the formatter four seconds and then answers with the text
+/// as sent; this covers that and the network, and no more.
+const FORMAT_TIMEOUT: Duration = Duration::from_secs(6);
 const SESSION_TIMEOUT: Duration = Duration::from_secs(15);
 /// How often the plan is re-checked in the background.
 const REFRESH_EVERY: Duration = Duration::from_secs(3 * 60 * 60);
@@ -53,6 +64,12 @@ pub struct ElchiSession {
     pub pro_until: Option<String>,
     pub token: Option<SecretString>,
     pub token_expires_at: Option<String>,
+    /// For the formatter alone, on every plan. Absent from sessions cached
+    /// before formatting existed.
+    #[serde(default)]
+    pub format_token: Option<SecretString>,
+    #[serde(default)]
+    pub format_token_expires_at: Option<String>,
     pub upgrade_url: String,
     pub price_try_monthly: u32,
     pub free_months: u32,
@@ -66,6 +83,8 @@ pub struct ElchiProStatus {
     /// Whether recordings go to Duyu Pro right now.
     pub cloud_active: bool,
     pub use_pro: bool,
+    /// Whether dictated text is sent to the formatter.
+    pub format: bool,
     pub trial_ends_at: Option<String>,
     pub pro_until: Option<String>,
     pub price_try_monthly: u32,
@@ -122,6 +141,13 @@ impl ElchiSession {
         }
         let token = self.token.as_ref().filter(|t| !t.0.is_empty())?;
         let expires = parse_time(&self.token_expires_at)?;
+        ((expires - now).num_seconds() > TOKEN_MARGIN_S).then(|| token.0.clone())
+    }
+
+    /// The formatting token, if it is still good for a while. Any plan.
+    fn usable_format_token(&self, now: DateTime<Utc>) -> Option<String> {
+        let token = self.format_token.as_ref().filter(|t| !t.0.is_empty())?;
+        let expires = parse_time(&self.format_token_expires_at)?;
         ((expires - now).num_seconds() > TOKEN_MARGIN_S).then(|| token.0.clone())
     }
 }
@@ -210,6 +236,7 @@ impl ElchiPro {
             cloud_active: settings.elchi_use_pro
                 && session.is_some_and(|s| s.usable_token(Utc::now()).is_some()),
             use_pro: settings.elchi_use_pro,
+            format: settings.elchi_format,
             trial_ends_at: session.and_then(|s| s.trial_ends_at.clone()),
             pro_until: session.and_then(|s| s.pro_until.clone()),
             price_try_monthly: session.map_or(200, |s| s.price_try_monthly),
@@ -272,6 +299,30 @@ impl ElchiPro {
             return None;
         }
         self.refresh().ok().and_then(|s| s.usable_token(Utc::now()))
+    }
+
+    /// The token for the formatter, when formatting is on. Never waits on the
+    /// network: dictation is not held up for a session request. A stale token
+    /// (the app was asleep past its twelve hours) starts a refresh in the
+    /// background, and this one dictation goes out unformatted.
+    pub fn format_token(self: &Arc<Self>) -> Option<String> {
+        let settings = get_settings(&self.app);
+        if !settings.elchi_format {
+            return None;
+        }
+        let token = settings
+            .elchi_session
+            .as_ref()
+            .and_then(|s| s.usable_format_token(Utc::now()));
+        if token.is_none() {
+            let this = self.clone();
+            std::thread::spawn(move || {
+                if let Err(e) = this.refresh() {
+                    debug!("Elchi session refresh for formatting failed: {e:#}");
+                }
+            });
+        }
+        token
     }
 
     /// Opens the upgrade page and watches for the activation.
@@ -378,6 +429,50 @@ async fn request_transcription(
     }
 }
 
+#[derive(Serialize)]
+struct FormatRequest<'a> {
+    text: &'a str,
+}
+
+#[derive(Deserialize)]
+struct FormatResponse {
+    text: String,
+    formatted: bool,
+}
+
+/// Dictated text laid out by Elchi's formatter, or None when it could not be
+/// (the caller pastes the text as transcribed).
+pub async fn format(token: &str, text: &str) -> Option<String> {
+    let started = std::time::Instant::now();
+    let resp = reqwest::Client::builder()
+        .timeout(FORMAT_TIMEOUT)
+        .build()
+        .ok()?
+        .post(FORMAT_URL)
+        .bearer_auth(token)
+        .json(&FormatRequest { text })
+        .send()
+        .await;
+    let out = match resp {
+        Ok(r) if r.status().is_success() => r.json::<FormatResponse>().await.ok(),
+        Ok(r) => {
+            warn!("Elchi formatter returned {}", r.status());
+            None
+        }
+        Err(e) => {
+            warn!("Elchi formatter unreachable: {e}");
+            None
+        }
+    };
+    debug!(
+        "Elchi formatter: {:?} in {:?}",
+        out.as_ref().map(|r| r.formatted),
+        started.elapsed()
+    );
+    out.filter(|r| r.formatted && !r.text.trim().is_empty())
+        .map(|r| r.text)
+}
+
 /// Transcribes 16 kHz mono audio with Duyu Pro. `language` is a hint
 /// (`tr` / `en`); None lets the model decide. Blocking; safe to call from
 /// inside or outside an async runtime.
@@ -407,6 +502,8 @@ mod tests {
             trial_ends_at: None,
             pro_until: None,
             token: token.map(|t| SecretString(t.to_string())),
+            format_token: Some(SecretString("f".into())),
+            format_token_expires_at: Some((Utc::now() + chrono::Duration::hours(12)).to_rfc3339()),
             token_expires_at: Some(
                 (Utc::now() + chrono::Duration::seconds(expires_in_s)).to_rfc3339(),
             ),
@@ -437,7 +534,22 @@ mod tests {
             "price_try_monthly":200,"free_months":1}"#;
         let s: ElchiSession = serde_json::from_str(json).unwrap();
         assert_eq!(s.plan, Plan::Trial);
+        assert!(
+            s.format_token.is_none(),
+            "a session cached before formatting"
+        );
         assert_eq!(s.token.unwrap().0, "abc");
+    }
+
+    #[test]
+    fn format_token_on_every_plan_while_fresh() {
+        let now = Utc::now();
+        let mut free = session(false, None, 0);
+        assert_eq!(free.usable_format_token(now).as_deref(), Some("f"));
+        free.format_token_expires_at = Some((now + chrono::Duration::seconds(30)).to_rfc3339());
+        assert!(free.usable_format_token(now).is_none()); // about to expire
+        free.format_token = None;
+        assert!(free.usable_format_token(now).is_none());
     }
 
     #[test]
@@ -485,6 +597,16 @@ mod tests {
             transcribe("not-a-token", &audio, None),
             Err(CloudError::Unauthorized)
         ));
+
+        let fmt = session
+            .usable_format_token(Utc::now())
+            .expect("format token");
+        let raw = "Iıı şey, toplantıyı saat üçe alalım, yok yok dörde alalım.";
+        let formatted = tauri::async_runtime::block_on(format(&fmt, raw));
+        println!("formatted: {formatted:?}");
+        let formatted = formatted.expect("formatted");
+        assert!(formatted.contains("dör") && !formatted.contains("üçe"));
+        assert!(tauri::async_runtime::block_on(format("not-a-token", raw)).is_none());
     }
 
     #[test]

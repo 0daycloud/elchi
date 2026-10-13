@@ -261,6 +261,10 @@
           "push_to_talk": "Records while you hold the shortcut",
           "toggle": "Tap the shortcut to start recording, tap again to stop"
         }
+      },
+      "smartFormatting": {
+        "title": "Smart formatting",
+        "description": "Your dictation is tidied before it is pasted: fillers and self-corrections removed, lists and paragraphs laid out. The text is processed on our own servers, never by a third party, and is not stored."
       }
     },
     "models": {

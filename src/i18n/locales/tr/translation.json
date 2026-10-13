@@ -273,6 +273,10 @@
           "push_to_talk": "Kısayolu basılı tuttuğunuz sürece kaydeder",
           "toggle": "Kaydı başlatmak için kısayola bir kez basın, durdurmak için yeniden basın"
         }
+      },
+      "smartFormatting": {
+        "title": "Akıllı biçimlendirme",
+        "description": "Söyledikleriniz yapıştırılmadan önce düzenlenir: dolgu sözcükler ve düzeltmeler ayıklanır, listeler ve paragraflar kurulur. Metin bunun için kendi sunucularımızda işlenir; üçüncü bir tarafa gitmez, saklanmaz."
       }
     },
     "sound": {
