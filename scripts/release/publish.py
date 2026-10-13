@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Put an Elchi release on speech.patientdesk.ai.
 
-    scripts/release/publish.py --site ~/dev/stt-website-elchi --windows-run <GitHub run id> [--notes "…"] [--windows-only]
+    scripts/release/publish.py --site ~/dev/stt-website-elchi --windows-run <GitHub run id> \
+        [--linux-run <GitHub run id>] [--notes "…"] [--windows-only]
 
-Takes the macOS files made by scripts/release/macos.sh (dist/release/<version>/)
-and the Windows installer from the "Elchi Windows build" workflow run (its
-artifact, downloaded with `gh`), then, in the website checkout:
+Takes the macOS files made by scripts/release/macos.sh (dist/release/<version>/),
+the Windows installer from the "Elchi Windows build" workflow run and, with
+--linux-run, the AppImage and .deb from the "Elchi Linux build" run (their
+artifacts, downloaded with `gh`), then, in the website checkout:
 
 - copies them to public/downloads/elchi/<version>/ with SHA256SUMS;
 - writes lib/elchi/release.json (what the /elchi page offers);
@@ -51,6 +53,7 @@ def main() -> None:
     ap.add_argument("--notes", default="", help="release notes shown by the updater")
     ap.add_argument("--windows-only", action="store_true",
                     help="publish the Windows installer alone (macOS keeps its 'coming soon')")
+    ap.add_argument("--linux-run", help="run id of the 'Elchi Linux build' workflow (AppImage and .deb)")
     args = ap.parse_args()
 
     version = json.loads((ROOT / "src-tauri/tauri.conf.json").read_text())["version"]
@@ -77,12 +80,32 @@ def main() -> None:
         if not exe_sig.exists():
             sys.exit(f"{exe_sig.name} missing: the Windows build was not signed for the updater")
 
+        linux = None
+        if args.linux_run:
+            ltmp = Path(tmp) / "linux"
+            subprocess.run(["gh", "run", "download", args.linux_run, "-R", REPO, "-D", str(ltmp)], check=True)
+            appimage = one(list(ltmp.rglob("*.AppImage")), "AppImage")
+            deb = one(list(ltmp.rglob("*.deb")), "Linux .deb")
+            for f in (appimage, deb):
+                if f"_{version}_" not in f.name:
+                    sys.exit(f"{f.name} is not version {version}")
+            appimage_sig = Path(f"{appimage}.sig")
+            if not appimage_sig.exists():
+                sys.exit(f"{appimage_sig.name} missing: the AppImage was not signed for the updater")
+            linux = (appimage, appimage_sig, deb)
+
         dest = args.site / "public/downloads/elchi" / version
         dest.mkdir(parents=True, exist_ok=True)
-        for src in (*(mac or ()), exe, exe_sig):
+        for src in (*(mac or ()), exe, exe_sig, *(linux or ())):
             shutil.copy2(src, dest / src.name)
 
     entries = [(exe.name, "windows", "x86_64", "installer"), (f"{exe.name}.sig", "windows", "x86_64", "signature")]
+    if linux:
+        # The AppImage first: it is the Linux download the page offers, and the one the
+        # updater replaces in place; the .deb is offered beside it for Debian and Ubuntu.
+        appimage, appimage_sig, deb = linux
+        entries += [(appimage.name, "linux", "x86_64", "installer"), (appimage_sig.name, "linux", "x86_64", "signature"),
+                    (deb.name, "linux", "x86_64", "installer")]
     if mac:
         dmg, mac_tar, mac_sig = mac
         mac_arch = "universal" if "universal" in dmg.name else ("aarch64" if "aarch64" in dmg.name else "x86_64")
@@ -116,6 +139,8 @@ def main() -> None:
             **platforms,
             "windows-x86_64": {"signature": (dest / f"{exe.name}.sig").read_text().strip(),
                                "url": f"{base}/{exe.name}"},
+            **({"linux-x86_64": {"signature": (dest / f"{linux[0].name}.sig").read_text().strip(),
+                                 "url": f"{base}/{linux[0].name}"}} if linux else {}),
         },
     }
     (args.site / "public/downloads/elchi/latest.json").write_text(json.dumps(manifest, indent=1) + "\n")

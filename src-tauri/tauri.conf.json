@@ -51,7 +51,8 @@
         "depends": ["libgtk-layer-shell0", "libopenblas0"],
         "files": {
           "/usr/lib/Elchi": "transcribe-libs"
-        }
+        },
+        "recommends": ["xdotool", "wtype"]
       },
       "rpm": {
         "depends": [
