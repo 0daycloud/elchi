@@ -122,6 +122,50 @@
         "checkFailed": "İzinler denetlenemedi. Lütfen yeniden deneyin.",
         "requestFailed": "İzin istenemedi. Lütfen yeniden deneyin."
       }
+    },
+    "tour": {
+      "progress": "Adım {{step}} / {{total}}",
+      "back": "Geri",
+      "next": "Devam",
+      "skip": "Şimdilik atla",
+      "start": "Elchi'yi kullanmaya başla",
+      "welcome": {
+        "title": "Konuşun, Elchi yazsın.",
+        "lede": "Elchi söylediklerinizi yazıya döker ve metni imlecin olduğu yere bırakır: e-postaya, belgeye, sohbet penceresine. Çoğu zaman klavyeden daha hızlıdır.",
+        "anywhere": {
+          "title": "Her uygulamada",
+          "body": "E-posta, Slack, Word, tarayıcı… İmleç neredeyse metin oraya gelir."
+        },
+        "languages": {
+          "title": "Türkçe ve İngilizce, aynı cümlede",
+          "body": "“Meeting'i cumaya aldık” gibi karışık cümleler de doğru yazılır; büyük harf ve noktalama kendiliğinden gelir."
+        },
+        "pro": {
+          "title": "İlk 7 gün Duyu Pro",
+          "body": "En isabetli modelimiz Duyu Pro ile başlarsınız. Sonra Elchi, Duyu-small ile bu bilgisayarda ücretsiz çalışmaya devam eder."
+        }
+      },
+      "how": {
+        "title": "Nasıl kullanılır",
+        "step1": "Yazmak istediğiniz yere tıklayın: bir e-posta, belge ya da sohbet kutusu.",
+        "step2Hold": "Kısayolu basılı tutun ve konuşun.",
+        "step3Hold": "Bırakın. Metin birkaç saniye içinde imlecin olduğu yere gelir.",
+        "step2Toggle": "Kısayola bir kez basın ve konuşun.",
+        "step3Toggle": "Bitince tekrar basın. Metin imlecin olduğu yere gelir.",
+        "demo": "Yarın saat onda toplantımız var; sunumu Friday'e kadar bitiriyoruz.",
+        "longer": "Uzun konuşmalarda kısayola bir kez basın, konuşun, bitince tekrar basın."
+      },
+      "try": {
+        "title": "Bir deneyin",
+        "instructionHold": "Kısayolu basılı tutup aşağıdaki cümleyi okuyun, sonra bırakın:",
+        "instructionToggle": "Kısayola bir kez basın, aşağıdaki cümleyi okuyun, sonra tekrar basın:",
+        "phrase": "Merhaba Elchi, yarınki meeting'i saat üçe alalım ve notları herkesle paylaşalım.",
+        "boxLabel": "Metin buraya gelecek",
+        "placeholder": "İmleç bu kutuda; konuşmanız buraya yazılacak.",
+        "successTitle": "Harika, işte bu kadar.",
+        "successBody": "Söyledikleriniz birkaç saniyede yazıya döküldü.",
+        "anywhere": "Artık aynı kısayolla her uygulamada dikte edebilirsiniz."
+      }
     }
   },
   "modelSelector": {
@@ -614,7 +658,8 @@
         "description": "İzinleri, modelleri veya kurulumun tamamlanma durumunu değiştirmeden ilk kurulum ekranlarını önizleyin",
         "permissionsButton": "İzinler",
         "modelsButton": "Model seçimi",
-        "exitButton": "Önizlemeden çık"
+        "exitButton": "Önizlemeden çık",
+        "tourButton": "Tanıtım turu"
       }
     },
     "about": {

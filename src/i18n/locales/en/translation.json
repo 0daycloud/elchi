@@ -122,6 +122,50 @@
         "checkFailed": "Failed to check permissions. Please try again.",
         "requestFailed": "Failed to request permission. Please try again."
       }
+    },
+    "tour": {
+      "progress": "Step {{step}} of {{total}}",
+      "back": "Back",
+      "next": "Continue",
+      "skip": "Skip for now",
+      "start": "Start using Elchi",
+      "welcome": {
+        "title": "Speak, and Elchi writes.",
+        "lede": "Elchi turns what you say into text and drops it where your cursor is: an e-mail, a document, a chat window. It is often faster than typing.",
+        "anywhere": {
+          "title": "In every app",
+          "body": "E-mail, Slack, Word, the browser… Wherever the cursor is, the text goes."
+        },
+        "languages": {
+          "title": "Turkish and English in one sentence",
+          "body": "Mixed sentences like “Meeting'i cumaya aldık” come out right, with capitals and punctuation."
+        },
+        "pro": {
+          "title": "Duyu Pro for the first 7 days",
+          "body": "You start with Duyu Pro, our most accurate model. After that, Elchi keeps working for free on this computer with Duyu-small."
+        }
+      },
+      "how": {
+        "title": "How to use it",
+        "step1": "Click where you want to write: an e-mail, a document or a chat box.",
+        "step2Hold": "Hold the shortcut and speak.",
+        "step3Hold": "Let go. The text appears at your cursor within seconds.",
+        "step2Toggle": "Press the shortcut once and speak.",
+        "step3Toggle": "Press it again when you're done. The text appears at your cursor.",
+        "demo": "Yarın saat onda toplantımız var; sunumu Friday'e kadar bitiriyoruz.",
+        "longer": "For longer dictation, press the shortcut once, speak, and press it again when you're done."
+      },
+      "try": {
+        "title": "Give it a try",
+        "instructionHold": "Hold the shortcut, read the sentence below, then let go:",
+        "instructionToggle": "Press the shortcut once, read the sentence below, then press it again:",
+        "phrase": "Merhaba Elchi, yarınki meeting'i saat üçe alalım ve notları herkesle paylaşalım.",
+        "boxLabel": "Your text will land here",
+        "placeholder": "The cursor is in this box; what you say will be typed here.",
+        "successTitle": "That's it.",
+        "successBody": "What you said was written out in seconds.",
+        "anywhere": "You can now dictate with the same shortcut in any app."
+      }
     }
   },
   "modelSelector": {
@@ -521,7 +565,8 @@
         "description": "Preview onboarding screens without changing permissions, models, or completion state",
         "permissionsButton": "Permissions",
         "modelsButton": "Model Selection",
-        "exitButton": "Exit Preview"
+        "exitButton": "Exit Preview",
+        "tourButton": "Welcome tour"
       },
       "soundTheme": {
         "label": "Sound Theme",

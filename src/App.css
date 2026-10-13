@@ -156,3 +156,15 @@ h3 {
   stroke: var(--color-logo-stroke);
   stroke-width: 1;
 }
+
+/* Onboarding tour: steps and the success check fade in (motion-safe only). */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

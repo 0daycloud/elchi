@@ -19,6 +19,7 @@ import AccessibilityPermissions from "./components/AccessibilityPermissions";
 import SecureInputWarning from "./components/SecureInputWarning";
 import Footer from "./components/footer";
 import Onboarding, { AccessibilityOnboarding } from "./components/onboarding";
+import WelcomeTour from "./components/onboarding/WelcomeTour";
 import {
   DebugSettings,
   type OnboardingPreviewStep,
@@ -32,7 +33,7 @@ import { useSettingsStore } from "./stores/settingsStore";
 import { commands } from "@/bindings";
 import { getLanguageDirection, initializeRTL } from "@/lib/utils/rtl";
 
-type OnboardingStep = "accessibility" | "model" | "done";
+type OnboardingStep = "accessibility" | "model" | "welcome" | "done";
 
 // Stable identity so preview effects do not re-run due to callback changes.
 const NOOP = () => {};
@@ -75,7 +76,8 @@ function App() {
   const isShowingOnboarding =
     onboardingPreview !== null ||
     onboardingStep === "accessibility" ||
-    onboardingStep === "model";
+    onboardingStep === "model" ||
+    onboardingStep === "welcome";
 
   // Classic scrollbars consume layout space. Reserve a matching gutter on the
   // opposite edge while onboarding is visible so its content stays centered in
@@ -102,7 +104,11 @@ function App() {
 
   // Initialize Enigo, shortcuts, and refresh audio devices when main app loads
   useEffect(() => {
-    if (onboardingStep === "done" && !hasCompletedPostOnboardingInit.current) {
+    // The welcome tour's practice step needs the shortcut, so start here too.
+    if (
+      (onboardingStep === "done" || onboardingStep === "welcome") &&
+      !hasCompletedPostOnboardingInit.current
+    ) {
       hasCompletedPostOnboardingInit.current = true;
       Promise.all([
         commands.initializeEnigo(),
@@ -293,6 +299,9 @@ function App() {
       if (result.status === "error") {
         console.error("Failed to finish onboarding:", result.error);
       }
+      // New users get the tour: what Elchi does, how to use it, a try.
+      setOnboardingStep("welcome");
+      return;
     }
     setOnboardingStep("done");
   };
@@ -341,6 +350,8 @@ function App() {
       <>
         {onboardingPreview === "accessibility" ? (
           <AccessibilityOnboarding onComplete={NOOP} preview />
+        ) : onboardingPreview === "welcome" ? (
+          <WelcomeTour onDone={() => setOnboardingPreview(null)} />
         ) : (
           <Onboarding onModelSelected={NOOP} preview />
         )}
@@ -359,6 +370,8 @@ function App() {
     );
   } else if (onboardingStep === "model") {
     content = <Onboarding onModelSelected={handleModelSelected} />;
+  } else if (onboardingStep === "welcome") {
+    content = <WelcomeTour onDone={() => setOnboardingStep("done")} />;
   } else {
     content = (
       <div
