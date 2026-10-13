@@ -1,0 +1,2 @@
+/* Microphone permission prompt */
+"NSMicrophoneUsageDescription" = "Elchi, konuşmanızı yazıya dökmek için mikrofonu kullanır.";

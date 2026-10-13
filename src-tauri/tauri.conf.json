@@ -37,7 +37,10 @@
       "icons/icon.ico"
     ],
     "macOS": {
-      "files": {},
+      "files": {
+        "Resources/tr.lproj/InfoPlist.strings": "macos/tr.lproj/InfoPlist.strings",
+        "Resources/en.lproj/InfoPlist.strings": "macos/en.lproj/InfoPlist.strings"
+      },
       "hardenedRuntime": true,
       "minimumSystemVersion": "10.15",
       "signingIdentity": "-",

@@ -1,0 +1,2 @@
+/* Microphone permission prompt */
+"NSMicrophoneUsageDescription" = "Elchi uses the microphone to turn your speech into text.";
