@@ -775,6 +775,7 @@ jobs:
           path: |
             src-tauri/target/${{ steps.build-profile.outputs.profile }}/bundle/deb/*.deb
             src-tauri/target/${{ steps.build-profile.outputs.profile }}/bundle/appimage/*.AppImage
+            src-tauri/target/${{ steps.build-profile.outputs.profile }}/bundle/appimage/*.AppImage.sig
             src-tauri/target/${{ steps.build-profile.outputs.profile }}/bundle/rpm/*.rpm
           retention-days: 30
 
