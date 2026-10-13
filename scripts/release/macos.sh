@@ -26,7 +26,7 @@
 # Order matters: the app is notarized and stapled first, and only then packed
 # into the updater bundle and the DMG, so both carry the same notarized app.
 #
-# Output: dist/release/<version>/ with Elchi_<v>_aarch64.dmg,
+# Output: release-out/<version>/ with Elchi_<v>_aarch64.dmg,
 # Elchi_<v>_aarch64.app.tar.gz and its .sig.
 set -euo pipefail
 
@@ -44,7 +44,8 @@ PROFILE="${ELCHI_NOTARY_PROFILE:-elchi-notary}"
 TARGET="${ELCHI_MAC_TARGET:-aarch64-apple-darwin}"
 ARCH_LABEL="${TARGET%%-apple-darwin}"
 VERSION="$(node -p "require('./src-tauri/tauri.conf.json').version")"
-OUT="$ROOT/dist/release/$VERSION"
+# Not under dist/: that is Vite's output folder, emptied by every app build.
+OUT="$ROOT/release-out/$VERSION"
 
 fail() { echo "error: $*" >&2; exit 1; }
 

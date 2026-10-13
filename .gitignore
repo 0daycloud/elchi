@@ -12,6 +12,8 @@ package-lock.json
 node_modules
 dist
 dist-ssr
+# Signed release files from scripts/release/macos.sh
+release-out
 *.local
 *.local.*
 

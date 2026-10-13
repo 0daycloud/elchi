@@ -4,7 +4,7 @@
     scripts/release/publish.py --site ~/dev/stt-website-elchi --windows-run <GitHub run id> \
         [--linux-run <GitHub run id>] [--notes "…"] [--windows-only]
 
-Takes the macOS files made by scripts/release/macos.sh (dist/release/<version>/),
+Takes the macOS files made by scripts/release/macos.sh (release-out/<version>/),
 the Windows installer from the "Elchi Windows build" workflow run and, with
 --linux-run, the AppImage and .deb from the "Elchi Linux build" run (their
 artifacts, downloaded with `gh`), then, in the website checkout:
@@ -58,7 +58,7 @@ def main() -> None:
 
     version = json.loads((ROOT / "src-tauri/tauri.conf.json").read_text())["version"]
     commit = subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"], text=True).strip()
-    mac_dir = ROOT / "dist/release" / version
+    mac_dir = ROOT / "release-out" / version
     mac = None
     if not args.windows_only:
         if not mac_dir.is_dir():
