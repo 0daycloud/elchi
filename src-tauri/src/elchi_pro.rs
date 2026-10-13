@@ -135,9 +135,12 @@ struct SessionRequest<'a> {
 }
 
 async fn request_session(locale: String) -> Result<ElchiSession> {
-    let id = install_id()?;
+    request_session_for(&install_id()?, locale).await
+}
+
+async fn request_session_for(id: &str, locale: String) -> Result<ElchiSession> {
     let body = SessionRequest {
-        install_id: &id,
+        install_id: id,
         platform: platform(),
         app_version: env!("CARGO_PKG_VERSION"),
         locale: &locale,
@@ -438,6 +441,43 @@ mod tests {
         assert!(a
             .chars()
             .all(|c| c.is_ascii_hexdigit() && !c.is_ascii_uppercase()));
+    }
+
+    /// Against the live site and API, with a throwaway install id:
+    /// `cargo test --lib elchi_pro::tests::live -- --ignored --nocapture`.
+    /// Prints the install id so the row can be deleted afterwards.
+    #[test]
+    #[ignore = "talks to speech.patientdesk.ai and voice.patientdesk.ai"]
+    fn live_trial_session_transcribes() {
+        let id = format!(
+            "{:x}",
+            Sha256::digest(format!(
+                "elchi-live-test-{}",
+                Utc::now().timestamp_nanos_opt().unwrap()
+            ))
+        );
+        println!("test install id: {id}");
+        let session =
+            tauri::async_runtime::block_on(request_session_for(&id, "tr".into())).unwrap();
+        assert_eq!(session.plan, Plan::Trial);
+        let token = session.usable_token(Utc::now()).expect("trial token");
+        assert!(session
+            .upgrade_url
+            .starts_with(&format!("{SITE_URL}/elchi/activate?code=")));
+
+        let clips = std::env::var("DUYU_TEST_CLIPS").expect("DUYU_TEST_CLIPS");
+        let mut r = hound::WavReader::open(format!("{clips}/tr1.wav")).unwrap();
+        let audio: Vec<f32> = r
+            .samples::<i16>()
+            .map(|s| s.unwrap() as f32 / 32768.0)
+            .collect();
+        let text = transcribe(&token, &audio, None).unwrap();
+        println!("Duyu Pro: {text}");
+        assert!(text.to_lowercase().contains("toplantı"));
+        assert!(matches!(
+            transcribe("not-a-token", &audio, None),
+            Err(CloudError::Unauthorized)
+        ));
     }
 
     #[test]
