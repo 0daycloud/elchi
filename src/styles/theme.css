@@ -1,31 +1,58 @@
-/* Handy Colors */
+/* Elchi colors: two riso inks on cream stock (the Iznik print look).
+ *
+ *   paper  #efe6d2   cream stock (light ground)
+ *   ink    #1c3a94   cobalt: text and accents on paper
+ *   light  #7c98d9   light blue second ink: fills, borders, decoration on
+ *                    paper (too light for body text there); the accent on night
+ *   night  #0c173f   night blue (dark ground)
+ *   red    #a32c22   rare accent, used for errors on paper
+ */
 
 :root {
   /* Palette source of truth. Each themed color is defined once as a
      light/dark pair; the active tokens below and the `data-theme` overrides
-     in App.css reference these, so a hex value lives in exactly one place. */
-  --light-color-text: #0f0f0f;
-  --light-color-background: #fbfbfb;
-  --light-color-logo-primary: #faa2ca;
-  --light-color-logo-stroke: #382731;
+     reference these, so a hex value lives in exactly one place. */
+  /* Body text: the cobalt ink printed dense (same hue, darker), so the
+     translucent secondary-text variants (text-text/60 etc.) keep enough
+     contrast on paper. Accents use the true cobalt below. */
+  --light-color-text: #13286b;
+  --light-color-background: #efe6d2;
+  /* Accent ink. Cobalt on paper is text-safe (~8.5:1). */
+  --light-color-logo-primary: #1c3a94;
+  --light-color-logo-stroke: #1c3a94;
+  /* Second ink: decoration only on paper. */
+  --light-color-ink-2: #7c98d9;
+  /* Muted ink for secondary text (~5:1 on paper). */
+  --light-color-mid-gray: #535d86;
+  /* Filled controls (primary buttons, switches, sliders). Text on them uses
+     the background color, so the inks swap like a reversed-out print. */
+  --light-color-background-ui: #1c3a94;
+  /* Faint paper grain (warm specks), multiplied over the ground. */
+  --light-paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.42 0 0 0 0 0.34 0 0 0 0 0.2 1.2 0 0 0 -0.55'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.22'/%3E%3C/svg%3E");
 
-  --dark-color-text: #fbfbfb;
-  --dark-color-background: #2c2b29;
-  --dark-color-logo-primary: #f28cbb;
-  --dark-color-logo-stroke: #fad1ed;
+  --dark-color-text: #efe6d2;
+  --dark-color-background: #0c173f;
+  /* Light blue on night is text-safe (~6:1). */
+  --dark-color-logo-primary: #7c98d9;
+  --dark-color-logo-stroke: #efe6d2;
+  --dark-color-ink-2: #2f4fb0;
+  --dark-color-mid-gray: #a2acce;
+  --dark-color-background-ui: #7c98d9;
+  /* On night the grain lifts instead of darkens: pale specks. */
+  --dark-paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.94 0 0 0 0 0.9 0 0 0 0 0.82 1.2 0 0 0 -0.55'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.1'/%3E%3C/svg%3E");
 
-  /* Semantic status colors. First used by SecureInputWarning; intended to
-     replace the ad-hoc yellow-500/red-500 usages (e.g. ui/Alert.tsx) over
-     time so status styling is themeable from one place. */
-  --light-color-warning: #d97706;
-  --light-color-error: #dc2626;
-  --dark-color-warning: #fbbf24;
-  --dark-color-error: #f87171;
+  /* Semantic status colors. */
+  --light-color-warning: #9a5a07;
+  --light-color-error: #a32c22;
+  --dark-color-warning: #f2c14e;
+  --dark-color-error: #f0948b;
 
   /* Tokens that do not change between light and dark */
-  --color-background-ui: #da5893;
-  --color-text-stroke: #f6f6f6;
-  --color-mid-gray: #808080;
+  --color-text-stroke: #efe6d2;
+  --color-paper: #efe6d2;
+  --color-ink: #1c3a94;
+  --color-ink-light: #7c98d9;
+  --color-night: #0c173f;
 
   /* Active palette — defaults to light, follows the OS via the media query
      below, or is forced by `data-theme` (see the overrides below). */
@@ -33,8 +60,12 @@
   --color-background: var(--light-color-background);
   --color-logo-primary: var(--light-color-logo-primary);
   --color-logo-stroke: var(--light-color-logo-stroke);
+  --color-ink-2: var(--light-color-ink-2);
+  --color-mid-gray: var(--light-color-mid-gray);
+  --color-background-ui: var(--light-color-background-ui);
   --color-warning: var(--light-color-warning);
   --color-error: var(--light-color-error);
+  --paper-grain: var(--light-paper-grain);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -43,8 +74,12 @@
     --color-background: var(--dark-color-background);
     --color-logo-primary: var(--dark-color-logo-primary);
     --color-logo-stroke: var(--dark-color-logo-stroke);
+    --color-ink-2: var(--dark-color-ink-2);
+    --color-mid-gray: var(--dark-color-mid-gray);
+    --color-background-ui: var(--dark-color-background-ui);
     --color-warning: var(--dark-color-warning);
     --color-error: var(--dark-color-error);
+    --paper-grain: var(--dark-paper-grain);
   }
 }
 
@@ -52,7 +87,7 @@
  * Explicit theme override, driven by the `theme` setting via
  * `document.documentElement.dataset.theme`. When set, the higher-specificity
  * attribute selectors win over the `prefers-color-scheme` media query above,
- * so a user can keep Handy light or dark regardless of the OS setting.
+ * so a user can keep Elchi light or dark regardless of the OS setting.
  * `system` (or no attribute) leaves the OS in charge.
  *
  * Lives here (not in App.css) so every window that imports the shared palette —
@@ -63,8 +98,12 @@
   --color-background: var(--light-color-background);
   --color-logo-primary: var(--light-color-logo-primary);
   --color-logo-stroke: var(--light-color-logo-stroke);
+  --color-ink-2: var(--light-color-ink-2);
+  --color-mid-gray: var(--light-color-mid-gray);
+  --color-background-ui: var(--light-color-background-ui);
   --color-warning: var(--light-color-warning);
   --color-error: var(--light-color-error);
+  --paper-grain: var(--light-paper-grain);
 }
 
 :root[data-theme="dark"] {
@@ -72,6 +111,10 @@
   --color-background: var(--dark-color-background);
   --color-logo-primary: var(--dark-color-logo-primary);
   --color-logo-stroke: var(--dark-color-logo-stroke);
+  --color-ink-2: var(--dark-color-ink-2);
+  --color-mid-gray: var(--dark-color-mid-gray);
+  --color-background-ui: var(--dark-color-background-ui);
   --color-warning: var(--dark-color-warning);
   --color-error: var(--dark-color-error);
+  --paper-grain: var(--dark-paper-grain);
 }

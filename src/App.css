@@ -13,10 +13,30 @@
   --color-mid-gray: var(--color-mid-gray);
   --color-warning: var(--color-warning);
   --color-error: var(--color-error);
+  --color-ink-2: var(--color-ink-2);
+  --color-paper: var(--color-paper);
+  --color-ink: var(--color-ink);
+  --color-ink-light: var(--color-ink-light);
+  --color-night: var(--color-night);
+}
+
+/* Bundled typefaces (see main.tsx imports; no network at runtime). */
+@theme {
+  --font-sans:
+    "Karla Variable", "Karla", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --font-display:
+    "Bricolage Grotesque Variable", "Bricolage Grotesque", ui-sans-serif,
+    system-ui, sans-serif;
+  --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-mono:
+    "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "SF Mono", Menlo,
+    Consolas, monospace;
 }
 
 :root {
   /* Typography */
+  font-family: var(--font-sans);
   font-size: 15px;
   line-height: 24px;
   font-weight: 400;
@@ -45,6 +65,30 @@
   background-color: var(--color-background);
 }
 
+/* Paper: the flat ground plus a faint, tiled grain (inline SVG noise, no
+   network). Light mode darkens with warm specks; dark mode lifts slightly. */
+body {
+  background-color: var(--color-background);
+  background-image: var(--paper-grain);
+  background-repeat: repeat;
+  background-size: 180px 180px;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+}
+
+/* Native controls (range thumbs, checkboxes) take the accent ink. */
+:root {
+  accent-color: var(--color-logo-primary);
+}
+
+::selection {
+  background-color: color-mix(in srgb, var(--color-ink-2) 45%, transparent);
+}
+
 .container {
   margin: 0;
   padding-top: 10vh;
@@ -55,10 +99,14 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    /* Just a bit darker than the (already dark) background, keeping its warm tint */
+  :root:not([data-theme="light"]) {
+    /* Just a bit darker than the (already dark) background, keeping its tint */
     --color-log-surface: color-mix(in srgb, var(--color-background), black 15%);
   }
+}
+
+:root[data-theme="dark"] {
+  --color-log-surface: color-mix(in srgb, var(--color-background), black 15%);
 }
 
 /* Keep onboarding centered when classic scrollbars consume layout space.
