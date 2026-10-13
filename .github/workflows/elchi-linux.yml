@@ -1,0 +1,78 @@
+name: "Elchi Linux build"
+
+# Builds Elchi for Linux (x64) with its updater signature and keeps the packages
+# as workflow artifacts; scripts/release/publish.py takes them from there.
+# - .deb on Ubuntu 22.04, the oldest glibc we build against, so it installs on
+#   22.04 and newer and on Debian 12;
+# - AppImage on Ubuntu 24.04, for every other distribution and for the updater.
+# A smoke test then installs the .deb on a clean runner and transcribes a
+# Turkish clip with Duyu-small, so a broken build never gets published.
+on: workflow_dispatch
+
+jobs:
+  deb:
+    permissions:
+      contents: write
+    uses: ./.github/workflows/build.yml
+    with:
+      platform: ubuntu-22.04
+      target: x86_64-unknown-linux-gnu
+      build-args: "--bundles deb"
+      asset-prefix: "elchi"
+      upload-artifacts: true
+      sign-binaries: false
+    secrets: inherit
+
+  appimage:
+    permissions:
+      contents: write
+    uses: ./.github/workflows/build.yml
+    with:
+      platform: ubuntu-24.04
+      target: x86_64-unknown-linux-gnu
+      build-args: "--bundles appimage"
+      asset-prefix: "elchi"
+      upload-artifacts: true
+      sign-binaries: false
+    secrets: inherit
+
+  smoke-test:
+    needs: deb
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: tests/fixtures
+
+      - name: Download the .deb
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download "${{ github.run_id }}" -R "${{ github.repository }}" -n elchi-ubuntu-22.04-x86_64-unknown-linux-gnu -D pkg
+
+      - name: Install it as a user would
+        run: |
+          deb=$(find pkg -name '*.deb' | head -1)
+          echo "Installing $deb"
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq "./$deb" xvfb
+          command -v elchi
+
+      - name: Fetch Duyu-small (int8, pinned revision)
+        run: |
+          rev=5b7f76972cd82ae6c2d66ec8e8c7b6782d5c8803
+          dir="$HOME/.local/share/com.elchi.app/models/duyu-small-int8"
+          mkdir -p "$dir/int8"
+          for f in engine.json spm.model fbank.npz passes.npz int8/encoder_pre.onnx int8/encoder_pass.onnx int8/encoder_post.onnx int8/decoder.onnx; do
+            curl -fsSL -o "$dir/$f" "https://huggingface.co/KaanAydinli/Duyu-small/resolve/$rev/$f"
+          done
+          ls -la "$dir" "$dir/int8"
+
+      - name: Transcribe a Turkish clip with the installed app
+        run: |
+          # The app is a GTK program even headless; a virtual display stands in.
+          out=$(xvfb-run -a elchi -f tests/fixtures/duyu-tr-meeting.wav --model duyu-small --json 2>/dev/null | tail -1)
+          echo "$out"
+          echo "$out" | python3 -c 'import json,sys; r=json.load(sys.stdin); assert "toplant" in r["text"], r["text"]; print("OK:", r["text"], f"({r[\"best_ms\"]} ms for {r[\"audio_secs\"]:.1f} s)")'
