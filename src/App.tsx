@@ -179,6 +179,20 @@ function App() {
     };
   }, [t]);
 
+  // Announce words the dictionary learned from a correction.
+  useEffect(() => {
+    const unlisten = listen<{ word: string }[]>("dictionary-learned", (e) => {
+      toast.success(
+        t("dictionary.learnedToast", {
+          words: e.payload.map((w) => w.word).join(", "),
+        }),
+      );
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, [t]);
+
   // Listen for paste failures and show a toast.
   // The technical error detail is logged to elchi.log on the Rust side
   // (see actions.rs `error!("Failed to paste transcription: ...")`),

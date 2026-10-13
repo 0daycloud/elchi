@@ -17,7 +17,8 @@
     "history": "History",
     "debug": "Debug",
     "about": "About",
-    "label": "Sections"
+    "label": "Sections",
+    "dictionary": "Dictionary"
   },
   "onboarding": {
     "subtitle": "To get started, choose a model that runs on this computer",
@@ -816,5 +817,30 @@
       "trial_other": "Duyu Pro · {{count}} days",
       "pro": "Elchi Pro"
     }
+  },
+  "dictionary": {
+    "title": "Dictionary",
+    "intro": "Names, brands and terms. Elchi writes them the way you do.",
+    "howMac": "When you fix a word Elchi wrote (Kan → Kaan), it learns on its own. You can also teach it by editing a dictation in History.",
+    "howOther": "When you fix a dictation in History (Kan → Kaan), Elchi learns the new names. You can add words here too.",
+    "addPlaceholder": "Add a word, e.g. PatientDesk",
+    "add": "Add",
+    "learned": "learned",
+    "heardAs": "heard as: {{forms}}",
+    "remove": "Remove {{word}}",
+    "empty": "No words yet. Your first correction starts it.",
+    "learnToggle": "Learn from corrections",
+    "learnToggleDescription": "When on, Elchi reads the corrections you make to text it pasted and adds new names to the dictionary. What it reads never leaves your computer.",
+    "needsFormatting": "The dictionary is used by smart formatting and Duyu Pro. Smart formatting is off.",
+    "learnedToast": "Added to your dictionary: {{words}}",
+    "count_one": "{{count}} word",
+    "count_other": "{{count}} words"
+  },
+  "historyEdit": {
+    "edit": "Fix",
+    "save": "Save",
+    "cancel": "Cancel",
+    "hint": "Fix it; Elchi learns new names.",
+    "saved": "Saved"
   }
 }

@@ -152,3 +152,37 @@ pub async fn update_recording_retention_period(
 
     Ok(())
 }
+
+/// Saves the user's correction of a dictation and teaches the dictionary from it
+/// (crate::dictionary). Returns the words it learned.
+#[tauri::command]
+#[specta::specta]
+pub async fn edit_history_text(
+    app: AppHandle,
+    history_manager: State<'_, Arc<HistoryManager>>,
+    id: i64,
+    text: String,
+) -> Result<Vec<crate::dictionary::DictionaryWord>, String> {
+    let entry = history_manager
+        .get_entry_by_id(id)
+        .await
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| format!("History entry {id} not found"))?;
+    let pasted = entry
+        .post_processed_text
+        .clone()
+        .unwrap_or_else(|| entry.transcription_text.clone());
+    let text = text.trim().to_string();
+    if text.is_empty() || text == pasted {
+        return Ok(vec![]);
+    }
+    history_manager
+        .update_transcription(
+            id,
+            entry.transcription_text,
+            Some(text.clone()),
+            entry.post_process_prompt,
+        )
+        .map_err(|e| e.to_string())?;
+    Ok(crate::dictionary::learn_from_edit(&app, &pasted, &text))
+}

@@ -163,6 +163,9 @@ objc2 = "0.6"
 objc2-foundation = "0.3"
 objc2-app-kit = "0.3"
 objc2-service-management = "0.3.2"
+# Reading the focused text field back through Accessibility, so the dictionary can
+# learn from corrections (src/dictionary/watch.rs). The version Tauri already uses.
+core-foundation = "0.10"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 gtk-layer-shell = { version = "0.8", features = ["v0_6"] }

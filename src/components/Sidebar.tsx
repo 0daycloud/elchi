@@ -11,6 +11,7 @@ import {
   AboutSettings,
   PostProcessingSettings,
   ModelsSettings,
+  DictionarySettings,
 } from "./settings";
 
 export type SidebarSection = keyof typeof SECTIONS_CONFIG;
@@ -30,6 +31,11 @@ export const SECTIONS_CONFIG = {
   history: {
     labelKey: "sidebar.history",
     component: HistorySettings,
+    enabled: () => true,
+  },
+  dictionary: {
+    labelKey: "sidebar.dictionary",
+    component: DictionarySettings,
     enabled: () => true,
   },
   models: {

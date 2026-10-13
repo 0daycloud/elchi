@@ -1,7 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { readFile } from "@tauri-apps/plugin-fs";
-import { Check, Copy, FolderOpen, RotateCcw, Star, Trash2 } from "lucide-react";
+import {
+  Check,
+  Copy,
+  FolderOpen,
+  Pencil,
+  RotateCcw,
+  Star,
+  Trash2,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
@@ -312,6 +320,9 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
   const { t, i18n } = useTranslation();
   const [showCopied, setShowCopied] = useState(false);
   const [retrying, setRetrying] = useState(false);
+  // Fixing a dictation: the edit is saved and teaches the dictionary.
+  const [draft, setDraft] = useState<string | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const hasTranscription = pastedText(entry).trim().length > 0;
 
@@ -356,6 +367,20 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
     }
   };
 
+  const handleSaveEdit = async () => {
+    if (draft === null) return;
+    setSavingEdit(true);
+    const result = await commands.editHistoryText(entry.id, draft);
+    setSavingEdit(false);
+    if (result.status === "error") {
+      toast.error(result.error);
+      return;
+    }
+    setDraft(null);
+    // What was learned is announced app-wide (the dictionary-learned event).
+    if (result.data.length === 0) toast.success(t("historyEdit.saved"));
+  };
+
   const formattedDate = formatDateTime(String(entry.timestamp), i18n.language);
 
   return (
@@ -391,6 +416,13 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
             />
           </IconButton>
           <IconButton
+            onClick={() => setDraft(pastedText(entry))}
+            disabled={!hasTranscription || retrying || draft !== null}
+            title={t("historyEdit.edit")}
+          >
+            <Pencil width={16} height={16} />
+          </IconButton>
+          <IconButton
             onClick={handleRetranscribe}
             disabled={retrying}
             title={t("settings.history.retranscribe")}
@@ -415,34 +447,63 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
         </div>
       </div>
 
-      <p
-        className={`italic text-sm pb-2 ${
-          retrying
-            ? ""
-            : hasTranscription
-              ? "text-text/90 select-text cursor-text whitespace-pre-wrap break-words"
-              : "text-text/40"
-        }`}
-        style={
-          retrying
-            ? { animation: "transcribe-pulse 3s ease-in-out infinite" }
-            : undefined
-        }
-      >
-        {retrying && (
-          <style>{`
+      {draft !== null ? (
+        <div className="flex flex-col gap-2 pb-2">
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            rows={Math.min(8, Math.max(2, draft.split("\n").length + 1))}
+            aria-label={t("historyEdit.edit")}
+            autoFocus
+            className="w-full text-sm rounded-lg border border-logo-primary/60 bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-logo-primary/40"
+          />
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="primary-soft"
+              onClick={handleSaveEdit}
+              disabled={savingEdit}
+            >
+              {t("historyEdit.save")}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setDraft(null)}>
+              {t("historyEdit.cancel")}
+            </Button>
+            <span className="text-xs text-mid-gray">
+              {t("historyEdit.hint")}
+            </span>
+          </div>
+        </div>
+      ) : (
+        <p
+          className={`italic text-sm pb-2 ${
+            retrying
+              ? ""
+              : hasTranscription
+                ? "text-text/90 select-text cursor-text whitespace-pre-wrap break-words"
+                : "text-text/40"
+          }`}
+          style={
+            retrying
+              ? { animation: "transcribe-pulse 3s ease-in-out infinite" }
+              : undefined
+          }
+        >
+          {retrying && (
+            <style>{`
             @keyframes transcribe-pulse {
               0%, 100% { color: color-mix(in srgb, var(--color-text) 40%, transparent); }
               50% { color: color-mix(in srgb, var(--color-text) 90%, transparent); }
             }
           `}</style>
-        )}
-        {retrying
-          ? t("settings.history.transcribing")
-          : hasTranscription
-            ? pastedText(entry)
-            : t("settings.history.transcriptionFailed")}
-      </p>
+          )}
+          {retrying
+            ? t("settings.history.transcribing")
+            : hasTranscription
+              ? pastedText(entry)
+              : t("settings.history.transcriptionFailed")}
+        </p>
+      )}
 
       <AudioPlayer onLoadRequest={handleLoadAudio} className="w-full" />
     </div>

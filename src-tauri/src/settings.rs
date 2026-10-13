@@ -507,6 +507,13 @@ pub struct AppSettings {
     /// servers; see crate::elchi_pro). On by default, on every plan.
     #[serde(default = "default_true")]
     pub elchi_format: bool,
+    /// The personal dictionary: names and terms, and how they were misheard
+    /// (crate::dictionary). Used by the formatter and as Duyu Pro's hint.
+    #[serde(default)]
+    pub elchi_dictionary: Vec<crate::dictionary::DictionaryWord>,
+    /// Whether corrections (to a pasted dictation, or in History) teach it.
+    #[serde(default = "default_true")]
+    pub elchi_dictionary_learn: bool,
     #[serde(default = "default_post_process_models")]
     pub post_process_models: HashMap<String, String>,
     #[serde(default = "default_post_process_prompts")]
@@ -1039,6 +1046,8 @@ pub fn get_default_settings() -> AppSettings {
         elchi_session: None,
         elchi_trial_end_seen: false,
         elchi_format: true,
+        elchi_dictionary: Vec::new(),
+        elchi_dictionary_learn: true,
         post_process_models: default_post_process_models(),
         post_process_prompts: default_post_process_prompts(),
         post_process_selected_prompt_id: None,

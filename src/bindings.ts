@@ -293,6 +293,33 @@ async setElchiUsePro(enabled: boolean) : Promise<ElchiProStatus> {
 async setElchiFormat(enabled: boolean) : Promise<ElchiProStatus> {
     return await TAURI_INVOKE("set_elchi_format", { enabled });
 },
+async getDictionary() : Promise<DictionaryWord[]> {
+    return await TAURI_INVOKE("get_dictionary");
+},
+async addDictionaryWord(word: string) : Promise<DictionaryWord[]> {
+    return await TAURI_INVOKE("add_dictionary_word", { word });
+},
+async removeDictionaryWord(word: string) : Promise<DictionaryWord[]> {
+    return await TAURI_INVOKE("remove_dictionary_word", { word });
+},
+/**
+ * Whether corrections teach the dictionary.
+ */
+async setDictionaryLearning(enabled: boolean) : Promise<void> {
+    await TAURI_INVOKE("set_dictionary_learning", { enabled });
+},
+/**
+ * Saves the user's correction of a dictation and teaches the dictionary from it
+ * (crate::dictionary). Returns the words it learned.
+ */
+async editHistoryText(id: number, text: string) : Promise<Result<DictionaryWord[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("edit_history_text", { id, text }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async changePostProcessModelSetting(providerId: string, model: string) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("change_post_process_model_setting", { providerId, model }) };
@@ -1067,7 +1094,16 @@ elchi_trial_end_seen?: boolean;
  * Lay dictated text out before pasting it (Elchi's formatter on our
  * servers; see crate::elchi_pro). On by default, on every plan.
  */
-elchi_format?: boolean; post_process_models?: Partial<{ [key in string]: string }>; post_process_prompts?: LLMPrompt[]; post_process_selected_prompt_id?: string | null; mute_while_recording?: boolean; append_trailing_space?: boolean; app_language?: string; theme?: Theme; experimental_enabled?: boolean; lazy_stream_close?: boolean; keyboard_implementation?: KeyboardImplementation; show_tray_icon?: boolean; paste_delay_ms?: number; paste_delay_after_ms?: number; 
+elchi_format?: boolean; 
+/**
+ * The personal dictionary: names and terms, and how they were misheard
+ * (crate::dictionary). Used by the formatter and as Duyu Pro's hint.
+ */
+elchi_dictionary?: DictionaryWord[]; 
+/**
+ * Whether corrections (to a pasted dictation, or in History) teach it.
+ */
+elchi_dictionary_learn?: boolean; post_process_models?: Partial<{ [key in string]: string }>; post_process_prompts?: LLMPrompt[]; post_process_selected_prompt_id?: string | null; mute_while_recording?: boolean; append_trailing_space?: boolean; app_language?: string; theme?: Theme; experimental_enabled?: boolean; lazy_stream_close?: boolean; keyboard_implementation?: KeyboardImplementation; show_tray_icon?: boolean; paste_delay_ms?: number; paste_delay_after_ms?: number; 
 /**
  * Debug-gated ("beta") receipt-sequenced paste: restore the clipboard only
  * after the target app actually reads the transcript, instead of after a
@@ -1110,6 +1146,23 @@ export type ChineseScript =
 "as_transcribed" | "simplified" | "traditional"
 export type ClipboardHandling = "dont_modify" | "copy_to_clipboard"
 export type CustomSounds = { start: boolean; stop: boolean }
+export type DictionaryWord = { 
+/**
+ * As the user writes it: "Kaan", "PatientDesk".
+ */
+word: string; 
+/**
+ * How Elchi wrote it before it was corrected: "Kan".
+ */
+heard?: string[]; 
+/**
+ * Learned from a correction, rather than added by the user.
+ */
+learned?: boolean; 
+/**
+ * Unix seconds.
+ */
+added_at?: number }
 /**
  * What the interface shows: the session without the token.
  */

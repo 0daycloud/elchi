@@ -17,7 +17,8 @@
     "history": "Geçmiş",
     "debug": "Hata ayıklama",
     "about": "Hakkında",
-    "label": "Bölümler"
+    "label": "Bölümler",
+    "dictionary": "Sözlük"
   },
   "onboarding": {
     "subtitle": "Başlamak için bu bilgisayarda çalışacak bir model seçin",
@@ -816,5 +817,30 @@
       "trial_other": "Duyu Pro · {{count}} gün",
       "pro": "Elchi Pro"
     }
+  },
+  "dictionary": {
+    "title": "Sözlük",
+    "intro": "İsimler, markalar ve terimler. Elchi bunları sizin yazdığınız gibi yazar.",
+    "howMac": "Elchi'nin yazdığı bir kelimeyi düzelttiğinizde (Kan → Kaan) kendiliğinden öğrenir. Geçmiş'te bir dikteyi düzenleyerek de öğretebilirsiniz.",
+    "howOther": "Geçmiş'te bir dikteyi düzelttiğinizde (Kan → Kaan) Elchi yeni isimleri öğrenir. Kelimeleri buradan da ekleyebilirsiniz.",
+    "addPlaceholder": "Kelime ekleyin, ör. PatientDesk",
+    "add": "Ekle",
+    "learned": "öğrenildi",
+    "heardAs": "duyulan: {{forms}}",
+    "remove": "{{word}} kelimesini kaldır",
+    "empty": "Henüz kelime yok. İlk düzeltmenizde burası dolmaya başlar.",
+    "learnToggle": "Düzeltmelerden öğren",
+    "learnToggleDescription": "Açıkken Elchi, yapıştırdığı metinde yaptığınız düzeltmeleri okur ve yeni isimleri sözlüğe ekler. Okunan metin bilgisayarınızdan çıkmaz.",
+    "needsFormatting": "Sözlük, akıllı biçimlendirme ve Duyu Pro ile kullanılır. Akıllı biçimlendirme şu an kapalı.",
+    "learnedToast": "Sözlüğe eklendi: {{words}}",
+    "count_one": "{{count}} kelime",
+    "count_other": "{{count}} kelime"
+  },
+  "historyEdit": {
+    "edit": "Düzelt",
+    "save": "Kaydet",
+    "cancel": "Vazgeç",
+    "hint": "Düzeltin; Elchi yeni isimleri öğrenir.",
+    "saved": "Kaydedildi"
   }
 }

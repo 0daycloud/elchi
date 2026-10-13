@@ -9,6 +9,7 @@ mod chinese_script;
 pub mod cli;
 mod clipboard;
 mod commands;
+mod dictionary;
 pub mod duyu;
 mod elchi_pro;
 pub mod engine_supervisor;
@@ -695,6 +696,11 @@ pub fn run(cli_args: CliArgs) {
             commands::elchi_pro::open_elchi_upgrade,
             commands::elchi_pro::set_elchi_use_pro,
             commands::elchi_pro::set_elchi_format,
+            dictionary::get_dictionary,
+            dictionary::add_dictionary_word,
+            dictionary::remove_dictionary_word,
+            dictionary::set_dictionary_learning,
+            commands::history::edit_history_text,
             shortcut::change_post_process_model_setting,
             shortcut::set_post_process_provider,
             shortcut::fetch_post_process_models,

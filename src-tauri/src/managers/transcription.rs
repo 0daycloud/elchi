@@ -1141,7 +1141,9 @@ impl TranscriptionManager {
         let elchi = self.app_handle.try_state::<Arc<ElchiPro>>()?;
         for attempt in 0..2 {
             let token = elchi.cloud_token()?;
-            match crate::elchi_pro::transcribe(&token, audio, hint) {
+            let prompt =
+                crate::dictionary::prompt(&get_settings(&self.app_handle).elchi_dictionary);
+            match crate::elchi_pro::transcribe(&token, audio, hint, prompt) {
                 Ok(text) => {
                     info!("Transcribed with Duyu Pro ({})", crate::elchi_pro::MODEL);
                     return Some(text);

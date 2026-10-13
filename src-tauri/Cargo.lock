@@ -1603,6 +1603,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "clap",
+ "core-foundation 0.10.1",
  "earshot",
  "enigo",
  "env_filter",

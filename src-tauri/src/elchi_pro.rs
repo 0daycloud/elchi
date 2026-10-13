@@ -394,6 +394,7 @@ async fn request_transcription(
     token: String,
     wav: Vec<u8>,
     language: Option<String>,
+    prompt: Option<String>,
 ) -> Result<String, CloudError> {
     let file = reqwest::multipart::Part::bytes(wav)
         .file_name("elchi.wav")
@@ -405,6 +406,11 @@ async fn request_transcription(
         .text("response_format", "json");
     if let Some(lang) = language {
         form = form.text("language", lang);
+    }
+    // The personal dictionary's words, as Whisper's initial prompt: it makes those
+    // spellings likelier where the audio fits them.
+    if let Some(prompt) = prompt {
+        form = form.text("prompt", prompt);
     }
     let client = reqwest::Client::builder()
         .timeout(TRANSCRIBE_TIMEOUT)
@@ -432,6 +438,9 @@ async fn request_transcription(
 #[derive(Serialize)]
 struct FormatRequest<'a> {
     text: &'a str,
+    /// The personal dictionary (crate::dictionary): spellings to use where a word
+    /// in the dictation is one of their misheard forms and the context fits.
+    vocabulary: &'a [crate::dictionary::DictionaryWord],
 }
 
 #[derive(Deserialize)]
@@ -442,7 +451,11 @@ struct FormatResponse {
 
 /// Dictated text laid out by Elchi's formatter, or None when it could not be
 /// (the caller pastes the text as transcribed).
-pub async fn format(token: &str, text: &str) -> Option<String> {
+pub async fn format(
+    token: &str,
+    text: &str,
+    vocabulary: &[crate::dictionary::DictionaryWord],
+) -> Option<String> {
     let started = std::time::Instant::now();
     let resp = reqwest::Client::builder()
         .timeout(FORMAT_TIMEOUT)
@@ -450,7 +463,7 @@ pub async fn format(token: &str, text: &str) -> Option<String> {
         .ok()?
         .post(FORMAT_URL)
         .bearer_auth(token)
-        .json(&FormatRequest { text })
+        .json(&FormatRequest { text, vocabulary })
         .send()
         .await;
     let out = match resp {
@@ -480,12 +493,13 @@ pub fn transcribe(
     token: &str,
     audio: &[f32],
     language: Option<&str>,
+    prompt: Option<String>,
 ) -> Result<String, CloudError> {
     let wav = wav_bytes(audio, 16_000).map_err(CloudError::Other)?;
     let token = token.to_string();
     let language = language.map(str::to_string);
     std::thread::spawn(move || {
-        tauri::async_runtime::block_on(request_transcription(token, wav, language))
+        tauri::async_runtime::block_on(request_transcription(token, wav, language, prompt))
     })
     .join()
     .map_err(|_| CloudError::Other(anyhow!("Duyu API request thread panicked")))?
@@ -590,11 +604,11 @@ mod tests {
             .samples::<i16>()
             .map(|s| s.unwrap() as f32 / 32768.0)
             .collect();
-        let text = transcribe(&token, &audio, None).unwrap();
+        let text = transcribe(&token, &audio, None, Some("Kaan, Elchi".into())).unwrap();
         println!("Duyu Pro: {text}");
         assert!(text.to_lowercase().contains("toplantı"));
         assert!(matches!(
-            transcribe("not-a-token", &audio, None),
+            transcribe("not-a-token", &audio, None, None),
             Err(CloudError::Unauthorized)
         ));
 
@@ -602,11 +616,11 @@ mod tests {
             .usable_format_token(Utc::now())
             .expect("format token");
         let raw = "Iıı şey, toplantıyı saat üçe alalım, yok yok dörde alalım.";
-        let formatted = tauri::async_runtime::block_on(format(&fmt, raw));
+        let formatted = tauri::async_runtime::block_on(format(&fmt, raw, &[]));
         println!("formatted: {formatted:?}");
         let formatted = formatted.expect("formatted");
         assert!(formatted.contains("dör") && !formatted.contains("üçe"));
-        assert!(tauri::async_runtime::block_on(format("not-a-token", raw)).is_none());
+        assert!(tauri::async_runtime::block_on(format("not-a-token", raw, &[])).is_none());
     }
 
     #[test]

@@ -367,7 +367,10 @@ pub(crate) async fn process_transcription_output(
             .try_state::<Arc<crate::elchi_pro::ElchiPro>>()
             .and_then(|elchi| elchi.format_token());
         if let Some(token) = token {
-            if let Some(formatted) = crate::elchi_pro::format(&token, &final_text).await {
+            let vocabulary = crate::dictionary::for_formatter(&settings.elchi_dictionary);
+            if let Some(formatted) =
+                crate::elchi_pro::format(&token, &final_text, &vocabulary).await
+            {
                 post_processed_text = Some(formatted.clone());
                 final_text = formatted;
             }
@@ -757,6 +760,7 @@ impl ShortcutAction for TranscribeAction {
                                 let ah_clone = ah.clone();
                                 let paste_time = Instant::now();
                                 let final_text = processed.final_text;
+                                let pasted_text = final_text.clone();
                                 let rm_for_paste = Arc::clone(&rm);
                                 ah.run_on_main_thread(move || {
                                     if rm_for_paste.was_cancelled_since(cancel_generation) {
@@ -767,10 +771,20 @@ impl ShortcutAction for TranscribeAction {
                                     }
 
                                     match utils::paste(final_text, ah_clone.clone()) {
-                                        Ok(()) => debug!(
-                                            "Text pasted successfully in {:?}",
-                                            paste_time.elapsed()
-                                        ),
+                                        Ok(()) => {
+                                            debug!(
+                                                "Text pasted successfully in {:?}",
+                                                paste_time.elapsed()
+                                            );
+                                            // Watch the field for corrections to learn from.
+                                            #[cfg(target_os = "macos")]
+                                            if get_settings(&ah_clone).elchi_dictionary_learn {
+                                                crate::dictionary::watch::start(
+                                                    &ah_clone,
+                                                    pasted_text,
+                                                );
+                                            }
+                                        }
                                         Err(e) => {
                                             error!("Failed to paste transcription: {}", e);
                                             let _ = ah_clone.emit("paste-error", ());

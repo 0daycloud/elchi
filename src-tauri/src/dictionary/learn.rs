@@ -1,0 +1,325 @@
+//! What a correction teaches: given the text Elchi pasted and the same text after
+//! the user edited it, the words it should remember ("Kan" was really "Kaan").
+//!
+//! Only small, local fixes are lessons. A rewrite, a reworded sentence or a grammar
+//! fix teaches nothing about how names and terms sound, so it is ignored. A word is
+//! learned when it looks like the kind dictation gets wrong: a name or brand (it has
+//! a capital letter), or a long term that is more than an inflection of what was
+//! heard. Everything here is pure, so it is tested on its own.
+
+/// A word to remember, and how the recognizer wrote it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Lesson {
+    pub word: String,
+    pub heard: String,
+}
+
+/// At most this many lessons from one edit: more means the text was rewritten.
+const MAX_LESSONS: usize = 3;
+/// Share of the pasted words that must survive the edit for it to count as a correction.
+const MIN_KEPT: f64 = 0.5;
+/// How alike the heard and the corrected word must be (1 - edit distance / longer length).
+const MIN_SIMILARITY: f64 = 0.5;
+
+/// Turkish-aware lower case: İ is i and I is ı, which `to_lowercase` gets wrong for I.
+pub fn fold(s: &str) -> String {
+    s.chars()
+        .map(|c| match c {
+            'I' => 'ı',
+            'İ' => 'i',
+            _ => c,
+        })
+        .flat_map(char::to_lowercase)
+        .collect()
+}
+
+/// A word stripped of the punctuation around it ("Kaan'a," -> "Kaan'a").
+fn core(token: &str) -> &str {
+    token
+        .trim_matches(|c: char| !c.is_alphanumeric() && c != '\'' && c != '’')
+        .trim_matches(|c| c == '\'' || c == '’')
+}
+
+/// The part before a Turkish suffix apostrophe ("Kaan'a" -> "Kaan").
+fn stem(word: &str) -> &str {
+    word.split(['\'', '’']).next().unwrap_or(word)
+}
+
+fn levenshtein(a: &str, b: &str) -> usize {
+    let a: Vec<char> = a.chars().collect();
+    let b: Vec<char> = b.chars().collect();
+    let mut prev: Vec<usize> = (0..=b.len()).collect();
+    for (i, ca) in a.iter().enumerate() {
+        let mut cur = vec![i + 1; b.len() + 1];
+        for (j, cb) in b.iter().enumerate() {
+            cur[j + 1] = (prev[j] + usize::from(ca != cb))
+                .min(prev[j + 1] + 1)
+                .min(cur[j] + 1);
+        }
+        prev = cur;
+    }
+    prev[b.len()]
+}
+
+pub fn similarity(a: &str, b: &str) -> f64 {
+    let longest = a.chars().count().max(b.chars().count());
+    if longest == 0 {
+        return 1.0;
+    }
+    1.0 - levenshtein(a, b) as f64 / longest as f64
+}
+
+/// An inflection rather than a different word: the same start, and an ending that
+/// grew, shrank or swapped its last letter, as Turkish suffixes do ("evde" ->
+/// "evden", "geleceğim" -> "geleceğiz"). A letter fixed inside a term
+/// ("kubernetis" -> "kubernetes") is not one.
+fn only_suffix_changed(heard: &str, word: &str) -> bool {
+    let (h, w): (Vec<char>, Vec<char>) = (heard.chars().collect(), word.chars().collect());
+    let common = h.iter().zip(&w).take_while(|(a, b)| a == b).count();
+    let longest = h.len().max(w.len());
+    if common + 3 < longest {
+        return false;
+    }
+    h.len() != w.len() || common + 1 == longest
+}
+
+/// Indices of matching tokens (a longest common subsequence of folded words).
+fn alignment(a: &[String], b: &[String]) -> Vec<(usize, usize)> {
+    let (n, m) = (a.len(), b.len());
+    let mut dp = vec![vec![0u32; m + 1]; n + 1];
+    for i in (0..n).rev() {
+        for j in (0..m).rev() {
+            dp[i][j] = if a[i] == b[j] {
+                dp[i + 1][j + 1] + 1
+            } else {
+                dp[i + 1][j].max(dp[i][j + 1])
+            };
+        }
+    }
+    let (mut i, mut j, mut out) = (0, 0, Vec::new());
+    while i < n && j < m {
+        if a[i] == b[j] {
+            out.push((i, j));
+            i += 1;
+            j += 1;
+        } else if dp[i + 1][j] >= dp[i][j + 1] {
+            i += 1;
+        } else {
+            j += 1;
+        }
+    }
+    out
+}
+
+/// What the edit from `pasted` to `edited` teaches, if anything.
+pub fn lessons(pasted: &str, edited: &str) -> Vec<Lesson> {
+    let a: Vec<&str> = pasted
+        .split_whitespace()
+        .filter(|t| !core(t).is_empty())
+        .collect();
+    let b: Vec<&str> = edited
+        .split_whitespace()
+        .filter(|t| !core(t).is_empty())
+        .collect();
+    if a.is_empty() || b.is_empty() {
+        return vec![];
+    }
+    let fa: Vec<String> = a.iter().map(|t| fold(core(t))).collect();
+    let fb: Vec<String> = b.iter().map(|t| fold(core(t))).collect();
+    let matched = alignment(&fa, &fb);
+    if (matched.len() as f64) < MIN_KEPT * a.len().max(b.len()) as f64 {
+        return vec![]; // rewritten, not corrected
+    }
+
+    // The gaps between matched words are what changed: (pasted range, edited range).
+    let mut gaps = Vec::new();
+    let (mut pi, mut pj) = (0, 0);
+    for &(i, j) in matched.iter().chain(std::iter::once(&(a.len(), b.len()))) {
+        if i > pi || j > pj {
+            gaps.push((pi..i, pj..j));
+        }
+        pi = i + 1;
+        pj = j + 1;
+    }
+
+    let mut out: Vec<Lesson> = Vec::new();
+    // Matched words are equal once folded; one whose case was changed to a capital in
+    // the middle of a sentence ("elchi" -> "Elchi") names something.
+    for &(i, j) in &matched {
+        let (heard, word) = (stem(core(a[i])), stem(core(b[j])));
+        let sentence_start = j == 0 || b[j - 1].ends_with(['.', '!', '?', ':']);
+        if heard != word
+            && word.chars().any(char::is_uppercase)
+            && !heard.chars().any(char::is_uppercase)
+            && !sentence_start
+            && word.chars().count() >= 3
+            && !out.iter().any(|l: &Lesson| fold(&l.word) == fold(word))
+        {
+            out.push(Lesson {
+                word: word.to_string(),
+                heard: heard.to_string(),
+            });
+        }
+    }
+    for (ra, rb) in gaps {
+        if ra.is_empty() || rb.is_empty() || ra.len() > 2 || rb.len() > 2 {
+            continue; // an insertion, a deletion, or too big to be one mis-heard word
+        }
+        let heard = ra
+            .clone()
+            .map(|k| stem(core(a[k])))
+            .collect::<Vec<_>>()
+            .join(" ");
+        let word = rb
+            .clone()
+            .map(|k| stem(core(b[k])))
+            .collect::<Vec<_>>()
+            .join(" ");
+        let (fh, fw) = (fold(&heard), fold(&word));
+        if word.chars().count() < 3
+            || word.chars().count() > 40
+            || !word.chars().any(char::is_alphabetic)
+        {
+            continue;
+        }
+        if similarity(&fh, &fw) < MIN_SIMILARITY {
+            continue; // a different word chosen, not a mis-hearing fixed
+        }
+        // A capital is evidence of a name only mid-sentence; at the start every word has one.
+        let sentence_start = rb.start == 0 || b[rb.start - 1].ends_with(['.', '!', '?', ':']);
+        let capitalised = word.chars().any(char::is_uppercase)
+            && (!sentence_start || word.chars().skip(1).any(char::is_uppercase));
+        if !capitalised && (word.chars().count() < 6 || only_suffix_changed(&fh, &fw)) {
+            continue; // a common word or an inflection, not a name or a term
+        }
+        if !out.iter().any(|l| fold(&l.word) == fw) {
+            out.push(Lesson { word, heard });
+        }
+    }
+    if out.len() > MAX_LESSONS {
+        return vec![];
+    }
+    out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn learned(pasted: &str, edited: &str) -> Vec<(String, String)> {
+        lessons(pasted, edited)
+            .into_iter()
+            .map(|l| (l.word, l.heard))
+            .collect()
+    }
+
+    fn one(word: &str, heard: &str) -> Vec<(String, String)> {
+        vec![(word.to_string(), heard.to_string())]
+    }
+
+    #[test]
+    fn a_misheard_name_is_learned_without_its_suffix() {
+        assert_eq!(
+            learned(
+                "Raporu Kan'a gönder, yarın görüşürüz.",
+                "Raporu Kaan'a gönder, yarın görüşürüz."
+            ),
+            one("Kaan", "Kan")
+        );
+        assert_eq!(
+            learned(
+                "Toplantıya kan ile gideceğim.",
+                "Toplantıya Kaan ile gideceğim."
+            ),
+            one("Kaan", "kan")
+        );
+    }
+
+    #[test]
+    fn brands_and_jargon_are_learned() {
+        assert_eq!(
+            learned(
+                "Bunu pacientdesk üzerinden yap.",
+                "Bunu PatientDesk üzerinden yap."
+            ),
+            one("PatientDesk", "pacientdesk")
+        );
+        assert_eq!(
+            learned(
+                "Kubernetis cluster'ı yeniden başlat.",
+                "Kubernetes cluster'ı yeniden başlat."
+            ),
+            one("Kubernetes", "Kubernetis")
+        );
+        assert_eq!(
+            learned(
+                "Veriyi postgreskl ile sakla.",
+                "Veriyi postgresql ile sakla."
+            ),
+            one("postgresql", "postgreskl")
+        );
+        assert_eq!(
+            learned("Bunu patient desk ile yap.", "Bunu PatientDesk ile yap."),
+            one("PatientDesk", "patient desk")
+        );
+    }
+
+    #[test]
+    fn a_name_capitalised_mid_sentence_is_learned_but_not_a_sentence_start() {
+        assert_eq!(
+            learned("Bugün elchi ile yazdım.", "Bugün Elchi ile yazdım."),
+            one("Elchi", "elchi")
+        );
+        assert!(learned("tamam. yarın gelirim.", "Tamam. Yarın gelirim.").is_empty());
+    }
+
+    #[test]
+    fn grammar_and_word_choice_are_not_lessons() {
+        assert!(learned(
+            "Yarın geleceğim, sen de gel.",
+            "Yarın geleceğiz, sen de gel."
+        )
+        .is_empty());
+        assert!(learned("Bunu yarın evde konuşuruz.", "Bunu yarın evden konuşuruz.").is_empty());
+        assert!(learned("Kan tahlili yarın çıkacak.", "Kaan tahlili yarın çıkacak.").is_empty()); // a sentence start says nothing
+        assert!(learned("Bir şey söyleyeceğim.", "Biz şey söyleyeceğim.").is_empty()); // short and lowercase
+        assert!(learned("Toplantı çok güzeldi.", "Toplantı çok verimliydi.").is_empty()); // a different word
+        assert!(learned("Raporu yarın gönder.", "Raporu yarın sabah gönder.").is_empty()); // an addition
+        assert!(learned("Raporu yarın sabah gönder.", "Raporu yarın gönder.").is_empty());
+        // a deletion
+    }
+
+    #[test]
+    fn a_rewrite_teaches_nothing() {
+        assert!(learned(
+            "Toplantıyı yarına alalım, herkese haber ver.",
+            "Lütfen ekibe toplantının ertelendiğini bildir."
+        )
+        .is_empty());
+        assert!(learned("Merhaba", "").is_empty());
+        assert!(learned("Aynı metin.", "Aynı metin.").is_empty());
+    }
+
+    #[test]
+    fn turkish_case_folds_correctly() {
+        assert_eq!(fold("İSTANBUL Iğdır"), "istanbul ığdır");
+        assert_eq!(
+            learned("Yarın ıstanbul'a gidiyorum.", "Yarın İstanbul'a gidiyorum."),
+            one("İstanbul", "ıstanbul")
+        );
+    }
+
+    #[test]
+    fn several_names_in_one_edit_are_all_learned() {
+        assert_eq!(
+            learned(
+                "Yarın Kan ve Selen gelecek.",
+                "Yarın Kaan ve Selin gelecek."
+            ),
+            vec![
+                ("Kaan".into(), "Kan".into()),
+                ("Selin".into(), "Selen".into())
+            ]
+        );
+    }
+}
