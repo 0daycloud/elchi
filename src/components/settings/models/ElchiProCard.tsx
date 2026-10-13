@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button } from "../../ui/Button";
 import { ToggleSwitch } from "../../ui/ToggleSwitch";
 import { daysLeft, useElchiPro } from "@/hooks/useElchiPro";
 
@@ -58,26 +57,41 @@ export const ElchiProCard: React.FC = () => {
   return (
     <section
       aria-labelledby="duyu-pro-title"
-      className="rounded-xl border border-logo-primary/40 bg-logo-primary/5 p-4 space-y-3"
+      className={`rounded-2xl border-2 p-5 space-y-4 ${
+        plan === "free" ? "border-coral/60" : "border-logo-primary"
+      }`}
     >
-      <div className="space-y-1">
-        <p className="text-xs font-semibold uppercase tracking-wide text-logo-primary">
+      <div className="space-y-1.5">
+        <p
+          className={`text-xs font-semibold uppercase tracking-widest ${
+            plan === "free" ? "text-coral" : "text-logo-primary"
+          }`}
+        >
           {t("elchiPro.card.eyebrow")}
         </p>
-        <h2 id="duyu-pro-title" className="text-lg font-semibold">
+        <h2
+          id="duyu-pro-title"
+          className="text-2xl font-semibold leading-tight"
+        >
           {headline}
         </h2>
-        <p className="text-sm text-text/80">{detail}</p>
+        <p className="text-[15px] text-mid-gray">{detail}</p>
       </div>
 
       {plan !== "pro" && (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <Button onClick={onUpgrade}>{t("elchiPro.cta")}</Button>
+          <button
+            type="button"
+            onClick={onUpgrade}
+            className="rounded-xl bg-coral px-5 py-3 font-semibold text-on-coral hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/50 focus-visible:ring-offset-2"
+          >
+            {t("elchiPro.cta")}
+          </button>
           <p className="text-sm">
             <span className="font-semibold tabular-nums">
               {t("elchiPro.pricePerMonth", { price })}
             </span>
-            <span className="text-text/70"> · {t("elchiPro.freeMonth")}</span>
+            <span className="text-mid-gray"> · {t("elchiPro.freeMonth")}</span>
           </p>
         </div>
       )}
@@ -93,7 +107,7 @@ export const ElchiProCard: React.FC = () => {
       )}
 
       {error && (
-        <p role="alert" className="text-sm text-red-700 dark:text-red-400">
+        <p role="alert" className="text-sm text-error">
           {error}
         </p>
       )}
