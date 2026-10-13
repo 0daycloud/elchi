@@ -16,8 +16,8 @@
 # Order matters: the app is notarized and stapled first, and only then packed
 # into the updater bundle and the DMG, so both carry the same notarized app.
 #
-# Output: dist/release/<version>/ with Elchi_<v>_universal.dmg,
-# Elchi_<v>_universal.app.tar.gz and its .sig.
+# Output: dist/release/<version>/ with Elchi_<v>_aarch64.dmg,
+# Elchi_<v>_aarch64.app.tar.gz and its .sig.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -25,7 +25,10 @@ cd "$ROOT"
 
 IDENTITY="${ELCHI_SIGNING_IDENTITY:?set ELCHI_SIGNING_IDENTITY to the Developer ID Application identity}"
 PROFILE="${ELCHI_NOTARY_PROFILE:-elchi-notary}"
-TARGET="${ELCHI_MAC_TARGET:-universal-apple-darwin}"
+# Apple silicon only for now: ort-sys has no prebuilt ONNX Runtime for Intel
+# Macs, so an Intel (or universal) build needs ORT_LIB_LOCATION pointing at a
+# downloaded runtime and the dylib bundled, as .github/workflows/build.yml does.
+TARGET="${ELCHI_MAC_TARGET:-aarch64-apple-darwin}"
 ARCH_LABEL="${TARGET%%-apple-darwin}"
 VERSION="$(node -p "require('./src-tauri/tauri.conf.json').version")"
 OUT="$ROOT/dist/release/$VERSION"
@@ -43,7 +46,7 @@ TAURI_SIGNING_PRIVATE_KEY_PASSWORD="$(security find-generic-password -s elchi-up
 export TAURI_SIGNING_PRIVATE_KEY TAURI_SIGNING_PRIVATE_KEY_PASSWORD
 
 echo "==> Building Elchi $VERSION for $TARGET, signed as: $IDENTITY"
-rustup target add aarch64-apple-darwin x86_64-apple-darwin >/dev/null
+rustup target add aarch64-apple-darwin >/dev/null
 # Tauri signs the app (hardened runtime, entitlements from tauri.conf.json).
 # Its own notarization is skipped (no APPLE_* credentials in the environment);
 # notarytool below does it with the Keychain profile.
