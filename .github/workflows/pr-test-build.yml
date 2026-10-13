@@ -50,7 +50,7 @@ jobs:
       upload-artifacts: true
       is-debug-build: ${{ contains(matrix.args, '--debug') }}
       ref: ${{ format('refs/pull/{0}/merge', inputs.pr_number) }}
-    secrets: inherit
+    # No secrets: this builds code that is not ours yet.
 
   comment-on-pr:
     needs: build-test

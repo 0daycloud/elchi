@@ -76,6 +76,7 @@ jobs:
       # TODO(elchi): set to true once Elchi's own Apple Developer ID secrets
       # are configured in this repository.
       sign-binaries: false
+      updater-signing: true
       asset-prefix: "elchi"
       upload-artifacts: false
       release-id: ${{ needs.create-release.outputs.release-id }}

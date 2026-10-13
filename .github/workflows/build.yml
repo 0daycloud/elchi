@@ -32,6 +32,13 @@ on:
         required: false
         type: boolean
         default: false
+      # Sign the update bundles with Elchi's updater key. Only Elchi's own release
+      # builds set this: a build of someone else's code (a pull request) must never
+      # hold the key, since it could sign updates every install accepts.
+      updater-signing:
+        required: false
+        type: boolean
+        default: false
       repository:
         required: false
         type: string
@@ -512,9 +519,10 @@ jobs:
           APPLE_CERTIFICATE: ${{ inputs.sign-binaries && secrets.APPLE_CERTIFICATE || '' }}
           APPLE_CERTIFICATE_PASSWORD: ${{ inputs.sign-binaries && secrets.APPLE_CERTIFICATE_PASSWORD || '' }}
           APPLE_SIGNING_IDENTITY: ${{ inputs.sign-binaries && env.CERT_ID || '' }}
-          # Elchi's updater key: signs the update bundles (createUpdaterArtifacts).
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # Elchi's updater key: signs the update bundles (createUpdaterArtifacts),
+          # and only in Elchi's own release builds (updater-signing).
+          TAURI_SIGNING_PRIVATE_KEY: ${{ inputs.updater-signing && secrets.TAURI_SIGNING_PRIVATE_KEY || '' }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ inputs.updater-signing && secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD || '' }}
           # The Vulkan loader and Wayland client library must come from the host
           # graphics stack. Bundling Ubuntu's copies ahead of the system libraries can
           # prevent a newer distro's Vulkan ICD or Mesa stack from loading.
@@ -530,7 +538,8 @@ jobs:
           releaseName: ${{ inputs.release-id && format('v{0}', steps.get-version.outputs.version) || '' }}
           releaseId: ${{ inputs.release-id }}
           assetNamePattern: ${{ steps.patch-release-name.outputs.platform }}
-          args: ${{ inputs.build-args }}
+          # Without the updater key there is nothing to sign update bundles with, so none are made.
+          args: ${{ inputs.build-args }}${{ !inputs.updater-signing && ' --config src-tauri/tauri.no-updater.conf.json' || '' }}
 
       # tauri-action uploads release assets before returning. All AppImage
       # filtering therefore happens inside linuxdeploy above; this verifies the

@@ -43,4 +43,4 @@ jobs:
       asset-prefix: "elchi-test"
       upload-artifacts: true
       is-debug-build: ${{ contains(matrix.args, '--debug') }}
-    secrets: inherit
+    # No secrets: this builds code that is not ours yet.

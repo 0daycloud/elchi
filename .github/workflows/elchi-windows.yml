@@ -18,6 +18,7 @@ jobs:
       asset-prefix: "elchi"
       upload-artifacts: true
       sign-binaries: false
+      updater-signing: true
     secrets: inherit
 
   smoke-test:
