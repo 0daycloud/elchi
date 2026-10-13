@@ -1,35 +1,34 @@
 import React from "react";
-import ElchiRosette from "./ElchiRosette";
+import ElchiStar from "./ElchiStar";
 
 // Product name; never translated.
 const PRODUCT_NAME = "Elchi";
 
 interface ElchiLogoProps {
-  /** Wordmark cap size in px; the rosette scales with it. */
+  /** Wordmark cap size in px; the star scales with it. */
   size?: number;
+  /** Ink for the star and the letters (defaults to the accent). */
+  color?: string;
   className?: string;
 }
 
-/**
- * Elchi wordmark: the rosette beside "Elchi" set in Bricolage Grotesque, with
- * the second ink printed slightly off register behind the letters.
- */
-const ElchiLogo: React.FC<ElchiLogoProps> = ({ size = 28, className = "" }) => (
+/** Elchi wordmark: the eight-point star beside "Elchi" in Karla. */
+const ElchiLogo: React.FC<ElchiLogoProps> = ({
+  size = 28,
+  color = "var(--color-logo-primary)",
+  className = "",
+}) => (
   <div
     className={`inline-flex items-center select-none ${className}`}
-    style={{ gap: size * 0.28 }}
+    style={{ gap: size * 0.32 }}
     role="img"
     aria-label={PRODUCT_NAME}
   >
-    <ElchiRosette size={size * 1.15} />
+    <ElchiStar size={size * 1.15} color={color} />
     <span
       aria-hidden="true"
-      className="font-display font-bold leading-none text-logo-primary"
-      style={{
-        fontSize: size,
-        letterSpacing: "-0.02em",
-        textShadow: `${Math.max(1, size * 0.05)}px ${Math.max(1, size * 0.04)}px 0 var(--color-ink-2)`,
-      }}
+      className="font-display font-bold leading-none"
+      style={{ fontSize: size, letterSpacing: "-0.02em", color }}
     >
       {PRODUCT_NAME}
     </span>

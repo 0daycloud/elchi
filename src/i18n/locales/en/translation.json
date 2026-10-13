@@ -16,7 +16,8 @@
     "postProcessing": "Post Process",
     "history": "History",
     "debug": "Debug",
-    "about": "About"
+    "about": "About",
+    "label": "Sections"
   },
   "onboarding": {
     "subtitle": "To get started, choose a model that runs on this computer",
@@ -153,7 +154,8 @@
         "step2Toggle": "Press the shortcut once and speak.",
         "step3Toggle": "Press it again when you're done. The text appears at your cursor.",
         "demo": "Yarın saat onda toplantımız var; sunumu Friday'e kadar bitiriyoruz.",
-        "longer": "For longer dictation, press the shortcut once, speak, and press it again when you're done."
+        "longer": "For longer dictation, press the shortcut once, speak, and press it again when you're done.",
+        "lede": "One shortcut. In Mail, Slack or Word, it writes wherever your cursor is."
       },
       "try": {
         "title": "Give it a try",
@@ -799,6 +801,11 @@
       "ended": "Your Duyu Pro trial has ended.",
       "endedDetail": "Elchi now runs with Duyu-small. Get Elchi Pro: first month free, no card needed.",
       "dismiss": "Dismiss"
+    },
+    "badge": {
+      "trial_one": "Duyu Pro · {{count}} day",
+      "trial_other": "Duyu Pro · {{count}} days",
+      "pro": "Elchi Pro"
     }
   }
 }

@@ -25,7 +25,11 @@ import {
   type OnboardingPreviewStep,
 } from "./components/settings";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { Sidebar, SidebarSection, SECTIONS_CONFIG } from "./components/Sidebar";
+import {
+  AppHeader,
+  SidebarSection,
+  SECTIONS_CONFIG,
+} from "./components/Sidebar";
 import { ElchiProBanner } from "./components/ElchiProBanner";
 import { WhatsNewGate } from "./components/whats-new";
 import { useSettings } from "./hooks/useSettings";
@@ -381,16 +385,16 @@ function App() {
         <ErrorBoundary context="What's New">
           <WhatsNewGate />
         </ErrorBoundary>
+        <AppHeader
+          activeSection={currentSection}
+          onSectionChange={setCurrentSection}
+        />
         {/* Main content area that takes remaining space */}
         <div className="flex-1 flex overflow-hidden">
-          <Sidebar
-            activeSection={currentSection}
-            onSectionChange={setCurrentSection}
-          />
           {/* Scrollable content area */}
           <div className="flex-1 flex flex-col overflow-hidden">
             <div ref={settingsScrollRef} className="flex-1 overflow-y-auto">
-              <div className="flex flex-col items-center p-4 gap-4">
+              <div className="flex flex-col items-center px-6 py-5 gap-4">
                 {currentSection !== "models" && <ElchiProBanner />}
                 <AccessibilityPermissions />
                 <SecureInputWarning />

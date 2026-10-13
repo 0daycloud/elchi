@@ -1,16 +1,8 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import {
-  AudioLines,
-  Cog,
-  FlaskConical,
-  History,
-  Info,
-  Sparkles,
-  Cpu,
-} from "lucide-react";
 import ElchiLogo from "./icons/ElchiLogo";
 import { useSettings } from "../hooks/useSettings";
+import { daysLeft, useElchiPro } from "../hooks/useElchiPro";
 import {
   GeneralSettings,
   AdvancedSettings,
@@ -23,17 +15,8 @@ import {
 
 export type SidebarSection = keyof typeof SECTIONS_CONFIG;
 
-interface IconProps {
-  width?: number | string;
-  height?: number | string;
-  size?: number | string;
-  className?: string;
-  [key: string]: any;
-}
-
 interface SectionConfig {
   labelKey: string;
-  icon: React.ComponentType<IconProps>;
   component: React.ComponentType;
   enabled: (settings: any) => boolean;
 }
@@ -41,54 +24,116 @@ interface SectionConfig {
 export const SECTIONS_CONFIG = {
   general: {
     labelKey: "sidebar.general",
-    icon: AudioLines,
     component: GeneralSettings,
     enabled: () => true,
   },
   history: {
     labelKey: "sidebar.history",
-    icon: History,
     component: HistorySettings,
     enabled: () => true,
   },
   models: {
     labelKey: "sidebar.models",
-    icon: Cpu,
     component: ModelsSettings,
     enabled: () => true,
   },
   advanced: {
     labelKey: "sidebar.advanced",
-    icon: Cog,
     component: AdvancedSettings,
     enabled: () => true,
   },
   postprocessing: {
     labelKey: "sidebar.postProcessing",
-    icon: Sparkles,
     component: PostProcessingSettings,
     enabled: (settings) => settings?.post_process_enabled ?? false,
   },
   debug: {
     labelKey: "sidebar.debug",
-    icon: FlaskConical,
     component: DebugSettings,
     enabled: (settings) => settings?.debug_mode ?? false,
   },
   about: {
     labelKey: "sidebar.about",
-    icon: Info,
     component: AboutSettings,
     enabled: () => true,
   },
 } as const satisfies Record<string, SectionConfig>;
 
-interface SidebarProps {
+interface AppHeaderProps {
   activeSection: SidebarSection;
   onSectionChange: (section: SidebarSection) => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({
+/** The Çini tile behind the header: eight-point stars with a coral eye. */
+const TilePattern: React.FC = () => (
+  <svg
+    className="absolute inset-0 w-full h-full pointer-events-none"
+    style={{
+      // The tile fades out before the tab row so the labels stay clean.
+      maskImage: "linear-gradient(to bottom, black 30%, transparent 78%)",
+      WebkitMaskImage: "linear-gradient(to bottom, black 30%, transparent 78%)",
+    }}
+    aria-hidden="true"
+  >
+    <defs>
+      <pattern
+        id="elchi-tile"
+        width="56"
+        height="56"
+        patternUnits="userSpaceOnUse"
+      >
+        <path
+          d="M28 4 32 16 44 12 40 24 52 28 40 32 44 44 32 40 28 52 24 40 12 44 16 32 4 28 16 24 12 12 24 16Z"
+          fill="none"
+          strokeWidth="1.5"
+          style={{ stroke: "var(--color-tile)", opacity: 0.45 }}
+        />
+        <circle
+          cx="28"
+          cy="28"
+          r="3"
+          style={{ fill: "var(--color-star)", opacity: 0.45 }}
+        />
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#elchi-tile)" />
+  </svg>
+);
+
+/** The plan at a glance: trial days left, Elchi Pro, or the upgrade offer. */
+const PlanBadge: React.FC = () => {
+  const { t } = useTranslation();
+  const { status, upgrade } = useElchiPro();
+  if (!status?.plan) return null;
+  if (status.plan === "free") {
+    return (
+      <button
+        type="button"
+        onClick={() => upgrade().catch(() => undefined)}
+        className="relative text-sm font-semibold rounded-full px-4 py-1.5 bg-coral text-on-coral hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-on-header"
+      >
+        {t("elchiPro.cta")}
+      </button>
+    );
+  }
+  const label =
+    status.plan === "pro"
+      ? t("elchiPro.badge.pro")
+      : t("elchiPro.badge.trial", {
+          count: daysLeft(status.trial_ends_at) ?? 0,
+        });
+  return (
+    <span className="relative text-sm font-semibold rounded-full px-3.5 py-1.5 bg-background text-logo-primary">
+      {label}
+    </span>
+  );
+};
+
+/**
+ * Çini header: the tile band with the wordmark, the plan badge and the
+ * section tabs, the active tab opening into the page below.
+ */
+export const AppHeader: React.FC<AppHeaderProps> = ({
   activeSection,
   onSectionChange,
 }) => {
@@ -100,34 +145,38 @@ export const Sidebar: React.FC<SidebarProps> = ({
     .map(([id, config]) => ({ id: id as SidebarSection, ...config }));
 
   return (
-    <div className="flex flex-col w-40 h-full border-e border-mid-gray/20 items-center px-2">
-      <ElchiLogo size={26} className="my-5" />
-      <div className="flex flex-col w-full items-center gap-1 pt-2 border-t border-mid-gray/20">
+    <header className="relative shrink-0 bg-header text-on-header overflow-hidden">
+      <TilePattern />
+      <div className="relative flex items-center gap-3 px-6 pt-4">
+        <ElchiLogo size={22} color="var(--color-on-header)" />
+        <div className="flex-1" />
+        <PlanBadge />
+      </div>
+      <nav
+        role="tablist"
+        aria-label={t("sidebar.label")}
+        className="relative flex gap-1 px-4 mt-4 overflow-x-auto [scrollbar-width:none]"
+      >
         {availableSections.map((section) => {
-          const Icon = section.icon;
           const isActive = activeSection === section.id;
-
           return (
-            <div
+            <button
               key={section.id}
-              className={`flex gap-2 items-center p-2 w-full rounded-lg cursor-pointer transition-colors ${
-                isActive
-                  ? "bg-logo-primary text-background"
-                  : "hover:bg-mid-gray/20 hover:opacity-100 opacity-85"
-              }`}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
               onClick={() => onSectionChange(section.id)}
+              className={`shrink-0 text-sm px-4 py-2.5 rounded-t-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-tile ${
+                isActive
+                  ? "bg-background text-logo-primary font-semibold"
+                  : "text-on-header-muted hover:text-on-header"
+              }`}
             >
-              <Icon width={24} height={24} className="shrink-0" />
-              <p
-                className="text-sm font-medium truncate"
-                title={t(section.labelKey)}
-              >
-                {t(section.labelKey)}
-              </p>
-            </div>
+              {t(section.labelKey)}
+            </button>
           );
         })}
-      </div>
-    </div>
+      </nav>
+    </header>
   );
 };

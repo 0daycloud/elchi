@@ -16,7 +16,8 @@
     "postProcessing": "Son işlem",
     "history": "Geçmiş",
     "debug": "Hata ayıklama",
-    "about": "Hakkında"
+    "about": "Hakkında",
+    "label": "Bölümler"
   },
   "onboarding": {
     "subtitle": "Başlamak için bu bilgisayarda çalışacak bir model seçin",
@@ -153,7 +154,8 @@
         "step2Toggle": "Kısayola bir kez basın ve konuşun.",
         "step3Toggle": "Bitince tekrar basın. Metin imlecin olduğu yere gelir.",
         "demo": "Yarın saat onda toplantımız var; sunumu Friday'e kadar bitiriyoruz.",
-        "longer": "Uzun konuşmalarda kısayola bir kez basın, konuşun, bitince tekrar basın."
+        "longer": "Uzun konuşmalarda kısayola bir kez basın, konuşun, bitince tekrar basın.",
+        "lede": "Tek bir kısayol. Mail'de, Slack'te, Word'de; imleç neredeyse oraya yazar."
       },
       "try": {
         "title": "Bir deneyin",
@@ -799,6 +801,11 @@
       "ended": "Duyu Pro denemeniz sona erdi.",
       "endedDetail": "Elchi artık Duyu-small ile çalışıyor. Elchi Pro'ya geçin: ilk ay ücretsiz, kart bilgisi gerekmez.",
       "dismiss": "Kapat"
+    },
+    "badge": {
+      "trial_one": "Duyu Pro · {{count}} gün",
+      "trial_other": "Duyu Pro · {{count}} gün",
+      "pro": "Elchi Pro"
     }
   }
 }
