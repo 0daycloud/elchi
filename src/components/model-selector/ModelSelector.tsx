@@ -1,12 +1,12 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
 import { commands } from "@/bindings";
 import { getTranslatedModelName } from "../../lib/utils/modelTranslation";
 import { useModelStore } from "../../stores/modelStore";
 import ModelStatusButton from "./ModelStatusButton";
-import ModelDropdown from "./ModelDropdown";
 import DownloadProgressDisplay from "./DownloadProgressDisplay";
+import { useElchiPro } from "@/hooks/useElchiPro";
 
 import { ModelStateEvent } from "@/lib/types/events";
 
@@ -20,11 +20,7 @@ type ModelStatus =
   | "unloaded"
   | "none";
 
-interface ModelSelectorProps {
-  onError?: (error: string) => void;
-}
-
-const ModelSelector: React.FC<ModelSelectorProps> = ({ onError }) => {
+const ModelSelector: React.FC = () => {
   const { t } = useTranslation();
   const {
     models,
@@ -38,13 +34,11 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ onError }) => {
 
   const [modelStatus, setModelStatus] = useState<ModelStatus>("unloaded");
   const [modelError, setModelError] = useState<string | null>(null);
-  const [showModelDropdown, setShowModelDropdown] = useState(false);
   // Track pending model switch for optimistic display
   const [pendingModelId, setPendingModelId] = useState<string | null>(null);
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
   const displayModelId = pendingModelId || currentModel;
+  const cloudActive = useElchiPro().status?.cloud_active ?? false;
 
   // Check model status when currentModel changes
   useEffect(() => {
@@ -108,7 +102,6 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ onError }) => {
             if (!isRecording) {
               setPendingModelId(modelId);
               setModelError(null);
-              setShowModelDropdown(false);
               const success = await selectModel(modelId);
               if (!success) {
                 setPendingModelId(null);
@@ -121,37 +114,11 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ onError }) => {
       },
     );
 
-    // Click outside to close dropdown
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setShowModelDropdown(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
       modelStateUnlisten.then((fn) => fn());
       downloadCompleteUnlisten.then((fn) => fn());
     };
   }, [selectModel]);
-
-  const handleModelSelect = async (modelId: string) => {
-    setPendingModelId(modelId);
-    setModelError(null);
-    setShowModelDropdown(false);
-    const success = await selectModel(modelId);
-    if (!success) {
-      setPendingModelId(null);
-      setModelStatus("error");
-      setModelError("Failed to switch model");
-      onError?.("Failed to switch model");
-    }
-  };
 
   const getModelDisplayText = (): string => {
     const verifyingKeys = Object.keys(verifyingModels);
@@ -242,25 +209,29 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ onError }) => {
     return modelStatus;
   };
 
+  // Elchi has one local model, so there is nothing to pick here: show the
+  // engine that actually transcribes. During the trial and with Elchi Pro
+  // that is Duyu Pro in the cloud; otherwise Duyu-small on this computer
+  // (or its download / load state).
+  const displayStatus = getDisplayStatus();
+  const localSettled =
+    displayStatus === "ready" || displayStatus === "unloaded";
+  const engineText = cloudActive
+    ? t("modelSelector.engine.cloud")
+    : localSettled && displayModelId
+      ? t("modelSelector.engine.local")
+      : getModelDisplayText();
+
   return (
     <>
-      {/* Model Status and Switcher */}
-      <div className="relative" ref={dropdownRef}>
+      <div className="relative">
         <ModelStatusButton
-          status={getDisplayStatus()}
-          displayText={getModelDisplayText()}
-          isDropdownOpen={showModelDropdown}
-          onClick={() => setShowModelDropdown(!showModelDropdown)}
+          status={cloudActive ? "ready" : displayStatus}
+          displayText={engineText}
+          isDropdownOpen={false}
+          interactive={false}
+          onClick={() => undefined}
         />
-
-        {/* Model Dropdown */}
-        {showModelDropdown && (
-          <ModelDropdown
-            models={models}
-            currentModelId={displayModelId}
-            onModelSelect={handleModelSelect}
-          />
-        )}
       </div>
 
       {/* Download Progress Bar for Models */}

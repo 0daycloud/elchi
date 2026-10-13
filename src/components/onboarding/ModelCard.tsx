@@ -75,6 +75,8 @@ interface ModelCardProps {
   downloadProgress?: number;
   downloadSpeed?: number; // MB/s
   showRecommended?: boolean;
+  /** Overrides the "active" badge, e.g. "fallback" while Duyu Pro transcribes. */
+  activeLabel?: string;
 }
 
 const ModelCard: React.FC<ModelCardProps> = ({
@@ -90,6 +92,7 @@ const ModelCard: React.FC<ModelCardProps> = ({
   downloadProgress,
   downloadSpeed,
   showRecommended = true,
+  activeLabel,
 }) => {
   const { t } = useTranslation();
   const debugMode = useSettingsStore(
@@ -176,7 +179,7 @@ const ModelCard: React.FC<ModelCardProps> = ({
             {status === "active" && (
               <Badge variant="primary">
                 <Check className="w-3 h-3 mr-1" />
-                {t("modelSelector.active")}
+                {activeLabel ?? t("modelSelector.active")}
               </Badge>
             )}
             {model.is_custom && (

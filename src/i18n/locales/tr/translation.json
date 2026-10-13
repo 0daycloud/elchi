@@ -202,7 +202,11 @@
     },
     "cancel": "İptal",
     "cancelDownload": "İndirmeyi iptal et",
-    "legacy": "Eski sürüm"
+    "legacy": "Eski sürüm",
+    "engine": {
+      "cloud": "Duyu Pro · bulut",
+      "local": "Duyu-small · bu bilgisayarda"
+    }
   },
   "settings": {
     "modelSettings": {
@@ -216,7 +220,8 @@
       "deleteTitle": "Modeli sil",
       "onDevice": {
         "title": "Bu bilgisayarda",
-        "description": "Duyu-small internet bağlantısı olmadan çalışır. Duyu Pro'ya ulaşılamadığında Elchi, Duyu-small ile devam eder."
+        "description": "Duyu-small internet bağlantısı olmadan çalışır. Duyu Pro'ya ulaşılamadığında Elchi, Duyu-small ile devam eder.",
+        "fallback": "Yedek"
       }
     },
     "general": {

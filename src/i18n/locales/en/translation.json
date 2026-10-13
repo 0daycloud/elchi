@@ -202,6 +202,10 @@
       "translation": "Can translate to English",
       "translate": "Translate",
       "streaming": "Shows live transcription as you speak"
+    },
+    "engine": {
+      "cloud": "Duyu Pro · cloud",
+      "local": "Duyu-small · this computer"
     }
   },
   "settings": {
@@ -267,7 +271,8 @@
       "deleteTitle": "Delete Model",
       "onDevice": {
         "title": "On this computer",
-        "description": "Duyu-small works without the internet. When Duyu Pro can't be reached, Elchi carries on with it."
+        "description": "Duyu-small works without the internet. When Duyu Pro can't be reached, Elchi carries on with it.",
+        "fallback": "Fallback"
       }
     },
     "sound": {

@@ -15,6 +15,8 @@ interface ModelStatusButtonProps {
   displayText: string;
   isDropdownOpen: boolean;
   onClick: () => void;
+  /** False renders a plain status label: no dropdown chevron, not a button. */
+  interactive?: boolean;
   className?: string;
 }
 
@@ -23,6 +25,7 @@ const ModelStatusButton: React.FC<ModelStatusButtonProps> = ({
   displayText,
   isDropdownOpen,
   onClick,
+  interactive = true,
   className = "",
 }) => {
   const getStatusColor = (status: ModelStatus): string => {
@@ -47,6 +50,18 @@ const ModelStatusButton: React.FC<ModelStatusButtonProps> = ({
         return "bg-mid-gray/60";
     }
   };
+
+  if (!interactive) {
+    return (
+      <span className={`flex items-center gap-2 ${className}`}>
+        <span
+          aria-hidden="true"
+          className={`w-2 h-2 rounded-full ${getStatusColor(status)}`}
+        />
+        <span>{displayText}</span>
+      </span>
+    );
+  }
 
   return (
     <button

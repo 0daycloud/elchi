@@ -6,6 +6,7 @@ import { ModelCard } from "@/components/onboarding";
 import { useModelStore } from "@/stores/modelStore";
 import type { ModelInfo } from "@/bindings";
 import { ElchiProCard } from "./ElchiProCard";
+import { useElchiPro } from "@/hooks/useElchiPro";
 
 /**
  * Elchi has two models: Duyu Pro in the cloud (the trial and Elchi Pro) and
@@ -28,6 +29,8 @@ export const ModelsSettings: React.FC = () => {
     selectModel,
     deleteModel,
   } = useModelStore();
+  // While Duyu Pro transcribes, Duyu-small is the fallback, not the engine.
+  const cloudActive = useElchiPro().status?.cloud_active ?? false;
 
   const getModelStatus = (modelId: string): ModelCardStatus => {
     if (modelId in extractingModels) {
@@ -166,6 +169,9 @@ export const ModelsSettings: React.FC = () => {
             downloadProgress={getDownloadProgress(model.id)}
             downloadSpeed={getDownloadSpeed(model.id)}
             showRecommended={false}
+            activeLabel={
+              cloudActive ? t("settings.models.onDevice.fallback") : undefined
+            }
           />
         ))}
       </section>
