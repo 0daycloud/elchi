@@ -1,483 +1,311 @@
-# Handy
+<p align="center">
+  <img src="docs/brand/elchi.svg" alt="Elchi" width="96">
+</p>
 
-[![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/invite/WVBeWsNXK4)
+# Elchi
 
-**A free, open source, and extensible speech-to-text application that works completely offline.**
+Elchi is a free speech-to-text dictation app for macOS and Windows that runs entirely on your computer. Press a shortcut, speak in Turkish, English, or a mix of both, and the text appears wherever your cursor is. Your audio and your words stay on the machine unless you choose Elchi Pro.
 
-Handy is a cross-platform desktop application that provides simple, privacy-focused speech transcription. Press a shortcut, speak, and have your words appear in any text field. This happens on your own computer without sending any information to the cloud.
+The name comes from the Turkish _elçi_, an envoy or messenger. Elchi carries what you say into text.
 
-## Why Handy?
+## How it works
 
-Handy was created to fill the gap for a truly open source, extensible speech-to-text tool. As stated on [handy.computer](https://handy.computer):
+1. **Press** your keyboard shortcut. Hold it to record and release to stop, or tap it to start and tap again to stop. Hold-only and toggle-only modes are also available.
+2. **Speak** while recording is active.
+3. **Release** the shortcut. Elchi transcribes the recording on your computer.
+4. The text is **pasted** into the app you were using.
 
-- **Free**: Accessibility tooling belongs in everyone's hands, not behind a paywall
-- **Open Source**: Together we can build further. Extend Handy for yourself and contribute to something bigger
-- **Private**: Your voice stays on your computer. Get transcriptions without sending audio to the cloud
-- **Simple**: One tool, one job. Transcribe what you say and put it into a text box
+Silence is trimmed with Silero voice activity detection before transcription, so pauses do not turn into stray words.
 
-## How It Works
+## The default model
 
-1. **Press** a configurable keyboard shortcut: hold it to record and release to stop, or tap it to toggle recording on and off (Hold-only and Toggle-only modes are also available)
-2. **Speak** your words while the shortcut is active
-3. **Release** and Handy processes your speech using Whisper
-4. **Get** your transcribed text pasted directly into whatever app you're using
+Elchi uses [Duyu-small](https://huggingface.co/KaanAydinli/Duyu-small) by default. It is our own model, built for Turkish and English dictation:
 
-The process is entirely local:
+- Turkish and English, including code-switching: a sentence that starts in Turkish and finishes in English comes out as one sentence.
+- Output is cased and punctuated, so it can be pasted as is.
+- 19.3M active parameters. The int8 build is 56 MB.
+- Released under the Apache-2.0 license.
 
-- Silence is filtered using VAD (Voice Activity Detection) with Silero
-- Transcription uses your choice of models:
-  - **Whisper models** (Small/Medium/Turbo/Large) with GPU acceleration when available
-  - **Parakeet V3** - CPU-optimized model with excellent performance and automatic language detection
-- Works on Windows, macOS, and Linux
+Elchi runs Duyu-small natively (`src-tauri/src/duyu/`, a Rust port of the model's reference engine) on ONNX Runtime, on the CPU. It downloads once, about 56 MB, from a pinned revision of the Hugging Face repository, and each file is checked against its SHA-256.
 
-## Quick Start
+The other models Elchi inherited from Handy, such as Whisper, Parakeet, and Moonshine, are still available in the model picker under **Settings > Models**. They cover more languages, but they are larger and we test Elchi mainly with Duyu-small.
 
-### Installation
+## Elchi Pro
 
-1. Download the latest release from the [releases page](https://github.com/cjpais/Handy/releases) or the [website](https://handy.computer)
-   - **macOS**: Also available via [Homebrew cask](https://formulae.brew.sh/cask/handy): `brew install --cask handy`
-   - **Windows**: Also available via [winget](https://github.com/microsoft/winget-pkgs): `winget install cjpais.Handy` \
-     **Note:** The Homebrew cask and winget package are not maintained by the Handy developers.
-   - **Debian/Ubuntu**: Install the downloaded `.deb` with APT so required dependencies are installed automatically:
-     ```bash
-     sudo apt install ./Handy_*.deb
-     ```
-     Do not use `dpkg -i` unless the dependencies are already installed. If you already used it, run `sudo apt --fix-broken install`.
-2. Install the application
-3. Launch Handy and grant necessary system permissions (microphone, accessibility)
-4. Configure your preferred keyboard shortcuts in Settings
-5. Start transcribing!
+Elchi Pro is optional. It sends dictation to Duyu, the larger speech-to-text model that Duyu-small comes from, for higher accuracy on fast speech, names and numbers. It costs ₺200 a month; the first month is free and no card is needed. Turn it on under **Settings > Models**: start the free month, paste your key, and Elchi uses Duyu in the cloud. If the connection drops, Elchi carries on with Duyu-small on your computer.
 
-### Development Setup
+## Install
 
-For detailed build instructions including platform-specific requirements, see [BUILD.md](BUILD.md).
+There are no Elchi release downloads yet. For now, build it from source by following [BUILD.md](BUILD.md). It covers the prerequisites for macOS, Windows, and Linux, running a development build, and producing an installer.
 
-## Sponsors
+Automatic updates are turned off. We do not have a release feed or update signing key for Elchi yet, so the app will not check for or install updates on its own.
 
-<div align="center">
-  We're grateful for the support of our sponsors who help make Handy possible:
-  <br><br>
-  <a href="https://wordcab.com">
-    <img src="sponsor-images/wordcab.png" alt="Wordcab" width="120" height="120">
-  </a>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://github.com/epicenter-so/epicenter">
-    <img src="sponsor-images/epicenter.png" alt="Epicenter" width="120" height="120">
-  </a>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://boltai.com?utm_source=handy">
-    <img src="sponsor-images/boltai.jpg" alt="Bolt AI" width="120" height="120">
-  </a>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://cantydigital.com.au/">
-    <img src="sponsor-images/cantydigital.png" alt="Canty Digital" width="120" height="120">
-  </a>
-</div>
+On first launch, Elchi asks for microphone access and, on macOS, Accessibility access so it can paste into other apps. Then choose a shortcut in Settings and start dictating.
 
-## Integrations
+## Usage
 
-<a href="https://www.raycast.com/mattiacolombomc/handy" title="Install Handy Raycast Extension"><img src="https://www.raycast.com/mattiacolombomc/handy/install_button@2x.png?v=1.1" height="64" style="height: 64px;" alt="Install handy Raycast Extension" /></a>
+### Shortcut
 
-Control Handy from [Raycast](https://www.raycast.com) — start/stop recording, browse transcript history, manage dictionary, switch models and languages.
+The default shortcut can be changed in **Settings**. Elchi supports push-to-talk (hold) and toggle (tap) modes.
 
-[Source](https://github.com/mattiacolombomc/raycast-handy) · by [@mattiacolombomc](https://github.com/mattiacolombomc)
+### Debug mode
 
-### Debug Mode
+Press `Cmd+Shift+D` on macOS or `Ctrl+Shift+D` on Windows and Linux in the settings window to show the **Debug** section. It has extra logging and some experimental options.
 
-Handy includes an advanced debug mode for development and troubleshooting. Access it by pressing:
+### Command-line flags
 
-- **macOS**: `Cmd+Shift+D`
-- **Windows/Linux**: `Ctrl+Shift+D`
+Elchi accepts command-line flags to control a running instance and to change startup behavior. These work on macOS, Windows, and Linux, and are still in beta.
 
-### CLI Parameters
-
-Handy supports command-line flags for controlling a running instance and customizing startup behavior. These work on all platforms (macOS, Windows, Linux). Largely this is a beta feature.
-
-**Remote control flags** (sent to an already-running instance via the single-instance plugin):
+Flags sent to an already running instance:
 
 ```bash
-handy --toggle-transcription    # Toggle recording on/off
-handy --toggle-post-process     # Toggle recording with post-processing on/off
-handy --cancel                  # Cancel the current operation
+elchi --toggle-transcription    # Toggle recording on/off
+elchi --toggle-post-process     # Toggle recording with post-processing on/off
+elchi --cancel                  # Cancel the current operation
 ```
 
-**Startup flags:**
+Startup flags:
 
 ```bash
-handy --start-hidden            # Start without showing the main window
-handy --no-tray                 # Start without the system tray icon
-handy --debug                   # Enable debug mode with verbose logging
-handy --help                    # Show all available flags
+elchi --start-hidden            # Start without showing the main window
+elchi --no-tray                 # Start without the system tray icon
+elchi --debug                   # Enable debug mode with verbose logging
+elchi --help                    # Show all available flags
 ```
 
-Flags can be combined for autostart scenarios:
+Flags can be combined, which is useful for autostart:
 
 ```bash
-handy --start-hidden --no-tray
+elchi --start-hidden --no-tray
 ```
 
-> **macOS tip:** When Handy is installed as an app bundle, invoke the binary directly:
->
-> ```bash
-> /Applications/Handy.app/Contents/MacOS/Handy --toggle-transcription
-> ```
+On macOS, call the binary inside the app bundle:
 
-## Known Issues & Current Limitations
+```bash
+/Applications/Elchi.app/Contents/MacOS/elchi --toggle-transcription
+```
 
-This project is actively being developed and has some [known issues](https://github.com/cjpais/Handy/issues). We believe in transparency about the current state:
+## Privacy
 
-### Bluetooth Headset Microphones (macOS)
+Recording, voice activity detection, and transcription all happen on your computer. Elchi has no accounts or analytics, and it does not send audio or transcripts to a server unless you turn on Elchi Pro.
 
-Using a Bluetooth headset microphone on macOS may temporarily reduce playback quality or volume while recording because Bluetooth switches to bidirectional audio. Keep your headphones as the output device and select your Mac's built-in or an external microphone in Handy to avoid this.
+The network is used in three cases:
 
-### fn and Globe Key Shortcuts (macOS)
+- **Model downloads.** A model is downloaded once, the first time you select it. After that it works offline.
+- **Elchi Pro, if you turn it on.** Each recording is sent to PatientDesk AI's Duyu API (`voice.patientdesk.ai`) to be transcribed. Turn Pro off and nothing leaves your computer again.
+- **Post-processing, if you turn it on.** Post-processing is off by default. If you enable it and choose a remote provider, the transcript text is sent to that provider. A provider running on your own machine keeps it local.
 
-Shortcuts that include the `fn` (Globe) key **only work on Apple keyboards** — your Mac's built-in keyboard or an Apple external keyboard. They will never trigger on a third-party keyboard, even while it is connected to the same Mac.
+Transcription history, including the recordings it keeps, is stored in Elchi's app data directory, listed under [Settings and data locations](#settings-and-data-locations).
 
-This is a hardware limitation rather than a Handy bug. `fn` is not part of the standard USB HID keyboard specification: Apple reports it through a vendor-specific usage that macOS honors only from Apple devices, while third-party keyboards handle their `Fn` key entirely in firmware and send nothing to the computer. There is no event for Handy to listen for.
+## Settings and data locations
 
-If you switch between a MacBook keyboard and an external one, pick a shortcut built from standard modifiers (`ctrl`, `option`, `shift`, `command`) or a regular key instead.
+Elchi keeps its settings, history, logs, and downloaded models in its app data directory. The exact path is shown in **Settings > About**. The usual locations are:
 
-### Linux Notes
+- **macOS**: `~/Library/Application Support/com.elchi.app/`
+- **Windows**: `C:\Users\{username}\AppData\Roaming\com.elchi.app\`
+- **Linux**: `~/.local/share/com.elchi.app/`
 
-**Text Input Tools:**
+## Known issues
 
-For reliable text input on Linux, install the appropriate tool for your display server:
+### Bluetooth headset microphones (macOS)
 
-| Display Server | Recommended Tool | Install Command                                    |
+Recording through a Bluetooth headset microphone on macOS can lower playback quality or volume while recording, because Bluetooth switches to a two-way audio profile. To avoid this, keep the headphones as the output device and select the built-in or another external microphone in Elchi.
+
+### fn and Globe key shortcuts (macOS)
+
+Shortcuts that include the `fn` (Globe) key only work on Apple keyboards: the built-in keyboard of a Mac or an Apple external keyboard. They will not trigger on third-party keyboards.
+
+This is a hardware limitation. `fn` is not part of the standard USB keyboard specification. Apple reports it through a vendor-specific usage that macOS only honors from Apple devices, while third-party keyboards handle their `Fn` key in firmware and send nothing to the computer.
+
+If you switch between a MacBook keyboard and an external one, use a shortcut made of standard modifiers (`ctrl`, `option`, `shift`, `command`) or a regular key.
+
+## Troubleshooting
+
+### Previous clipboard content is pasted instead of the transcription
+
+If the transcription is correct in **History** but Elchi pastes something you copied earlier, the receiving app read the clipboard after Elchi had already restored your previous clipboard contents.
+
+1. Open the settings window and press `Cmd+Shift+D` (macOS) or `Ctrl+Shift+D` (Windows/Linux) to show **Debug**.
+2. On macOS and Windows, try **Reliable Paste (Beta)** with a clipboard paste method selected. It waits for the receiving app to read the clipboard before restoring it, instead of using a fixed delay. It is still experimental.
+3. If Reliable Paste is off or unavailable, increase **Paste Delay (After)** and try again. This is the wait before your previous clipboard is restored. **Paste Delay (Before)** is the wait before the paste keystroke is sent and affects a different step.
+
+### Installing models manually (proxies and restricted networks)
+
+If Elchi cannot download models because of a proxy, firewall, or other network restriction, you can download them in a browser and install them by hand.
+
+1. Find the app data directory (see [Settings and data locations](#settings-and-data-locations)) and create a `models` folder inside it if it does not exist:
+
+   ```bash
+   # macOS
+   mkdir -p ~/Library/Application\ Support/com.elchi.app/models
+
+   # Linux
+   mkdir -p ~/.local/share/com.elchi.app/models
+   ```
+
+   ```powershell
+   # Windows (PowerShell)
+   New-Item -ItemType Directory -Force -Path "$env:APPDATA\com.elchi.app\models"
+   ```
+
+2. Download the model file from its Hugging Face page. For example, Parakeet Unified EN 0.6B (731 MB):
+   `https://huggingface.co/handy-computer/parakeet-unified-en-0.6b-gguf/resolve/main/parakeet-unified-en-0.6b-Q8_0.gguf`
+3. Place the `.gguf` file directly in the `models` folder. Do not rename it.
+4. Restart Elchi and open **Settings > Models**. The model should show as downloaded.
+
+Elchi also picks up models that are already in the shared Hugging Face cache (`~/.cache/huggingface/hub`), so a copy downloaded by another tool works without being moved.
+
+### Custom Whisper models
+
+Elchi discovers Whisper models in GGML `.bin` format placed in the `models` folder. This is useful for fine-tuned or community models that are not in the built-in list.
+
+1. Get a Whisper model in GGML `.bin` format, for example from [Hugging Face](https://huggingface.co/models?search=whisper%20ggml).
+2. Put the `.bin` file in the `models` folder.
+3. Restart Elchi. The model appears under **Custom Models** in **Settings > Models**, named after its file (`my-custom-model.bin` becomes "My Custom Model").
+
+We cannot help debug community models.
+
+### Vulkan overlays and capture tools on Windows (`HANDY_KEEP_VULKAN_IMPLICIT_LAYERS`)
+
+On Windows, Elchi tells the Vulkan loader to skip implicit layers, because overlay and screen-capture hooks can crash it. GPU acceleration stays on, and no system-wide setting is changed.
+
+To opt out, for example for GPU selection or debugging tools, fully quit Elchi (including the tray icon) and run both commands in the same PowerShell window:
+
+```powershell
+$env:HANDY_KEEP_VULKAN_IMPLICIT_LAYERS = "1"
+& "$env:ProgramFiles\Elchi\elchi.exe"
+```
+
+Adjust the path if you installed Elchi elsewhere. The override only applies to apps started from that PowerShell session. Elchi also keeps any existing `VK_LOADER_LAYERS_DISABLE` value.
+
+## Linux notes
+
+Elchi builds and runs on Linux, but macOS and Windows are our focus and Linux gets less testing. The notes below come from Handy and still apply.
+
+### Text input tools
+
+For reliable pasting on Linux, install the tool for your display server:
+
+| Display server | Recommended tool | Install command                                    |
 | -------------- | ---------------- | -------------------------------------------------- |
 | X11            | `xdotool`        | `sudo apt install xdotool`                         |
 | Wayland        | `wtype`          | `sudo apt install wtype`                           |
 | Both           | `dotool`         | `sudo apt install dotool` (requires `input` group) |
 
-- **X11**: Install `xdotool` for both direct typing and clipboard paste shortcuts
-- **Ubuntu 26.04**: Has Wayland display server by default. `wtype` does not work, you need to install `ydotool` and configure systemd as described [here](https://github.com/cjpais/Handy/pull/557#issuecomment-3781249267).
-- **Wayland**: Install `wtype` (preferred) or `dotool` for text input to work correctly
-- **dotool setup**: Requires adding your user to the `input` group: `sudo usermod -aG input $USER` (then log out and back in)
+- `dotool` requires adding your user to the `input` group: `sudo usermod -aG input $USER`, then log out and back in.
+- On Ubuntu 26.04 with GNOME Wayland, `wtype` does not work. See [docs/troubleshooting/ubuntu-26-04-gnome-wayland](docs/troubleshooting/ubuntu-26-04-gnome-wayland/README.md) for a `ydotool` setup.
 
-Without these tools, Handy falls back to enigo which may have limited compatibility, especially on Wayland.
+Without one of these tools, Elchi falls back to a built-in input method that works poorly on Wayland.
 
-**Wayland Support (Linux):**
+### Runtime library (`libgtk-layer-shell.so.0`)
 
-- Limited support for Wayland display server
-- Requires [`wtype`](https://github.com/atx/wtype) or [`dotool`](https://sr.ht/~geb/dotool/) for text input to work correctly (see [Linux Notes](#linux-notes) below for installation)
+Elchi links `gtk-layer-shell` for its recording overlay. If it fails to start with `error while loading shared libraries: libgtk-layer-shell.so.0`, or crashes or hangs before showing a window, install (or reinstall) the runtime package:
 
-**Other Notes:**
-
-- **Runtime library dependency (`libgtk-layer-shell.so.0`)**:
-  - Handy links `gtk-layer-shell` on Linux. If startup fails with `error while loading shared libraries: libgtk-layer-shell.so.0`, install the runtime package for your distro:
-
-    | Distro        | Package to install    | Example command                        |
-    | ------------- | --------------------- | -------------------------------------- |
-    | Ubuntu/Debian | `libgtk-layer-shell0` | `sudo apt install libgtk-layer-shell0` |
-    | Fedora/RHEL   | `gtk-layer-shell`     | `sudo dnf install gtk-layer-shell`     |
-    | Arch Linux    | `gtk-layer-shell`     | `sudo pacman -S gtk-layer-shell`       |
-
-  - For building from source on Ubuntu/Debian, you may also need `libgtk-layer-shell-dev`.
-
-- The recording overlay is disabled by default on Linux (`Overlay Position: None`) because certain compositors treat it as the active window. When the overlay is visible it can steal focus, which prevents Handy from pasting back into the application that triggered transcription. If you enable the overlay anyway, be aware that clipboard-based pasting might fail or end up in the wrong window.
-- Handy disables the WebKit DMA-BUF renderer by default on Linux, but preserves explicit `WEBKIT_DISABLE_DMABUF_RENDERER` values. For rendering workarounds, see [Troubleshooting → Linux Startup Crashes or Instability](#linux-startup-crashes-or-instability).
-- If Handy fails to start reliably on Linux, see [Troubleshooting → Linux Startup Crashes or Instability](#linux-startup-crashes-or-instability).
-- **Global keyboard shortcuts (Wayland):** On Wayland, system-level shortcuts must be configured through your desktop environment or window manager. Use the [CLI flags](#cli-parameters) as the command for your custom shortcut.
-
-  **GNOME:**
-  1. Open **Settings > Keyboard > Keyboard Shortcuts > Custom Shortcuts**
-  2. Click the **+** button to add a new shortcut
-  3. Set the **Name** to `Toggle Handy Transcription`
-  4. Set the **Command** to `handy --toggle-transcription`
-  5. Click **Set Shortcut** and press your desired key combination (e.g., `Super+O`)
-
-  **KDE Plasma:**
-  1. Open **System Settings > Shortcuts > Custom Shortcuts**
-  2. Click **Edit > New > Global Shortcut > Command/URL**
-  3. Name it `Toggle Handy Transcription`
-  4. In the **Trigger** tab, set your desired key combination
-  5. In the **Action** tab, set the command to `handy --toggle-transcription`
-
-  **Sway / i3:**
-
-  Add to your config file (`~/.config/sway/config` or `~/.config/i3/config`):
-
-  ```ini
-  bindsym $mod+o exec handy --toggle-transcription
-  ```
-
-  **Hyprland:**
-
-  Add to your config file (`~/.config/hypr/hyprland.conf`):
-
-  ```ini
-  bind = $mainMod, O, exec, handy --toggle-transcription
-  ```
-
-- You can also trigger Handy externally via Unix signals or the CLI flags, which lets Wayland window managers or other hotkey daemons keep ownership of keybindings:
-
-  | Action                                    | Trigger                                                  |
-  | ----------------------------------------- | -------------------------------------------------------- |
-  | Toggle transcription                      | `pkill -USR2 -n handy` or `handy --toggle-transcription` |
-  | Toggle transcription with post-processing | `handy --toggle-post-process`                            |
-
-  Example Sway config:
-
-  ```ini
-  bindsym $mod+o exec pkill -USR2 -n handy
-  bindsym $mod+p exec handy --toggle-post-process
-  ```
-
-  `pkill` here simply delivers the signal—it does not terminate the process.
-
-  > **Behavior change:** older releases also accepted `SIGUSR1` for toggling transcription with post-processing. WebKitGTK — the webview engine embedded in Handy on Linux — uses SIGUSR1 internally to coordinate JavaScript garbage collection, so listening for it caused phantom recordings and interrupted dictations every few minutes ([#1660](https://github.com/cjpais/Handy/issues/1660)). Handy no longer listens for SIGUSR1 on Linux; the post-processing toggle is still available via `handy --toggle-post-process`. **Remove any `pkill -USR1` bindings**: the signal is now delivered straight to WebKit's internal handler and can crash the app.
-
-**Overlay & Pasting Issues (Linux):**
-
-- The recording overlay window can interfere with pasting transcribed text into target applications on Linux (X11)
-- **Solution:** Open **Settings > Advanced** and set **"Overlay Position"** to **"None"** to disable the overlay
-- Enable **"Audio Feedback"** (also in Advanced) if you still want audible confirmation of recording state
-- Users who upgrade from older versions or import settings from other platforms may need to manually apply this change
-
-## Verify Release Signatures
-
-Handy release artifacts are signed with Tauri's updater signature format. The public key is stored in [`src-tauri/tauri.conf.json`](src-tauri/tauri.conf.json) under `plugins.updater.pubkey`.
-
-To verify a release manually, set `ARTIFACT` to the filename you downloaded, save the `pubkey` value from `src-tauri/tauri.conf.json` to `handy.pub.b64`, then decode the public key and matching `.sig` file from base64 and verify the artifact with `minisign`:
-
-```bash
-# Replace with the file you downloaded
-ARTIFACT="Handy_0.8.1_amd64.AppImage"
-
-python3 - "$ARTIFACT" <<'PY'
-import base64, pathlib, sys
-
-artifact = sys.argv[1]
-
-pub = pathlib.Path("handy.pub.b64").read_text().strip()
-pathlib.Path("handy.pub").write_bytes(base64.b64decode(pub))
-
-sig = pathlib.Path(f"{artifact}.sig").read_text().strip()
-pathlib.Path(f"{artifact}.minisig").write_bytes(base64.b64decode(sig))
-PY
-
-minisign -Vm "$ARTIFACT" \
-  -p handy.pub \
-  -x "$ARTIFACT.minisig"
-```
-
-On success, `minisign` prints:
-
-```text
-Signature and comment signature verified
-```
-
-Do not use `gpg` for these `.sig` files.
-
-## Troubleshooting
-
-### Previous Clipboard Content Is Pasted Instead of the Transcription
-
-If the transcription is correct in **History** but Handy inserts text you copied earlier, see [issue #502](https://github.com/cjpais/Handy/issues/502). With the standard clipboard paste method, Handy restores your previous clipboard after a fixed delay. Under load, the receiving application may read the clipboard only after that restoration.
-
-1. Open Handy's settings window and press `Cmd+Shift+D` (macOS) or `Ctrl+Shift+D` (Windows/Linux) to reveal **Debug**.
-2. On **macOS and Windows**, try **Reliable Paste (Beta)** in Debug with a clipboard paste method selected. It uses clipboard read notifications to delay restoration instead of relying on the standard fixed delay. Test it in the application where the problem occurs; it is still experimental.
-3. If Reliable Paste is disabled or unavailable, increase **Paste Delay (After)** in Debug and test again. This controls the wait before restoring your previous clipboard. **Paste Delay (Before)** controls the wait before sending the paste keystroke and addresses a different part of the operation. These delay settings apply to the standard paste path, not Reliable Paste.
-
-If the problem persists, add your Handy version, operating system, receiving application, paste method, Reliable Paste setting, and before/after delays to the existing issue. Redact private dictated text before sharing logs.
-
-### Manual Model Installation (For Proxy Users or Network Restrictions)
-
-If you're behind a proxy, firewall, or in a restricted network environment where Handy cannot download models automatically, you can manually download and install them. The URLs are publicly accessible from any browser.
-
-#### Step 1: Find Your App Data Directory
-
-1. Open Handy settings
-2. Navigate to the **About** section
-3. Copy the "App Data Directory" path shown there, or use the shortcuts:
-   - **macOS**: `Cmd+Shift+D` to open debug menu
-   - **Windows/Linux**: `Ctrl+Shift+D` to open debug menu
-
-The typical paths are:
-
-- **macOS**: `~/Library/Application Support/com.pais.handy/`
-- **Windows**: `C:\Users\{username}\AppData\Roaming\com.pais.handy\`
-- **Linux**: `~/.config/com.pais.handy/`
-
-#### Step 2: Create Models Directory
-
-Inside your app data directory, create a `models` folder if it doesn't already exist:
-
-```bash
-# macOS/Linux
-mkdir -p ~/Library/Application\ Support/com.pais.handy/models
-
-# Windows (PowerShell)
-New-Item -ItemType Directory -Force -Path "$env:APPDATA\com.pais.handy\models"
-```
-
-#### Step 3: Download Model Files
-
-Download the models you want from below
-
-**Whisper Models (single .bin files):**
-
-- Small (487 MB): `https://blob.handy.computer/ggml-small.bin`
-- Medium (492 MB): `https://blob.handy.computer/whisper-medium-q4_1.bin`
-- Turbo (1600 MB): `https://blob.handy.computer/ggml-large-v3-turbo.bin`
-- Large (1100 MB): `https://blob.handy.computer/ggml-large-v3-q5_0.bin`
-
-**Parakeet Unified EN 0.6B (single `.gguf` file, recommended):**
-
-- Q8_0 (731 MB): `https://huggingface.co/handy-computer/parakeet-unified-en-0.6b-gguf/resolve/main/parakeet-unified-en-0.6b-Q8_0.gguf`
-
-#### Step 4: Install Models
-
-**For Whisper Models (.bin files):**
-
-Simply place the `.bin` file directly into the `models` directory:
-
-```
-{app_data_dir}/models/
-├── ggml-small.bin
-├── whisper-medium-q4_1.bin
-├── ggml-large-v3-turbo.bin
-└── ggml-large-v3-q5_0.bin
-```
-
-**For GGUF Models (.gguf files):**
-
-Place the `.gguf` file directly into the `models` directory, exactly like the Whisper `.bin` files above. Handy also picks up models already present in the shared Hugging Face cache (`~/.cache/huggingface/hub`), so a copy downloaded by another tool works without being moved.
-
-**Important Notes:**
-
-- Do not rename the `.bin` or `.gguf` files—use the exact filenames from the download URLs
-- After placing the files, restart Handy to detect the new models
-
-#### Step 5: Verify Installation
-
-1. Restart Handy
-2. Open Settings → Models
-3. Your manually installed models should now appear as "Downloaded"
-4. Select the model you want to use and test transcription
-
-### Custom Whisper Models
-
-Handy can auto-discover custom Whisper GGML models placed in the `models` directory. This is useful for users who want to use fine-tuned or community models not included in the default model list.
-
-**How to use:**
-
-1. Obtain a Whisper model in GGML `.bin` format (e.g., from [Hugging Face](https://huggingface.co/models?search=whisper%20ggml))
-2. Place the `.bin` file in your `models` directory (see paths above)
-3. Restart Handy to discover the new model
-4. The model will appear in the "Custom Models" section of the Models settings page
-
-**Important:**
-
-- Community models are user-provided and may not receive troubleshooting assistance
-- The model must be a valid Whisper GGML format (`.bin` file)
-- Model name is derived from the filename (e.g., `my-custom-model.bin` → "My Custom Model")
-
-### Linux Startup Crashes or Instability
-
-If Handy fails to start reliably on Linux — for example, it crashes shortly after launch, never shows its window, or reports a Wayland protocol error — try the steps below in order.
-
-**1. Install (or reinstall) `gtk-layer-shell`**
-
-Handy uses `gtk-layer-shell` for its recording overlay and links against it at runtime. A missing or broken installation is the most common cause of startup failures and can manifest as a crash or a hang well before any window is shown. Make sure the runtime package is installed for your distro:
-
-| Distro        | Package to install    | Example command                        |
+| Distro        | Package               | Command                                |
 | ------------- | --------------------- | -------------------------------------- |
 | Ubuntu/Debian | `libgtk-layer-shell0` | `sudo apt install libgtk-layer-shell0` |
 | Fedora/RHEL   | `gtk-layer-shell`     | `sudo dnf install gtk-layer-shell`     |
 | Arch Linux    | `gtk-layer-shell`     | `sudo pacman -S gtk-layer-shell`       |
 
-If it is already installed and you still see startup problems, try reinstalling it (e.g. `sudo pacman -S gtk-layer-shell` again) in case the library files were corrupted by a partial upgrade.
+To build from source on Ubuntu/Debian you also need `libgtk-layer-shell-dev`.
 
-**2. Disable the GTK layer shell overlay (`HANDY_NO_GTK_LAYER_SHELL`)**
-
-If installing the library does not help, you can skip `gtk-layer-shell` initialization entirely as a workaround. On some compositors (notably KDE Plasma under Wayland) it has been reported to interact poorly with the recording overlay. With this variable set, the overlay falls back to a regular always-on-top window:
+If the library is installed and startup still fails, you can skip `gtk-layer-shell` entirely. The overlay then falls back to a regular always-on-top window. This has helped on KDE Plasma under Wayland:
 
 ```bash
-HANDY_NO_GTK_LAYER_SHELL=1 handy
+HANDY_NO_GTK_LAYER_SHELL=1 elchi
 ```
 
-**3. Configure WebKit DMA-BUF rendering (`WEBKIT_DISABLE_DMABUF_RENDERER`)**
+### WebKit DMA-BUF renderer (`WEBKIT_DISABLE_DMABUF_RENDERER`)
 
-Handy disables the WebKitGTK DMA-BUF renderer by default on Linux because it can cause blank windows or crashes on some GPU/driver combinations. Explicit environment-variable values are preserved, including in the Nix package. To explicitly keep the renderer disabled:
+Elchi disables the WebKitGTK DMA-BUF renderer by default, because it can cause blank windows or crashes with some GPU drivers. An explicit value of `WEBKIT_DISABLE_DMABUF_RENDERER` is respected. If the recording overlay flickers or is partly drawn, try turning the renderer back on:
 
 ```bash
-WEBKIT_DISABLE_DMABUF_RENDERER=1 handy
+WEBKIT_DISABLE_DMABUF_RENDERER=0 elchi
 ```
 
-Some users on WebKitGTK 2.54 report a flickering or partially drawn recording overlay with the renderer disabled ([#2166](https://github.com/cjpais/Handy/issues/2166)). If affected, try opting out of the default workaround:
+If that brings back crashes, remove the override or set it to `1`. Fully quit Elchi, including the tray instance, before testing either value.
 
-```bash
-WEBKIT_DISABLE_DMABUF_RENDERER=0 handy
-```
+### Making an environment variable permanent
 
-This allows WebKit to use the renderer when supported, but can reintroduce the GPU/driver-specific crashes described above. Remove the override or use `=1` if that happens.
-
-Fully quit Handy, including its tray instance, before testing either value. Running a second instance with `--toggle-transcription` does not change the running process's environment.
-
-**Making a workaround permanent**
-
-Set the variable in the environment of the launcher that actually starts Handy. Shell profile exports may not apply to desktop-menu or autostart launches. If you launch Handy from a `.desktop` file, you can prefix the `Exec=` line, e.g.:
+Set the variable in the environment of whatever launches Elchi. Shell profile exports may not apply to desktop-menu or autostart launches. In a `.desktop` file, prefix the `Exec=` line:
 
 ```ini
-Exec=env HANDY_NO_GTK_LAYER_SHELL=1 handy
+Exec=env HANDY_NO_GTK_LAYER_SHELL=1 elchi
 ```
 
-Handy's built-in autostart rewrites its generated desktop entry, so editing that entry is not a durable workaround. For autostart, use an appropriate session/service environment, or disable Handy's built-in autostart and manage your own startup entry with the required variable.
+Elchi's built-in autostart rewrites its own desktop entry, so editing that entry will not last. Disable the built-in autostart and manage your own startup entry instead.
 
-If a workaround helps you, please [open an issue](https://github.com/cjpais/Handy/issues) describing your distro, desktop environment, and session type — that information helps us narrow down the underlying bug.
+### Recording overlay
 
-### Empty recording overlay on Hyprland / Omarchy
+The recording overlay is off by default on Linux (**Overlay Position: None**), because some compositors treat it as the active window, which makes the paste land in the wrong place. If you turn it on and pasting fails, set **Settings > Advanced > Overlay Position** back to **None**. **Audio Feedback** in the same section gives an audible cue instead.
 
-If the recording overlay is empty or bordered, fully quit Handy and launch a
-[native installation](BUILD.md#linux-install-from-source) with Wayland enabled:
+If the overlay is empty or has a border on Hyprland or Omarchy, fully quit Elchi and start a [native installation](BUILD.md#linux-install-from-source) with Wayland enabled:
 
 ```bash
-env -u HANDY_NO_GTK_LAYER_SHELL GDK_BACKEND=wayland handy
+env -u HANDY_NO_GTK_LAYER_SHELL GDK_BACKEND=wayland elchi
 ```
 
-If this works, apply `GDK_BACKEND=wayland` only to Handy's launcher. This
-workaround does not work with the 0.9.6 AppImage, which forces X11.
+If that works, set `GDK_BACKEND=wayland` only in Elchi's launcher.
 
-### Vulkan Overlays and Capture Tools on Windows (`HANDY_KEEP_VULKAN_IMPLICIT_LAYERS`)
+### Global shortcuts on Wayland
 
-On Windows, Handy asks the Vulkan loader to skip implicit layers to avoid crashes caused by overlay and capture hooks ([#2049](https://github.com/cjpais/Handy/issues/2049)). GPU acceleration remains enabled; this does not change system-wide settings.
+On Wayland, global shortcuts have to be set up in your desktop environment or window manager, with an Elchi CLI flag as the command.
 
-To opt out for GPU selection or debugging tools, fully quit Handy (including the tray icon), then run both commands in the same PowerShell window:
+**GNOME:** In **Settings > Keyboard > Keyboard Shortcuts > Custom Shortcuts**, add a shortcut named `Toggle Elchi Transcription` with the command `elchi --toggle-transcription`, then assign a key combination such as `Super+O`.
 
-```powershell
-$env:HANDY_KEEP_VULKAN_IMPLICIT_LAYERS = "1"
-& "$env:ProgramFiles\Handy\handy.exe"
+**KDE Plasma:** In **System Settings > Shortcuts > Custom Shortcuts**, choose **Edit > New > Global Shortcut > Command/URL**, name it `Toggle Elchi Transcription`, set the key combination under **Trigger**, and set the command under **Action** to `elchi --toggle-transcription`.
+
+**Sway / i3** (`~/.config/sway/config` or `~/.config/i3/config`):
+
+```ini
+bindsym $mod+o exec elchi --toggle-transcription
 ```
 
-Adjust the executable path if needed. This override only applies to apps launched from that PowerShell session, not the Start menu. Handy also preserves any existing `VK_LOADER_LAYERS_DISABLE` value.
+**Hyprland** (`~/.config/hypr/hyprland.conf`):
 
-### How to Contribute
+```ini
+bind = $mainMod, O, exec, elchi --toggle-transcription
+```
 
-1. **Check existing issues** at [github.com/cjpais/Handy/issues](https://github.com/cjpais/Handy/issues)
-2. **Fork the repository** and create a feature branch
-3. **Test thoroughly** on your target platform
-4. **Submit a pull request** with clear description of changes
-5. **Join the discussion** - reach out at [contact@handy.computer](mailto:contact@handy.computer)
+### Unix signals
 
-The goal is to create both a useful tool and a foundation for others to build upon—a well-patterned, simple codebase that serves the community.
+Elchi can also be triggered with a signal, so a window manager or hotkey daemon can keep ownership of the key binding:
 
-## Related Projects
+| Action                                    | Trigger                                                  |
+| ----------------------------------------- | -------------------------------------------------------- |
+| Toggle transcription                      | `pkill -USR2 -n elchi` or `elchi --toggle-transcription` |
+| Toggle transcription with post-processing | `elchi --toggle-post-process`                            |
 
-- **[Handy CLI](https://github.com/cjpais/handy-cli)** - The original Python command-line version
-- **[handy.computer](https://handy.computer)** - Project website with demos and documentation
+Example Sway config:
+
+```ini
+bindsym $mod+o exec pkill -USR2 -n elchi
+bindsym $mod+p exec elchi --toggle-post-process
+```
+
+`pkill` only delivers the signal here. It does not stop the process.
+
+Do not bind `SIGUSR1`. WebKitGTK, the web engine Elchi uses on Linux, uses `SIGUSR1` internally, and sending it can crash the app. Use `elchi --toggle-post-process` for the post-processing toggle.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and workflow, and [CONTRIBUTING_TRANSLATIONS.md](CONTRIBUTING_TRANSLATIONS.md) for translations. Bug reports and pull requests are welcome as issues and PRs in this repository.
+
+## Based on Handy
+
+Elchi is a fork of [Handy](https://github.com/cjpais/Handy) by CJ Pais and contributors, released under the MIT license. Most of the app — recording, shortcuts, pasting, the model manager, the settings UI, and the platform work behind all of it — is their work. We changed the default model to Duyu-small, focused on Turkish and English, and gave the app a new name and look. We are grateful to the Handy project for building something this solid and for making it free to fork.
+
+Elchi is not affiliated with or endorsed by the Handy project. The Handy name and brand assets belong to their owners; Elchi uses its own name, icon, and visual identity.
+
+Elchi also builds on:
+
+- **Silero** for voice activity detection
+- **ONNX Runtime** for Duyu-small, and **ggml** and **transcribe.cpp** for the other on-device models
+- **Whisper** by OpenAI and the other open models available in the model picker
+- **Tauri** for the app framework
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+Elchi is released under the MIT license. See [LICENSE](LICENSE), which keeps the original Handy copyright notice alongside ours.
 
-Handy is open-source software, but the Handy name, logo, icon, and brand assets are not open-source. Unofficial forks, rewrites, and redistributions must use their own branding and must not imply endorsement or affiliation.
-
-## Acknowledgments
-
-- **Whisper** by OpenAI for the speech recognition model
-- **ggml** for an amazing cross-platform tensor library
-- **Silero** for great lightweight VAD
-- **Tauri** team for the excellent Rust-based app framework
-- **Community contributors** helping make Handy better
+Duyu-small is released separately under the Apache-2.0 license. See its [model page](https://huggingface.co/KaanAydinli/Duyu-small).
