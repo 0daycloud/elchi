@@ -862,7 +862,9 @@
     "needsFormatting": "Sözlük, akıllı biçimlendirme ve Duyu Pro ile kullanılır. Akıllı biçimlendirme şu an kapalı.",
     "learnedToast": "Sözlüğe eklendi: {{words}}",
     "count_one": "{{count}} kelime",
-    "count_other": "{{count}} kelime"
+    "count_other": "{{count}} kelime",
+    "phrasesTitle": "Düzeltilen ifadeler",
+    "phrasesHint": "Elchi'nin yanlış duyduğu ve senin düzelttiğin kelime grupları. Aynı hata tekrar olursa biçimlendirme düzeltir."
   },
   "historyEdit": {
     "edit": "Düzelt",
@@ -911,6 +913,8 @@
     "corrected": "Düzelttin:",
     "showHeard": "duyulanı gör",
     "hideHeard": "gizle",
-    "heard": "Duyulan:"
+    "heard": "Duyulan:",
+    "learnedPhraseTitle": "Yeni düzeltme: “{{heard}}” → “{{word}}”.",
+    "learnedPhraseBody": "Bir dahaki sefere böyle duyarsam düzelteceğim."
   }
 }

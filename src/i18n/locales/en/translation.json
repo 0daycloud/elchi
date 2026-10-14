@@ -862,7 +862,9 @@
     "needsFormatting": "The dictionary is used by smart formatting and Duyu Pro. Smart formatting is off.",
     "learnedToast": "Added to your dictionary: {{words}}",
     "count_one": "{{count}} word",
-    "count_other": "{{count}} words"
+    "count_other": "{{count}} words",
+    "phrasesTitle": "Corrected phrases",
+    "phrasesHint": "Groups of words Elchi misheard and you corrected. If the same mistake comes back, formatting fixes it."
   },
   "historyEdit": {
     "edit": "Fix",
@@ -911,6 +913,8 @@
     "corrected": "You fixed:",
     "showHeard": "see what was heard",
     "hideHeard": "hide",
-    "heard": "Heard:"
+    "heard": "Heard:",
+    "learnedPhraseTitle": "New correction: “{{heard}}” → “{{word}}”.",
+    "learnedPhraseBody": "If I hear it that way again, I'll fix it."
   }
 }

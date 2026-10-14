@@ -39,9 +39,12 @@ export const DictionarySettings: React.FC = () => {
     setDraft("");
   };
 
-  const sorted = [...words].sort((a, b) =>
-    a.word.localeCompare(b.word, i18n.language),
-  );
+  const sorted = [...words]
+    .filter((w) => !w.phrase)
+    .sort((a, b) => a.word.localeCompare(b.word, i18n.language));
+  const phrases = words
+    .filter((w) => w.phrase)
+    .sort((a, b) => (b.added_at ?? 0) - (a.added_at ?? 0));
 
   return (
     <div className="max-w-3xl w-full mx-auto space-y-5">
@@ -85,47 +88,98 @@ export const DictionarySettings: React.FC = () => {
         </button>
       </form>
 
-      {sorted.length === 0 ? (
+      {sorted.length === 0 && phrases.length === 0 ? (
         <p className="rounded-xl border border-dashed border-border px-4 py-6 text-center text-sm text-mid-gray">
           {t("dictionary.empty")}
         </p>
       ) : (
-        <ul className="flex flex-wrap gap-2" aria-label={t("dictionary.title")}>
-          {sorted.map((w) => (
-            <li
-              key={w.word}
-              className="group inline-flex items-center gap-2 rounded-full border border-border bg-surface py-1.5 pl-3.5 pr-1.5"
-            >
-              <span className="font-semibold">{w.word}</span>
-              {w.learned && (
-                <span className="inline-flex items-center gap-1 text-xs text-coral">
-                  <span
-                    className="h-1.5 w-1.5 rounded-full bg-coral"
-                    aria-hidden="true"
-                  />
-                  {t("dictionary.learned")}
-                </span>
-              )}
-              {(w.heard ?? []).length > 0 && (
-                <span className="text-xs text-mid-gray">
-                  {t("dictionary.heardAs", {
-                    forms: (w.heard ?? []).join(", "),
-                  })}
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={async () =>
-                  setWords(await commands.removeDictionaryWord(w.word))
-                }
-                aria-label={t("dictionary.remove", { word: w.word })}
-                className="rounded-full p-1 text-mid-gray hover:bg-mid-gray/15 hover:text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary/50"
+        sorted.length > 0 && (
+          <ul
+            className="flex flex-wrap gap-2"
+            aria-label={t("dictionary.title")}
+          >
+            {sorted.map((w) => (
+              <li
+                key={w.word}
+                className="group inline-flex items-center gap-2 rounded-full border border-border bg-surface py-1.5 pl-3.5 pr-1.5"
               >
-                <X size={14} aria-hidden="true" />
-              </button>
-            </li>
-          ))}
-        </ul>
+                <span className="font-semibold">{w.word}</span>
+                {w.learned && (
+                  <span className="inline-flex items-center gap-1 text-xs text-coral">
+                    <span
+                      className="h-1.5 w-1.5 rounded-full bg-coral"
+                      aria-hidden="true"
+                    />
+                    {t("dictionary.learned")}
+                  </span>
+                )}
+                {(w.heard ?? []).length > 0 && (
+                  <span className="text-xs text-mid-gray">
+                    {t("dictionary.heardAs", {
+                      forms: (w.heard ?? []).join(", "),
+                    })}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={async () =>
+                    setWords(await commands.removeDictionaryWord(w.word))
+                  }
+                  aria-label={t("dictionary.remove", { word: w.word })}
+                  className="rounded-full p-1 text-mid-gray hover:bg-mid-gray/15 hover:text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary/50"
+                >
+                  <X size={14} aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )
+      )}
+
+      {phrases.length > 0 && (
+        <section className="space-y-2">
+          <div className="px-1">
+            <h3 className="font-semibold">{t("dictionary.phrasesTitle")}</h3>
+            <p className="text-sm text-mid-gray">
+              {t("dictionary.phrasesHint")}
+            </p>
+          </div>
+          <ul
+            className="divide-y divide-border rounded-xl border border-border"
+            aria-label={t("dictionary.phrasesTitle")}
+          >
+            {phrases.map((w) => (
+              <li
+                key={w.word}
+                className="flex items-center gap-3 py-2 pl-4 pr-2 text-[15px]"
+              >
+                <span className="min-w-0 flex-1">
+                  {(w.heard ?? []).length > 0 && (
+                    <>
+                      <span className="text-mid-gray line-through decoration-mid-gray/50">
+                        {(w.heard ?? []).join(", ")}
+                      </span>
+                      <span className="mx-2 text-mid-gray" aria-hidden="true">
+                        →
+                      </span>
+                    </>
+                  )}
+                  <span className="font-semibold">{w.word}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={async () =>
+                    setWords(await commands.removeDictionaryWord(w.word))
+                  }
+                  aria-label={t("dictionary.remove", { word: w.word })}
+                  className="rounded-full p-1 text-mid-gray hover:bg-mid-gray/15 hover:text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary/50"
+                >
+                  <X size={14} aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <div className="rounded-xl border border-border">

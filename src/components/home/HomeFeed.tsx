@@ -638,13 +638,22 @@ export const HomeFeed: React.FC<{
                         key={`l${it.word.word}`}
                         when={w}
                         accent="coral"
-                        title={t("home.learnedTitle", { word: it.word.word })}
-                        body={
-                          it.word.heard?.length
-                            ? t("home.learnedHeard", {
+                        title={
+                          it.word.phrase && it.word.heard?.length
+                            ? t("home.learnedPhraseTitle", {
                                 heard: it.word.heard[0],
+                                word: it.word.word,
                               })
-                            : t("home.learnedAdded")
+                            : t("home.learnedTitle", { word: it.word.word })
+                        }
+                        body={
+                          it.word.phrase
+                            ? t("home.learnedPhraseBody")
+                            : it.word.heard?.length
+                              ? t("home.learnedHeard", {
+                                  heard: it.word.heard[0],
+                                })
+                              : t("home.learnedAdded")
                         }
                       />
                     );
