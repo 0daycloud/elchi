@@ -1,8 +1,10 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Dropdown } from "../ui/Dropdown";
+import { ToggleSwitch } from "../ui/ToggleSwitch";
 import { SettingContainer } from "../ui/SettingContainer";
 import { useSettings } from "../../hooks/useSettings";
+import { useOsType } from "../../hooks/useOsType";
 import type { OverlayPosition, OverlayStyle } from "@/bindings";
 
 interface ShowOverlayProps {
@@ -14,6 +16,7 @@ export const ShowOverlay: React.FC<ShowOverlayProps> = React.memo(
   ({ descriptionMode = "tooltip", grouped = false }) => {
     const { t } = useTranslation();
     const { getSetting, updateSetting, isUpdating } = useSettings();
+    const osType = useOsType();
 
     const styleOptions = [
       {
@@ -82,6 +85,20 @@ export const ShowOverlay: React.FC<ShowOverlayProps> = React.memo(
               disabled={isUpdating("overlay_position")}
             />
           </SettingContainer>
+        )}
+
+        {/* Linux only until the click-through idle window is verified on macOS and Windows. */}
+        {selectedStyle !== "none" && osType === "linux" && (
+          <ToggleSwitch
+            checked={getSetting("overlay_idle_line") ?? false}
+            onChange={(enabled) => updateSetting("overlay_idle_line", enabled)}
+            isUpdating={isUpdating("overlay_idle_line")}
+            label={t("settings.advanced.overlay.idleLine.label")}
+            description={t("settings.advanced.overlay.idleLine.description")}
+            descriptionMode={descriptionMode}
+            grouped={grouped}
+            tooltipPosition="bottom"
+          />
         )}
       </>
     );
