@@ -59,6 +59,15 @@ const appColor = (name: string) => {
 const pastedText = (e: HistoryEntry) =>
   e.post_processed_text ?? e.transcription_text;
 
+/** The words of a text alone: lower case, no punctuation, single spaces. */
+const wordsOf = (text: string) =>
+  text
+    .toLocaleLowerCase("tr")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .join(" ");
+
 const countWords = (text: string) =>
   text.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
 
@@ -205,7 +214,10 @@ const DictationPost: React.FC<{
   const words = countWords(text);
   // What was pasted: before the user's correction, if they made one.
   const pasted = entry.edited_from ?? text;
-  const formatted = pasted.trim() !== entry.transcription_text.trim();
+  // "Formatted" only when the formatter changed the words (fillers dropped, a
+  // correction resolved, a list made), not just capitals, punctuation or spacing,
+  // which it touches in nearly every dictation.
+  const formatted = wordsOf(pasted) !== wordsOf(entry.transcription_text);
   const changes = entry.edited_from ? wordChanges(entry.edited_from, text) : [];
 
   const copy = async () => {
