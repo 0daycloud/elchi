@@ -69,6 +69,48 @@ pub fn similarity(a: &str, b: &str) -> f64 {
     1.0 - levenshtein(a, b) as f64 / longest as f64
 }
 
+/// How an acronym sounds when its letters are read out in English ("LG" -> "elji"):
+/// a name is often misheard as letters ("Elchi" written "LG"), and its spelling alone
+/// looks nothing like the name.
+fn spoken_letters(word: &str) -> Option<String> {
+    let n = word.chars().count();
+    if !(2..=5).contains(&n) || !word.chars().all(|c| c.is_ascii_uppercase()) {
+        return None;
+    }
+    Some(
+        word.chars()
+            .map(|c| match c {
+                'A' => "ey",
+                'B' => "bi",
+                'C' => "si",
+                'D' => "di",
+                'E' => "i",
+                'F' => "ef",
+                'G' => "ji",
+                'H' => "eyç",
+                'I' => "ay",
+                'J' => "jey",
+                'K' => "key",
+                'L' => "el",
+                'M' => "em",
+                'N' => "en",
+                'O' => "o",
+                'P' => "pi",
+                'Q' => "kyu",
+                'R' => "ar",
+                'S' => "es",
+                'T' => "ti",
+                'U' => "yu",
+                'V' => "vi",
+                'W' => "dabılyu",
+                'X' => "eks",
+                'Y' => "vay",
+                _ => "zi",
+            })
+            .collect(),
+    )
+}
+
 /// An inflection rather than a different word: the same start, and an ending that
 /// grew, shrank or swapped its last letter, as Turkish suffixes do ("evde" ->
 /// "evden", "geleceğim" -> "geleceğiz"). A letter fixed inside a term
@@ -133,7 +175,8 @@ fn lesson(
     if !(3..=40).contains(&n) || !word.chars().any(char::is_alphabetic) || fh == fw {
         return None;
     }
-    if similarity(&fh, &fw) < MIN_SIMILARITY {
+    let sounds = spoken_letters(heard).map_or(0.0, |spoken| similarity(&spoken, &fw));
+    if similarity(&fh, &fw).max(sounds) < MIN_SIMILARITY {
         return None; // a different word chosen, not a mis-hearing fixed
     }
     // A capital is evidence of a name only mid-sentence; at the start every word has one.
@@ -365,6 +408,16 @@ mod tests {
             learned("Yarın ıstanbul'a gidiyorum.", "Yarın İstanbul'a gidiyorum."),
             one("İstanbul", "ıstanbul")
         );
+    }
+
+    #[test]
+    fn a_name_misheard_as_letters_is_learned() {
+        // Seen in the app: "LG" corrected to "Elchi" in Claude's message box.
+        assert_eq!(
+            learned("Bunu LG ile yazdım.", "Bunu Elchi ile yazdım."),
+            one("Elchi", "LG")
+        );
+        assert!(learned("Bunu TV ile izledim.", "Bunu tablet ile izledim.").is_empty());
     }
 
     #[test]
