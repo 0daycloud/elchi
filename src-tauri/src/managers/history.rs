@@ -42,6 +42,8 @@ static MIGRATIONS: &[M] = &[
     ),
     // The app a dictation went into (crate::frontmost), for the home feed.
     M::up("ALTER TABLE transcription_history ADD COLUMN app_name TEXT;"),
+    // The text as pasted, kept when the user corrects a dictation (the feed shows the change).
+    M::up("ALTER TABLE transcription_history ADD COLUMN edited_from TEXT;"),
 ];
 
 #[derive(Clone, Debug, Serialize, Deserialize, Type)]
@@ -77,6 +79,9 @@ pub struct HistoryEntry {
     /// The app it was pasted into ("Mail"), when known.
     #[serde(default)]
     pub app_name: Option<String>,
+    /// What was pasted, when the user has since corrected it (the text is then the correction).
+    #[serde(default)]
+    pub edited_from: Option<String>,
 }
 
 pub struct HistoryManager {
@@ -252,6 +257,7 @@ impl HistoryManager {
             post_process_requested: row.get("post_process_requested")?,
             // Absent from queries that do not ask for it, and NULL before it was recorded.
             app_name: row.get("app_name").unwrap_or(None),
+            edited_from: row.get("edited_from").unwrap_or(None),
         })
     }
 
@@ -310,6 +316,7 @@ impl HistoryManager {
             post_process_prompt,
             post_process_requested,
             app_name,
+            edited_from: None,
         };
 
         debug!("Saved history entry with id {}", entry.id);
@@ -357,7 +364,7 @@ impl HistoryManager {
 
         let entry = conn
             .query_row(
-                "SELECT id, file_name, timestamp, saved, title, transcription_text, post_processed_text, post_process_prompt, post_process_requested, app_name
+                "SELECT id, file_name, timestamp, saved, title, transcription_text, post_processed_text, post_process_prompt, post_process_requested, app_name, edited_from
                  FROM transcription_history WHERE id = ?1",
                 params![id],
                 Self::map_history_entry,
@@ -373,6 +380,36 @@ impl HistoryManager {
             error!("Failed to emit history-updated event: {}", e);
         }
 
+        Ok(entry)
+    }
+
+    /// The user's correction of a dictation: it becomes the text, and what was
+    /// pasted is kept (the first time) so the change can be shown.
+    pub fn correct_text(&self, id: i64, text: &str) -> Result<HistoryEntry> {
+        let conn = self.get_connection()?;
+        let updated = conn.execute(
+            "UPDATE transcription_history
+             SET edited_from = COALESCE(edited_from, post_processed_text, transcription_text),
+                 post_processed_text = ?1
+             WHERE id = ?2",
+            params![text, id],
+        )?;
+        if updated == 0 {
+            return Err(anyhow!("History entry {} not found", id));
+        }
+        let entry = conn.query_row(
+            "SELECT id, file_name, timestamp, saved, title, transcription_text, post_processed_text, post_process_prompt, post_process_requested, app_name, edited_from
+             FROM transcription_history WHERE id = ?1",
+            params![id],
+            Self::map_history_entry,
+        )?;
+        if let Err(e) = (HistoryUpdatePayload::Updated {
+            entry: entry.clone(),
+        })
+        .emit(&self.app_handle)
+        {
+            error!("Failed to emit history-updated event: {}", e);
+        }
         Ok(entry)
     }
 
@@ -508,7 +545,7 @@ impl HistoryManager {
             (Some(cursor_id), Some(lim)) => {
                 let fetch_count = (lim + 1) as i64;
                 let mut stmt = conn.prepare(
-                    "SELECT id, file_name, timestamp, saved, title, transcription_text, post_processed_text, post_process_prompt, post_process_requested, app_name
+                    "SELECT id, file_name, timestamp, saved, title, transcription_text, post_processed_text, post_process_prompt, post_process_requested, app_name, edited_from
                      FROM transcription_history
                      WHERE id < ?1
                      ORDER BY id DESC
@@ -522,7 +559,7 @@ impl HistoryManager {
             (None, Some(lim)) => {
                 let fetch_count = (lim + 1) as i64;
                 let mut stmt = conn.prepare(
-                    "SELECT id, file_name, timestamp, saved, title, transcription_text, post_processed_text, post_process_prompt, post_process_requested, app_name
+                    "SELECT id, file_name, timestamp, saved, title, transcription_text, post_processed_text, post_process_prompt, post_process_requested, app_name, edited_from
                      FROM transcription_history
                      ORDER BY id DESC
                      LIMIT ?1",
@@ -534,7 +571,7 @@ impl HistoryManager {
             }
             (_, None) => {
                 let mut stmt = conn.prepare(
-                    "SELECT id, file_name, timestamp, saved, title, transcription_text, post_processed_text, post_process_prompt, post_process_requested, app_name
+                    "SELECT id, file_name, timestamp, saved, title, transcription_text, post_processed_text, post_process_prompt, post_process_requested, app_name, edited_from
                      FROM transcription_history
                      ORDER BY id DESC",
                 )?;
@@ -647,7 +684,8 @@ impl HistoryManager {
                 post_processed_text,
                 post_process_prompt,
                 post_process_requested,
-                app_name
+                app_name,
+                edited_from
              FROM transcription_history
              WHERE id = ?1",
         )?;

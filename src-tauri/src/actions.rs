@@ -741,8 +741,9 @@ impl ShortcutAction for TranscribeAction {
                             }
 
                             // Save to history if WAV was saved
+                            let mut history_id = None;
                             if wav_saved {
-                                if let Err(err) = hm.save_entry(
+                                match hm.save_entry(
                                     file_name,
                                     transcription,
                                     post_process,
@@ -750,7 +751,8 @@ impl ShortcutAction for TranscribeAction {
                                     processed.post_process_prompt.clone(),
                                     crate::frontmost::app_name(),
                                 ) {
-                                    error!("Failed to save history entry: {}", err);
+                                    Ok(entry) => history_id = Some(entry.id),
+                                    Err(err) => error!("Failed to save history entry: {}", err),
                                 }
                             }
 
@@ -782,12 +784,13 @@ impl ShortcutAction for TranscribeAction {
                                                 &pasted_text,
                                                 sample_count as f64 / 16_000.0,
                                             );
-                                            // Watch the field for corrections to learn from.
+                                            // Watch the field for corrections to take in.
                                             #[cfg(target_os = "macos")]
                                             if get_settings(&ah_clone).elchi_dictionary_learn {
                                                 crate::dictionary::watch::start(
                                                     &ah_clone,
                                                     pasted_text,
+                                                    history_id,
                                                 );
                                             }
                                         }

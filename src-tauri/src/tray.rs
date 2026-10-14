@@ -683,6 +683,7 @@ mod tests {
             post_process_prompt: None,
             post_process_requested: false,
             app_name: None,
+            edited_from: None,
         }
     }
 

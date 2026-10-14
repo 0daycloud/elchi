@@ -111,8 +111,51 @@ fn alignment(a: &[String], b: &[String]) -> Vec<(usize, usize)> {
     out
 }
 
-/// What the edit from `pasted` to `edited` teaches, if anything.
+/// What the edit from `pasted` to `edited` teaches, if anything, with no spell
+/// checker to say which words are common (the strict rules).
+#[cfg(test)]
 pub fn lessons(pasted: &str, edited: &str) -> Vec<Lesson> {
+    lessons_with(pasted, edited, &|_| None)
+}
+
+/// Whether a changed pair of words is a lesson: `heard` corrected to `word`.
+/// `known` says whether a word is in the Turkish or English dictionary (None when
+/// there is no spell checker): a lowercase correction is a lesson only when the new
+/// word is not an ordinary one ("petro" -> "spero" is; "gitti" -> "geldi" is not).
+fn lesson(
+    heard: &str,
+    word: &str,
+    sentence_start: bool,
+    known: &dyn Fn(&str) -> Option<bool>,
+) -> Option<Lesson> {
+    let (fh, fw) = (fold(heard), fold(word));
+    let n = word.chars().count();
+    if !(3..=40).contains(&n) || !word.chars().any(char::is_alphabetic) || fh == fw {
+        return None;
+    }
+    if similarity(&fh, &fw) < MIN_SIMILARITY {
+        return None; // a different word chosen, not a mis-hearing fixed
+    }
+    // A capital is evidence of a name only mid-sentence; at the start every word has one.
+    let capitalised = word.chars().any(char::is_uppercase)
+        && (!sentence_start || word.chars().skip(1).any(char::is_uppercase));
+    let learnable = capitalised
+        || (!only_suffix_changed(&fh, &fw)
+            && match known(word) {
+                Some(is_known) => !is_known && n >= 4,
+                None => n >= 6,
+            });
+    learnable.then(|| Lesson {
+        word: word.to_string(),
+        heard: heard.to_string(),
+    })
+}
+
+pub fn lessons_with(
+    pasted: &str,
+    edited: &str,
+    known: &dyn Fn(&str) -> Option<bool>,
+) -> Vec<Lesson> {
     let a: Vec<&str> = pasted
         .split_whitespace()
         .filter(|t| !core(t).is_empty())
@@ -141,65 +184,80 @@ pub fn lessons(pasted: &str, edited: &str) -> Vec<Lesson> {
         pi = i + 1;
         pj = j + 1;
     }
+    let starts = |j: usize| j == 0 || b[j - 1].ends_with(['.', '!', '?', ':']);
 
     let mut out: Vec<Lesson> = Vec::new();
+    let push = |l: Lesson, out: &mut Vec<Lesson>| {
+        if !out.iter().any(|x| fold(&x.word) == fold(&l.word)) {
+            out.push(l);
+        }
+    };
     // Matched words are equal once folded; one whose case was changed to a capital in
     // the middle of a sentence ("elchi" -> "Elchi") names something.
     for &(i, j) in &matched {
         let (heard, word) = (stem(core(a[i])), stem(core(b[j])));
-        let sentence_start = j == 0 || b[j - 1].ends_with(['.', '!', '?', ':']);
         if heard != word
             && word.chars().any(char::is_uppercase)
             && !heard.chars().any(char::is_uppercase)
-            && !sentence_start
+            && !starts(j)
             && word.chars().count() >= 3
-            && !out.iter().any(|l: &Lesson| fold(&l.word) == fold(word))
         {
-            out.push(Lesson {
-                word: word.to_string(),
-                heard: heard.to_string(),
-            });
+            push(
+                Lesson {
+                    word: word.to_string(),
+                    heard: heard.to_string(),
+                },
+                &mut out,
+            );
         }
     }
     for (ra, rb) in gaps {
         if ra.is_empty() || rb.is_empty() || ra.len() > 2 || rb.len() > 2 {
             continue; // an insertion, a deletion, or too big to be one mis-heard word
         }
-        let heard = ra
-            .clone()
-            .map(|k| stem(core(a[k])))
-            .collect::<Vec<_>>()
-            .join(" ");
-        let word = rb
-            .clone()
-            .map(|k| stem(core(b[k])))
-            .collect::<Vec<_>>()
-            .join(" ");
-        let (fh, fw) = (fold(&heard), fold(&word));
-        if word.chars().count() < 3
-            || word.chars().count() > 40
-            || !word.chars().any(char::is_alphabetic)
-        {
-            continue;
-        }
-        if similarity(&fh, &fw) < MIN_SIMILARITY {
-            continue; // a different word chosen, not a mis-hearing fixed
-        }
-        // A capital is evidence of a name only mid-sentence; at the start every word has one.
-        let sentence_start = rb.start == 0 || b[rb.start - 1].ends_with(['.', '!', '?', ':']);
-        let capitalised = word.chars().any(char::is_uppercase)
-            && (!sentence_start || word.chars().skip(1).any(char::is_uppercase));
-        if !capitalised && (word.chars().count() < 6 || only_suffix_changed(&fh, &fw)) {
-            continue; // a common word or an inflection, not a name or a term
-        }
-        if !out.iter().any(|l| fold(&l.word) == fw) {
-            out.push(Lesson { word, heard });
+        if ra.len() == rb.len() {
+            // Word for word: "this petro" -> "the spero" is two fixes, judged apart.
+            for (i, j) in ra.zip(rb) {
+                if let Some(l) = lesson(stem(core(a[i])), stem(core(b[j])), starts(j), known) {
+                    push(l, &mut out);
+                }
+            }
+        } else {
+            // Split or joined: "patient desk" -> "PatientDesk".
+            let heard = ra
+                .clone()
+                .map(|k| stem(core(a[k])))
+                .collect::<Vec<_>>()
+                .join(" ");
+            let word = rb
+                .clone()
+                .map(|k| stem(core(b[k])))
+                .collect::<Vec<_>>()
+                .join(" ");
+            if let Some(l) = lesson(&heard, &word, starts(rb.start), known) {
+                push(l, &mut out);
+            }
         }
     }
     if out.len() > MAX_LESSONS {
         return vec![];
     }
     out
+}
+
+/// The corrected text, when `edited` is a correction of `pasted` rather than more
+/// typing after it or a rewrite: most words kept, and something in it changed.
+pub fn correction(pasted: &str, edited: &str) -> Option<String> {
+    let edited = edited.trim();
+    let norm = |s: &str| s.split_whitespace().collect::<Vec<_>>().join(" ");
+    let (p, e) = (norm(pasted), norm(edited));
+    if p == e || e.is_empty() || e.starts_with(&p) {
+        return None; // unchanged, or only typed on after it
+    }
+    let fa: Vec<String> = p.split(' ').map(|t| fold(core(t))).collect();
+    let fb: Vec<String> = e.split(' ').map(|t| fold(core(t))).collect();
+    let kept = alignment(&fa, &fb).len();
+    (kept as f64 >= MIN_KEPT * fa.len().max(fb.len()) as f64).then(|| edited.to_string())
 }
 
 #[cfg(test)]
@@ -306,6 +364,66 @@ mod tests {
         assert_eq!(
             learned("Yarın ıstanbul'a gidiyorum.", "Yarın İstanbul'a gidiyorum."),
             one("İstanbul", "ıstanbul")
+        );
+    }
+
+    #[test]
+    fn two_changed_words_are_judged_one_by_one() {
+        // Seen in the app: "this petro" -> "the spero" was learned as "the spero".
+        let known =
+            |w: &str| Some(["the", "this", "fix", "repo"].contains(&w.to_lowercase().as_str()));
+        let got: Vec<_> = lessons_with("Fix this petro repo.", "Fix the spero repo.", &known)
+            .into_iter()
+            .map(|l| (l.word, l.heard))
+            .collect();
+        assert_eq!(got, one("spero", "petro"));
+        assert!(
+            learned("Fix this petro repo.", "Fix the spero repo.").is_empty(),
+            "no spell checker: strict"
+        );
+    }
+
+    #[test]
+    fn a_lowercase_term_is_learned_only_when_it_is_not_a_common_word() {
+        let dict = |w: &str| Some(["geldi", "gitti"].contains(&w));
+        let l = |p: &str, e: &str| {
+            lessons_with(p, e, &dict)
+                .into_iter()
+                .map(|l| l.word)
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(
+            l(
+                "Bunu kubectl ile değil kubetcl ile yap.",
+                "Bunu kubectl ile değil kubectl ile yap."
+            ),
+            vec!["kubectl"]
+        );
+        assert!(l("Ali dün gitti.", "Ali dün geldi.").is_empty());
+        assert!(
+            l("Yarın evde konuşuruz.", "Yarın evden konuşuruz.").is_empty(),
+            "an inflection"
+        );
+    }
+
+    #[test]
+    fn a_correction_is_told_from_typing_on_and_from_a_rewrite() {
+        assert_eq!(
+            correction("Fix this petro repo.", "Fix the spero repo.").as_deref(),
+            Some("Fix the spero repo.")
+        );
+        assert_eq!(
+            correction("Fix this repo.", "Fix this repo. And the CI too."),
+            None,
+            "typed on after it"
+        );
+        assert_eq!(correction("Fix this repo.", "Fix this repo."), None);
+        assert_eq!(
+            correction(
+                "Toplantıyı yarına alalım, herkese haber ver.",
+                "Lütfen ekibe bildir."
+            ),
+            None
         );
     }
 

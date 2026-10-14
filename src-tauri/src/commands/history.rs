@@ -186,12 +186,7 @@ pub async fn edit_history_text(
         return Ok(vec![]);
     }
     history_manager
-        .update_transcription(
-            id,
-            entry.transcription_text,
-            Some(text.clone()),
-            entry.post_process_prompt,
-        )
+        .correct_text(id, &text)
         .map_err(|e| e.to_string())?;
     Ok(crate::dictionary::learn_from_edit(&app, &pasted, &text))
 }

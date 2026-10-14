@@ -10,6 +10,7 @@
 //! substituted into transcripts, which is what Handy's custom words do.
 
 pub mod learn;
+pub mod spell;
 #[cfg(target_os = "macos")]
 pub mod watch;
 
@@ -120,7 +121,8 @@ pub fn learn_from_edit(app: &AppHandle, pasted: &str, edited: &str) -> Vec<Dicti
     if !get_settings(app).elchi_dictionary_learn {
         return vec![];
     }
-    let learned: Vec<DictionaryWord> = learn::lessons(pasted, edited)
+    let known = |w: &str| spell::is_known(app, w);
+    let learned: Vec<DictionaryWord> = learn::lessons_with(pasted, edited, &known)
         .into_iter()
         .filter_map(|l| add(app, &l.word, Some(&l.heard), true))
         .collect();
@@ -132,6 +134,27 @@ pub fn learn_from_edit(app: &AppHandle, pasted: &str, edited: &str) -> Vec<Dicti
         let _ = app.emit("dictionary-learned", learned.clone());
     }
     learned
+}
+
+/// A dictation corrected where it was pasted (crate::dictionary::watch): the
+/// correction becomes the dictation's text in history, so the home feed shows it
+/// and what changed, and the dictionary learns from it. Nothing happens when the
+/// change is more typing after the dictation, or a rewrite.
+pub fn correct_dictation(app: &AppHandle, history_id: Option<i64>, pasted: &str, edited: &str) {
+    let Some(corrected) = learn::correction(pasted, edited) else {
+        return;
+    };
+    if let Some(id) = history_id {
+        use tauri::Manager;
+        if let Some(hm) =
+            app.try_state::<std::sync::Arc<crate::managers::history::HistoryManager>>()
+        {
+            if let Err(e) = hm.correct_text(id, &corrected) {
+                log::warn!("Could not save a correction to history: {e}");
+            }
+        }
+    }
+    learn_from_edit(app, pasted, &corrected);
 }
 
 /// What the formatter gets: the most recent entries, each with its misheard forms.
