@@ -12,6 +12,9 @@
 pub struct Lesson {
     pub word: String,
     pub heard: String,
+    /// A phrase misheard as another ("VR format in" for "we are formating"), as
+    /// opposed to a name or a term.
+    pub phrase: bool,
 }
 
 /// At most this many lessons from one edit: more means the text was rewritten.
@@ -111,6 +114,59 @@ fn spoken_letters(word: &str) -> Option<String> {
     )
 }
 
+/// How a word or phrase sounds, roughly, in a form two spellings of the same
+/// sounds share: acronyms read out as letters, Turkish and English letters that
+/// sound alike made one (ç/c/j, ş/s/z, ı/i, w/v, ...), doubled letters single, and
+/// spaces, hyphens and apostrophes gone. "VR format in" -> "viarformatin",
+/// "we are formating" -> "vearformatin".
+pub fn sound_key(text: &str) -> String {
+    let spoken: String = text
+        .split_whitespace()
+        .map(|t| {
+            let c = core(t);
+            spoken_letters(c).unwrap_or_else(|| fold(c))
+        })
+        .collect();
+    let s = spoken
+        .replace("ch", "c")
+        .replace("sh", "s")
+        .replace("th", "t")
+        .replace("ph", "f")
+        .replace("ck", "k");
+    let mut out = String::new();
+    for c in s.chars().filter(|c| c.is_alphanumeric()) {
+        let m = match c {
+            'ç' | 'j' => 'c',
+            'ş' | 'z' => 's',
+            'ğ' => 'g',
+            'ı' | 'y' => 'i',
+            'ö' => 'o',
+            'ü' => 'u',
+            'w' => 'v',
+            'q' => 'k',
+            'â' => 'a',
+            'î' => 'i',
+            'û' => 'u',
+            c => c,
+        };
+        if !out.ends_with(m) {
+            out.push(m);
+        }
+    }
+    out
+}
+
+/// How alike two words or phrases sound (1 is the same), by their sound keys.
+pub fn sound_similarity(a: &str, b: &str) -> f64 {
+    similarity(&sound_key(a), &sound_key(b))
+}
+
+/// A phrase of several words corrected into another is a mishearing, not a
+/// rewording, when the two sound this much alike.
+const PHRASE_SIMILARITY: f64 = 0.65;
+/// The longest stretch of words, on either side, a phrase correction may cover.
+const MAX_PHRASE_WORDS: usize = 4;
+
 /// An inflection rather than a different word: the same start, and an ending that
 /// grew, shrank or swapped its last letter, as Turkish suffixes do ("evde" ->
 /// "evden", "geleceğim" -> "geleceğiz"). A letter fixed inside a term
@@ -175,8 +231,7 @@ fn lesson(
     if !(3..=40).contains(&n) || !word.chars().any(char::is_alphabetic) || fh == fw {
         return None;
     }
-    let sounds = spoken_letters(heard).map_or(0.0, |spoken| similarity(&spoken, &fw));
-    if similarity(&fh, &fw).max(sounds) < MIN_SIMILARITY {
+    if similarity(&fh, &fw).max(sound_similarity(heard, word)) < MIN_SIMILARITY {
         return None; // a different word chosen, not a mis-hearing fixed
     }
     // A capital is evidence of a name only mid-sentence; at the start every word has one.
@@ -191,6 +246,7 @@ fn lesson(
     learnable.then(|| Lesson {
         word: word.to_string(),
         heard: heard.to_string(),
+        phrase: false,
     })
 }
 
@@ -249,23 +305,32 @@ pub fn lessons_with(
                 Lesson {
                     word: word.to_string(),
                     heard: heard.to_string(),
+                    phrase: false,
                 },
                 &mut out,
             );
         }
     }
     for (ra, rb) in gaps {
-        if ra.is_empty() || rb.is_empty() || ra.len() > 2 || rb.len() > 2 {
-            continue; // an insertion, a deletion, or too big to be one mis-heard word
+        if ra.is_empty()
+            || rb.is_empty()
+            || ra.len() > MAX_PHRASE_WORDS
+            || rb.len() > MAX_PHRASE_WORDS
+        {
+            continue; // an insertion, a deletion, or too long to be one mishearing
         }
-        if ra.len() == rb.len() {
+        let join = |words: &[&str], r: std::ops::Range<usize>| {
+            r.map(|k| core(words[k])).collect::<Vec<_>>().join(" ")
+        };
+        let before = out.len();
+        if ra.len() == rb.len() && ra.len() <= 2 {
             // Word for word: "this petro" -> "the spero" is two fixes, judged apart.
-            for (i, j) in ra.zip(rb) {
+            for (i, j) in ra.clone().zip(rb.clone()) {
                 if let Some(l) = lesson(stem(core(a[i])), stem(core(b[j])), starts(j), known) {
                     push(l, &mut out);
                 }
             }
-        } else {
+        } else if ra.len() <= 2 && rb.len() <= 2 {
             // Split or joined: "patient desk" -> "PatientDesk".
             let heard = ra
                 .clone()
@@ -279,6 +344,23 @@ pub fn lessons_with(
                 .join(" ");
             if let Some(l) = lesson(&heard, &word, starts(rb.start), known) {
                 push(l, &mut out);
+            }
+        }
+        // Several words corrected together, and nothing in them learned word by word:
+        // a mishearing of the phrase when it sounds like what was meant ("VR format
+        // in" -> "we are formating"), a rewording when it does not.
+        // Two words a side are judged word for word above; a phrase is three or more.
+        if out.len() == before && ra.len().max(rb.len()) >= 3 {
+            let (heard, word) = (join(&a, ra.clone()), join(&b, rb.clone()));
+            if sound_similarity(&heard, &word) >= PHRASE_SIMILARITY {
+                push(
+                    Lesson {
+                        word,
+                        heard,
+                        phrase: true,
+                    },
+                    &mut out,
+                );
             }
         }
     }
@@ -418,6 +500,39 @@ mod tests {
             one("Elchi", "LG")
         );
         assert!(learned("Bunu TV ile izledim.", "Bunu tablet ile izledim.").is_empty());
+    }
+
+    #[test]
+    fn a_phrase_misheard_as_another_is_learned_and_a_rewording_is_not() {
+        // Seen in the app: "VR format in" corrected to "we are formating" in Claude.
+        let got = lessons(
+            "Right now it shows bi-chimland because VR format in the back-end.",
+            "Right now it shows bicimlendirildi because we are formating the back-end.",
+        );
+        assert!(
+            got.iter()
+                .any(|l| l.phrase && l.heard == "VR format in" && l.word == "we are formating"),
+            "{got:?}"
+        );
+        assert!(lessons(
+            "Toplantı bugün çok güzel geçti.",
+            "Toplantı bugün oldukça verimli oldu."
+        )
+        .is_empty());
+        assert!(lessons(
+            "Bunu yarın sabah hallederiz.",
+            "Bunu haftaya pazartesi hallederiz."
+        )
+        .is_empty());
+    }
+
+    #[test]
+    fn sound_keys_make_alike_sounds_one() {
+        assert_eq!(sound_key("VR format in"), "viarformatin");
+        assert_eq!(sound_key("we are formating"), "veareformating");
+        assert!(sound_similarity("VR format in", "we are formating") >= PHRASE_SIMILARITY);
+        assert!(sound_similarity("bi-chimland", "bicimlendirildi") >= 0.5);
+        assert!(sound_similarity("güzeldi", "verimliydi") < 0.5);
     }
 
     #[test]

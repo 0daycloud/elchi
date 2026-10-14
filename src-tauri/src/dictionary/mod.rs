@@ -40,6 +40,11 @@ pub struct DictionaryWord {
     /// Unix seconds.
     #[serde(default)]
     pub added_at: i64,
+    /// A phrase the recognizer misheard as another ("VR format in" for "we are
+    /// formating"), not a name or a term: the formatter gets it, Duyu Pro's hint
+    /// does not, and the dictionary lists it apart.
+    #[serde(default)]
+    pub phrase: bool,
 }
 
 fn key(word: &str) -> String {
@@ -57,6 +62,7 @@ pub fn add(
     word: &str,
     heard: Option<&str>,
     learned: bool,
+    phrase: bool,
 ) -> Option<DictionaryWord> {
     let word = word.trim();
     if word.is_empty() || word.chars().count() > 40 {
@@ -80,6 +86,7 @@ pub fn add(
             heard: heard.map(|h| vec![h.to_string()]).unwrap_or_default(),
             learned,
             added_at: chrono::Utc::now().timestamp(),
+            phrase,
         };
         dict.push(e.clone());
         while dict.len() > MAX_WORDS {
@@ -124,7 +131,7 @@ pub fn learn_from_edit(app: &AppHandle, pasted: &str, edited: &str) -> Vec<Dicti
     let known = |w: &str| spell::is_known(app, w);
     let learned: Vec<DictionaryWord> = learn::lessons_with(pasted, edited, &known)
         .into_iter()
-        .filter_map(|l| add(app, &l.word, Some(&l.heard), true))
+        .filter_map(|l| add(app, &l.word, Some(&l.heard), true, l.phrase))
         .collect();
     if !learned.is_empty() {
         log::info!(
@@ -170,7 +177,11 @@ pub fn prompt(words: &[DictionaryWord]) -> Option<String> {
     if words.is_empty() {
         return None;
     }
-    let mut v: Vec<&DictionaryWord> = words.iter().collect();
+    // Names and terms only: a phrase is not a spelling to steer the recognizer toward.
+    let mut v: Vec<&DictionaryWord> = words.iter().filter(|e| !e.phrase).collect();
+    if v.is_empty() {
+        return None;
+    }
     v.sort_by_key(|e| std::cmp::Reverse(e.added_at));
     Some(
         v.iter()
@@ -190,7 +201,7 @@ pub fn get_dictionary(app: AppHandle) -> Vec<DictionaryWord> {
 #[tauri::command]
 #[specta::specta]
 pub fn add_dictionary_word(app: AppHandle, word: String) -> Vec<DictionaryWord> {
-    add(&app, &word, None, false);
+    add(&app, &word, None, false, false);
     get_settings(&app).elchi_dictionary
 }
 

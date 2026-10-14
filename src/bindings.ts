@@ -1201,7 +1201,13 @@ learned?: boolean;
 /**
  * Unix seconds.
  */
-added_at?: number }
+added_at?: number; 
+/**
+ * A phrase the recognizer misheard as another ("VR format in" for "we are
+ * formating"), not a name or a term: the formatter gets it, Duyu Pro's hint
+ * does not, and the dictionary lists it apart.
+ */
+phrase?: boolean }
 /**
  * What the interface shows: the session without the token.
  */
