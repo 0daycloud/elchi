@@ -231,6 +231,7 @@
       "shortcut": {
         "title": "Elchi kısayolları",
         "description": "Dikteyi başlatan klavye kısayollarını ayarlayın",
+        "external": "Masaüstünüz ayarladı (Hyprland, elchi-omarchy-setup ile). Değiştirmek için terminalde: elchi-omarchy-setup --key …",
         "loading": "Kısayollar yükleniyor...",
         "none": "Kısayol ayarlanmadı",
         "notFound": "Kısayol bulunamadı",
@@ -360,6 +361,10 @@
             "minimal": "Sade",
             "live": "Canlı"
           }
+        },
+        "idleLine": {
+          "label": "Beklerken ince çizgi",
+          "description": "Kayıt aralarında ekranda ince bir çizgi kalır; konuşurken göstergeye dönüşür."
         },
         "position": {
           "title": "Göstergenin konumu",

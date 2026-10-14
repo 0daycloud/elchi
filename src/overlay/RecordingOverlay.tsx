@@ -13,7 +13,12 @@ import i18n, { syncLanguageFromSettings } from "@/i18n";
 import type { ModelStateEvent } from "@/lib/types/events";
 import { getLanguageDirection } from "@/lib/utils/rtl";
 
-type OverlayState = "recording" | "streaming" | "transcribing" | "processing";
+type OverlayState =
+  | "idle"
+  | "recording"
+  | "streaming"
+  | "transcribing"
+  | "processing";
 
 // Number of reactive bars in the waveform (the simple, smoothed style shared by
 // every overlay form). Mic levels arrive as 16 FFT buckets; we take the first N.
@@ -351,6 +356,9 @@ const RecordingOverlay: React.FC = () => {
   const working = state === "transcribing" || state === "processing";
   const workLabel =
     state === "processing" ? t("overlay.processing") : transcribingLabel;
+  // "idle": the pill shrunk to a thin line between recordings
+  // (overlay_idle_line); it keeps its place and grows back on the next session.
+  const idle = state === "idle";
 
   return (
     <div
@@ -358,9 +366,13 @@ const RecordingOverlay: React.FC = () => {
       className={`ov-stage ${position} ov-fade ${isVisible ? "show" : ""}`}
     >
       <div
-        className={`scard compact ${working && isVisible ? "cworking" : ""}`}
+        className={`scard compact ${idle ? "idle" : ""} ${working && isVisible ? "cworking" : ""}`}
       >
-        {working ? workingRow(workLabel, true) : listeningRow(false, true)}
+        {idle
+          ? null
+          : working
+            ? workingRow(workLabel, true)
+            : listeningRow(false, true)}
       </div>
     </div>
   );

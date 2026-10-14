@@ -117,6 +117,55 @@ fn configure_layer_shell_surface(
 
 /// Initializes GTK layer shell for Linux overlay window
 /// Returns true if layer shell was successfully initialized, false otherwise
+/// The layer surface goes to the monitor under the cursor. Wayland does not
+/// expose the pointer position to clients, but Hyprland's IPC does; on other
+/// compositors the surface stays where the compositor put it.
+#[cfg(target_os = "linux")]
+fn move_layer_shell_to_cursor_monitor(gtk_window: &gtk::ApplicationWindow) {
+    use gtk::prelude::*;
+    let Some((x, y)) = hyprland_cursor_pos() else {
+        return;
+    };
+    let Some(display) = gtk::gdk::Display::default() else {
+        return;
+    };
+    for i in 0..display.n_monitors() {
+        let Some(monitor) = display.monitor(i) else {
+            continue;
+        };
+        let g = monitor.geometry();
+        let inside = x >= g.x() && x < g.x() + g.width() && y >= g.y() && y < g.y() + g.height();
+        if inside {
+            if gtk_window.monitor().as_ref() != Some(&monitor) {
+                gtk_window.set_monitor(&monitor);
+            }
+            return;
+        }
+    }
+}
+
+/// Global cursor position in logical pixels from Hyprland's IPC socket
+/// (`j/cursorpos`), the same space GDK reports monitor geometry in.
+#[cfg(target_os = "linux")]
+fn hyprland_cursor_pos() -> Option<(i32, i32)> {
+    use std::io::{Read, Write};
+    let runtime_dir = std::env::var_os("XDG_RUNTIME_DIR")?;
+    let signature = std::env::var_os("HYPRLAND_INSTANCE_SIGNATURE")?;
+    let socket = std::path::Path::new(&runtime_dir)
+        .join("hypr")
+        .join(signature)
+        .join(".socket.sock");
+    let mut stream = std::os::unix::net::UnixStream::connect(socket).ok()?;
+    stream
+        .set_read_timeout(Some(std::time::Duration::from_millis(200)))
+        .ok()?;
+    stream.write_all(b"j/cursorpos").ok()?;
+    let mut reply = String::new();
+    stream.read_to_string(&mut reply).ok()?;
+    let value: serde_json::Value = serde_json::from_str(&reply).ok()?;
+    Some((value["x"].as_f64()? as i32, value["y"].as_f64()? as i32))
+}
+
 #[cfg(target_os = "linux")]
 fn init_gtk_layer_shell(overlay_window: &tauri::webview::WebviewWindow) -> bool {
     if utils::env_flag_enabled("HANDY_NO_GTK_LAYER_SHELL") {
@@ -520,6 +569,7 @@ fn show_overlay_state_on_main(app_handle: &AppHandle, state: &str) {
             let position = settings::get_settings(app_handle).overlay_position;
             match overlay_window.gtk_window() {
                 Ok(gtk_window) => {
+                    move_layer_shell_to_cursor_monitor(&gtk_window);
                     configure_layer_shell_surface(&gtk_window, position, width, height)
                 }
                 Err(error) => log::error!("Failed to access GTK overlay window: {error}"),
@@ -630,6 +680,11 @@ pub fn show_processing_overlay(app_handle: &AppHandle) {
     show_overlay_state(app_handle, "processing");
 }
 
+/// Shows the overlay shrunk to its idle line (`overlay_idle_line`).
+pub fn show_idle_overlay(app_handle: &AppHandle) {
+    show_overlay_state(app_handle, "idle");
+}
+
 /// Updates the overlay window position based on current settings
 pub fn update_overlay_position(app_handle: &AppHandle) {
     // Positioning queries monitors/cursor (GDK/Xlib on Linux) and moves the
@@ -685,10 +740,21 @@ fn update_overlay_position_on_main(app_handle: &AppHandle) {
 /// the instant it drained, well inside the 300 ms hide delay.
 static OVERLAY_SHOW_GENERATION: AtomicU64 = AtomicU64::new(0);
 
-/// Hides the recording overlay window with fade-out animation
+/// Hides the recording overlay after a session. With the idle line on, the
+/// window stays up and shrinks to the line instead, so the next recording
+/// grows out of it.
 pub fn hide_recording_overlay(app_handle: &AppHandle) {
-    // Always hide the overlay regardless of settings - if setting was changed while recording,
-    // we still want to hide it properly
+    let settings = settings::get_settings(app_handle);
+    if settings.overlay_idle_line && settings.overlay_style != OverlayStyle::None {
+        show_overlay_state(app_handle, "idle");
+        return;
+    }
+    hide_overlay_window(app_handle);
+}
+
+/// Hides the recording overlay window with fade-out animation, whatever the
+/// settings say (used when the overlay is switched off).
+pub fn hide_overlay_window(app_handle: &AppHandle) {
     if let Some(overlay_window) = app_handle.get_webview_window("recording_overlay") {
         // Snapshot before doing anything observable, so any show that lands
         // after this point invalidates the delayed hide below.

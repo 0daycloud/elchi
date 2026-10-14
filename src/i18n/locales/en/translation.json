@@ -219,6 +219,7 @@
       "shortcut": {
         "title": "Elchi Shortcuts",
         "description": "Configure keyboard shortcuts to trigger speech-to-text recording",
+        "external": "Set by your desktop (Hyprland, via elchi-omarchy-setup). Change it in a terminal: elchi-omarchy-setup --key …",
         "loading": "Loading shortcuts...",
         "none": "No shortcuts configured",
         "notFound": "Shortcut not found",
@@ -360,6 +361,10 @@
             "minimal": "Minimal",
             "live": "Live"
           }
+        },
+        "idleLine": {
+          "label": "Thin line when idle",
+          "description": "Keep a thin line on screen between recordings; it grows into the pill while you speak."
         },
         "position": {
           "title": "Overlay Position",

@@ -581,6 +581,16 @@ pub struct AppSettings {
     /// `overlay_position` (position `none` → style `None`).
     #[serde(default = "default_overlay_style")]
     pub overlay_style: OverlayStyle,
+    /// Keep the overlay on screen between recordings as a thin line that
+    /// grows into the pill while recording. Ignored when `overlay_style` is
+    /// `None`.
+    #[serde(default)]
+    pub overlay_idle_line: bool,
+    /// Label of a dictation key owned by the desktop rather than by Elchi
+    /// (Hyprland binds written by `elchi-omarchy-setup`). Shown in place of
+    /// the in-app shortcut, which cannot capture keys on Wayland.
+    #[serde(default)]
+    pub external_shortcut: Option<String>,
 }
 
 fn default_model() -> String {
@@ -1074,6 +1084,8 @@ pub fn get_default_settings() -> AppSettings {
         vad_enabled: default_vad_enabled(),
         vad_backend: VadBackend::default(),
         overlay_style: default_overlay_style(),
+        overlay_idle_line: false,
+        external_shortcut: None,
     }
 }
 

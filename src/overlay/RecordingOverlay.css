@@ -52,7 +52,10 @@
   --ov-work-w: 216px; /* working pill (transcribing / polishing) -- wide enough to
                          center longer labels; shared by Live (collapsed) + minimal */
   --ov-open-w: 392px; /* Live panel, expanded */
-  --ov-base-h: 40px; /* control-row height (.sbase) */
+  --ov-base-h: 40px;
+  /* idle line (overlay_idle_line): the pill shrunk between recordings */
+  --ov-idle-w: 72px;
+  --ov-idle-h: 4px; /* control-row height (.sbase) */
   --ov-cap-max-h: 64px; /* max height of the scrolling live-text region */
 }
 @media (prefers-color-scheme: dark) {
@@ -214,6 +217,19 @@
 .scard.compact {
   animation: none;
   width: var(--ov-rest-w);
+  height: var(--ov-base-h);
+  transition:
+    width 460ms cubic-bezier(0.22, 1, 0.36, 1),
+    height 460ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-radius 460ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 460ms ease;
+}
+.scard.compact.idle {
+  width: var(--ov-idle-w);
+  height: var(--ov-idle-h);
+  border-radius: 999px;
+  background-image: none;
+  opacity: 0.7;
 }
 .scard.compact.cworking {
   width: var(--ov-work-w);

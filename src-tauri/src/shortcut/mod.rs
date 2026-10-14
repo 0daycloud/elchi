@@ -734,6 +734,7 @@ pub fn change_overlay_style_setting(app: AppHandle, style: String) -> Result<(),
         }
     };
     settings.overlay_style = parsed;
+    let idle_line = settings.overlay_idle_line;
     settings::write_settings(&app, settings);
 
     // Keep the cached overlay-enabled flag in sync so emit_levels stops (or
@@ -743,6 +744,28 @@ pub fn change_overlay_style_setting(app: AppHandle, style: String) -> Result<(),
     // Reposition in case the window needs to re-center for the new style.
     crate::utils::update_overlay_position(&app);
 
+    // The idle line follows the style: gone with None, back otherwise.
+    if parsed == OverlayStyle::None {
+        crate::overlay::hide_overlay_window(&app);
+    } else if idle_line {
+        crate::overlay::show_idle_overlay(&app);
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn change_overlay_idle_line_setting(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    settings.overlay_idle_line = enabled;
+    let show = enabled && settings.overlay_style != OverlayStyle::None;
+    settings::write_settings(&app, settings);
+    if show {
+        crate::overlay::show_idle_overlay(&app);
+    } else {
+        crate::overlay::hide_overlay_window(&app);
+    }
     Ok(())
 }
 
