@@ -907,6 +907,10 @@
     "welcomeTitle": "Hi, I'm Elchi.",
     "welcomeBody": "Hold {{keys}}, speak, let go. What you write will show up here.",
     "more": "Older ones are in History",
-    "unknownApp": "An app"
+    "unknownApp": "An app",
+    "corrected": "You fixed:",
+    "showHeard": "see what was heard",
+    "hideHeard": "hide",
+    "heard": "Heard:"
   }
 }

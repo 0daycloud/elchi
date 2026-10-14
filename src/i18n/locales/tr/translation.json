@@ -907,6 +907,10 @@
     "welcomeTitle": "Merhaba, ben Elchi.",
     "welcomeBody": "{{keys}} kısayolunu basılı tut, konuş, bırak. Yazdıkların burada akacak.",
     "more": "Daha eskileri Geçmiş'te",
-    "unknownApp": "Bir uygulama"
+    "unknownApp": "Bir uygulama",
+    "corrected": "Düzelttin:",
+    "showHeard": "duyulanı gör",
+    "hideHeard": "gizle",
+    "heard": "Duyulan:"
   }
 }

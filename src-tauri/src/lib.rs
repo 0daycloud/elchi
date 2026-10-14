@@ -222,6 +222,7 @@ fn initialize_core_logic(app_handle: &AppHandle) {
     app_handle.manage(tray::TrayState::new());
 
     // Duyu Pro plan (trial / subscription), checked in the background.
+    frontmost::init(app_handle);
     let elchi_pro = elchi_pro::ElchiPro::new(app_handle);
     elchi_pro.start();
     app_handle.manage(elchi_pro);
@@ -703,6 +704,7 @@ pub fn run(cli_args: CliArgs) {
             dictionary::set_dictionary_learning,
             commands::history::get_dictation_stats,
             commands::history::edit_history_text,
+            frontmost::get_app_icons,
             shortcut::change_post_process_model_setting,
             shortcut::set_post_process_provider,
             shortcut::fetch_post_process_models,

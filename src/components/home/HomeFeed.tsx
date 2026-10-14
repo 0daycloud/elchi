@@ -73,8 +73,62 @@ type Item =
   | { kind: "streak"; at: number; days: number }
   | { kind: "milestone"; at: number; words: number };
 
-const Avatar: React.FC<{ app?: string | null }> = ({ app }) =>
-  app ? (
+/** What changed between two versions of a text, word by word: up to `max` hunks
+ *  of removed and added words ("petro" -> "spero"). */
+export const wordChanges = (before: string, after: string, max = 3) => {
+  const a = before.split(/\s+/).filter(Boolean);
+  const b = after.split(/\s+/).filter(Boolean);
+  const dp = Array.from({ length: a.length + 1 }, () =>
+    new Array<number>(b.length + 1).fill(0),
+  );
+  for (let i = a.length - 1; i >= 0; i--)
+    for (let j = b.length - 1; j >= 0; j--)
+      dp[i][j] =
+        a[i] === b[j]
+          ? dp[i + 1][j + 1] + 1
+          : Math.max(dp[i + 1][j], dp[i][j + 1]);
+  const hunks: { from: string; to: string }[] = [];
+  let i = 0,
+    j = 0,
+    from: string[] = [],
+    to: string[] = [];
+  const flush = () => {
+    if (from.length || to.length)
+      hunks.push({ from: from.join(" "), to: to.join(" ") });
+    from = [];
+    to = [];
+  };
+  while (i < a.length || j < b.length) {
+    if (i < a.length && j < b.length && a[i] === b[j]) {
+      flush();
+      i++;
+      j++;
+    } else if (
+      j >= b.length ||
+      (i < a.length && dp[i + 1][j] >= dp[i][j + 1])
+    ) {
+      from.push(a[i++]);
+    } else {
+      to.push(b[j++]);
+    }
+  }
+  flush();
+  return hunks.slice(0, max);
+};
+
+const Avatar: React.FC<{ app?: string | null; icon?: string }> = ({
+  app,
+  icon,
+}) =>
+  icon ? (
+    <img
+      src={icon}
+      alt=""
+      aria-hidden="true"
+      className="flex-none size-9 object-contain"
+      draggable={false}
+    />
+  ) : app ? (
     <span
       aria-hidden="true"
       className="flex-none size-9 rounded-[10px] text-white font-bold text-[15px] flex items-center justify-center"
@@ -138,18 +192,21 @@ const IconAction: React.FC<{
   </button>
 );
 
-const DictationPost: React.FC<{ entry: HistoryEntry; when: string }> = ({
-  entry,
-  when,
-}) => {
+const DictationPost: React.FC<{
+  entry: HistoryEntry;
+  when: string;
+  icon?: string;
+}> = ({ entry, when, icon }) => {
   const { t, i18n } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [draft, setDraft] = useState<string | null>(null);
+  const [showHeard, setShowHeard] = useState(false);
   const text = pastedText(entry);
   const words = countWords(text);
-  const formatted =
-    entry.post_processed_text != null &&
-    entry.post_processed_text.trim() !== entry.transcription_text.trim();
+  // What was pasted: before the user's correction, if they made one.
+  const pasted = entry.edited_from ?? text;
+  const formatted = pasted.trim() !== entry.transcription_text.trim();
+  const changes = entry.edited_from ? wordChanges(entry.edited_from, text) : [];
 
   const copy = async () => {
     try {
@@ -173,7 +230,7 @@ const DictationPost: React.FC<{ entry: HistoryEntry; when: string }> = ({
 
   return (
     <PostShell
-      avatar={<Avatar app={entry.app_name} />}
+      avatar={<Avatar app={entry.app_name} icon={icon} />}
       name={entry.app_name ?? t("home.unknownApp")}
       when={when}
       actions={
@@ -225,15 +282,50 @@ const DictationPost: React.FC<{ entry: HistoryEntry; when: string }> = ({
           </div>
         </div>
       )}
+      {changes.length > 0 && (
+        <p className="text-[13px] mt-1.5">
+          <span className="font-semibold text-coral">
+            {t("home.corrected")}
+          </span>{" "}
+          {changes.map((c, k) => (
+            <span key={k} className="mr-2">
+              {c.from && (
+                <span className="line-through decoration-coral/70 text-mid-gray">
+                  {c.from}
+                </span>
+              )}
+              {c.from && c.to && <span className="text-mid-gray"> → </span>}
+              {c.to && <span className="font-medium">{c.to}</span>}
+            </span>
+          ))}
+        </p>
+      )}
       <p className="text-[12.5px] text-mid-gray mt-1">
         {t("home.words", {
           count: words,
           n: new Intl.NumberFormat(i18n.language).format(words),
         })}
         {formatted && (
-          <span className="text-logo-primary"> · {t("home.formatted")}</span>
+          <>
+            {" · "}
+            <button
+              type="button"
+              onClick={() => setShowHeard((v) => !v)}
+              aria-expanded={showHeard}
+              className="text-logo-primary hover:underline focus:outline-none focus-visible:underline"
+            >
+              {t("home.formatted")} ·{" "}
+              {showHeard ? t("home.hideHeard") : t("home.showHeard")}
+            </button>
+          </>
         )}
       </p>
+      {formatted && showHeard && (
+        <p className="mt-1.5 text-[13.5px] text-mid-gray border-l-2 border-border pl-3 whitespace-pre-wrap break-words select-text cursor-text">
+          <span className="font-semibold">{t("home.heard")}</span>{" "}
+          {entry.transcription_text}
+        </p>
+      )}
     </PostShell>
   );
 };
@@ -269,6 +361,7 @@ export const HomeFeed: React.FC<{
   const { settings } = useSettings();
   const osType = useOsType();
   const [entries, setEntries] = useState<HistoryEntry[] | null>(null);
+  const [icons, setIcons] = useState<Record<string, string>>({});
   const [hasMore, setHasMore] = useState(false);
   const [stats, setStats] = useState<DictationStats | null>(null);
   const [dictionary, setDictionary] = useState<DictionaryWord[]>([]);
@@ -303,6 +396,30 @@ export const HomeFeed: React.FC<{
       window.removeEventListener("focus", load);
     };
   }, [load]);
+
+  // The apps' own icons (macOS), fetched once per app name.
+  useEffect(() => {
+    const names = [
+      ...new Set(
+        (entries ?? []).map((e) => e.app_name).filter((a): a is string => !!a),
+      ),
+    ].filter((a) => !(a in icons));
+    if (!names.length) return;
+    commands.getAppIcons(names).then((found) => {
+      const urls: Record<string, string> = {};
+      for (const [name, bytes] of Object.entries(found)) {
+        if (bytes)
+          urls[name] = URL.createObjectURL(
+            new Blob([new Uint8Array(bytes)], { type: "image/png" }),
+          );
+      }
+      // Remember the misses too, so they are not asked for again.
+      setIcons((prev) => ({
+        ...prev,
+        ...Object.fromEntries(names.map((nm) => [nm, urls[nm] ?? ""])),
+      }));
+    });
+  }, [entries, icons]);
 
   const n = (v: number) => new Intl.NumberFormat(lang).format(v);
   const minutes = (m: number) => {
@@ -497,6 +614,10 @@ export const HomeFeed: React.FC<{
                         key={`d${it.entry.id}`}
                         entry={it.entry}
                         when={w}
+                        icon={
+                          (it.entry.app_name && icons[it.entry.app_name]) ||
+                          undefined
+                        }
                       />
                     );
                   case "learned":

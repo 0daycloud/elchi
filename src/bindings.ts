@@ -331,6 +331,12 @@ async editHistoryText(id: number, text: string) : Promise<Result<DictionaryWord[
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * The cached icons of these apps (PNG bytes), for the ones that have one.
+ */
+async getAppIcons(names: string[]) : Promise<Partial<{ [key in string]: number[] }>> {
+    return await TAURI_INVOKE("get_app_icons", { names });
+},
 async changePostProcessModelSetting(providerId: string, model: string) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("change_post_process_model_setting", { providerId, model }) };
@@ -1237,7 +1243,11 @@ export type HistoryEntry = { id: number; file_name: string; timestamp: number; s
 /**
  * The app it was pasted into ("Mail"), when known.
  */
-app_name?: string | null }
+app_name?: string | null; 
+/**
+ * What was pasted, when the user has since corrected it (the text is then the correction).
+ */
+edited_from?: string | null }
 export type HistoryUpdatePayload = { action: "added"; entry: HistoryEntry } | { action: "updated"; entry: HistoryEntry } | { action: "deleted"; id: number } | { action: "toggled"; id: number }
 /**
  * Result of changing keyboard implementation
