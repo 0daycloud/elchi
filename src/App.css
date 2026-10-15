@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./styles/theme.css";
+@import "./styles/recipes.css";
 
 /* Register the shared color tokens (src/styles/theme.css) as Tailwind
    utilities */
@@ -28,17 +29,23 @@
   --color-on-header-muted: var(--color-on-header-muted);
   --color-tile: var(--color-tile);
   --color-star: var(--color-star);
+  --color-accent: var(--color-accent);
+  --color-accent-soft: var(--color-accent-soft);
+  --color-on-accent: var(--color-on-accent);
+  --color-ground-deep: var(--color-ground-deep);
+  --color-live: var(--color-live);
 }
 
-/* Bundled typefaces (see main.tsx imports; no network at runtime). */
+/* Bundled typefaces (see src/styles/fonts.ts; no network at runtime). Geist
+   for all text, Geist Mono for every label and number. */
 @theme {
   --font-sans:
-    "Outfit Variable", "Outfit", ui-sans-serif, system-ui, -apple-system,
+    "Geist Variable", "Geist", ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", sans-serif;
   --font-display:
-    "Karla Variable", "Karla", ui-sans-serif, system-ui, sans-serif;
+    "Geist Variable", "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono:
-    "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "SF Mono", Menlo,
+    "Geist Mono Variable", "Geist Mono", ui-monospace, "SF Mono", Menlo,
     Consolas, monospace;
 }
 
@@ -46,7 +53,7 @@
   /* Typography */
   font-family: var(--font-sans);
   font-size: 15px;
-  line-height: 24px;
+  line-height: 1.5;
   font-weight: 400;
 
   /* Typography settings */
@@ -77,19 +84,25 @@ body {
   background-color: var(--color-background);
 }
 
-h1,
-h2,
-h3 {
-  font-family: var(--font-display);
+/* In the base layer so utilities and recipes (e.g. `.label-mono` on an h2)
+   still win. */
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
 }
 
 /* Native controls (range thumbs, checkboxes) take the accent ink. */
 :root {
-  accent-color: var(--color-logo-primary);
+  accent-color: var(--color-accent);
 }
 
 ::selection {
-  background-color: color-mix(in srgb, var(--color-ink-2) 45%, transparent);
+  background-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
 }
 
 .container {
@@ -170,4 +183,31 @@ h3 {
     opacity: 1;
     transform: none;
   }
+}
+
+/* Range input: a 2px track (painted inline by Slider) with a light-steel
+   knob, per the Genel "Ses düzeyi" row in the design. */
+.elchi-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--knob-bg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+}
+.elchi-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--knob-bg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+}
+.elchi-range:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.6),
+    0 0 0 3px rgba(33, 64, 255, 0.35);
 }

@@ -7,3 +7,6 @@ export { SettingsGroup } from "./SettingsGroup";
 export { TextDisplay } from "./TextDisplay";
 export { Textarea } from "./Textarea";
 export { Tooltip } from "./Tooltip";
+export { Switch } from "./Switch";
+export { Kbd, KbdCombo } from "./Kbd";
+export { SpectralCanvas } from "./SpectralCanvas";

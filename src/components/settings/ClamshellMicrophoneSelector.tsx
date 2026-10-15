@@ -74,7 +74,7 @@ export const ClamshellMicrophoneSelector: React.FC<ClamshellMicrophoneSelectorPr
         descriptionMode={descriptionMode}
         grouped={grouped}
       >
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center gap-1.5">
           <Dropdown
             options={microphoneOptions}
             selectedValue={selectedClamshellMicrophone}

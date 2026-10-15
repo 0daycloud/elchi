@@ -11,34 +11,76 @@ import { AudioFeedback } from "../AudioFeedback";
 import { useSettings } from "../../../hooks/useSettings";
 import { VolumeSlider } from "../VolumeSlider";
 import { MuteWhileRecording } from "../MuteWhileRecording";
-import { ModelSettingsCard } from "./ModelSettingsCard";
 import { SmartFormatting } from "../SmartFormatting";
+import { FillerWordRemoval } from "../FillerWordRemoval";
+import { LanguageSelector } from "../LanguageSelector";
+import { TranslateToEnglish } from "../TranslateToEnglish";
+import { ThemeSelector } from "../ThemeSelector";
+import { AppLanguageSelector } from "../AppLanguageSelector";
+import { useModelStore } from "../../../stores/modelStore";
+import type { ModelInfo } from "@/bindings";
 
+/**
+ * Genel (design frame 3b): the shortcut, the microphone and sounds, what
+ * happens to the text, and how Elchi looks.
+ */
 export const GeneralSettings: React.FC = () => {
   const { t } = useTranslation();
-  const { audioFeedbackEnabled } = useSettings();
+  const { audioFeedbackEnabled, getSetting } = useSettings();
+  const { currentModel, models } = useModelStore();
   const isLinux = type() === "linux";
+
+  const model = models.find((m: ModelInfo) => m.id === currentModel);
+  const microphone = getSetting("selected_microphone");
+  const micHint =
+    microphone && microphone !== "default" && microphone !== "Default"
+      ? microphone
+      : undefined;
+
   return (
-    <div className="max-w-3xl w-full mx-auto space-y-6">
-      <SettingsGroup title={t("settings.general.title")}>
-        <ShortcutInput shortcutId="transcribe" grouped={true} />
-        <ShortcutActivationSetting descriptionMode="tooltip" grouped={true} />
+    <div className="flex flex-col gap-[22px]">
+      <SettingsGroup title={t("settings.general.groups.shortcut")}>
+        <ShortcutInput shortcutId="transcribe" grouped />
+        <ShortcutActivationSetting descriptionMode="inline" grouped />
         {/* Cancel shortcut remains hidden on Linux because of dynamic shortcut instability. */}
-        {!isLinux && <ShortcutInput shortcutId="cancel" grouped={true} />}
-        <SmartFormatting descriptionMode="tooltip" grouped={true} />
+        {!isLinux && <ShortcutInput shortcutId="cancel" grouped />}
       </SettingsGroup>
-      <ModelSettingsCard />
-      <SettingsGroup title={t("settings.sound.title")}>
-        <MicrophoneSelector descriptionMode="tooltip" grouped={true} />
-        <ChannelSelector descriptionMode="tooltip" grouped={true} />
-        <MuteWhileRecording descriptionMode="tooltip" grouped={true} />
-        <AudioFeedback descriptionMode="tooltip" grouped={true} />
+
+      <SettingsGroup title={t("settings.sound.title")} hint={micHint}>
+        <MicrophoneSelector descriptionMode="tooltip" grouped />
+        <ChannelSelector descriptionMode="tooltip" grouped />
+        <MuteWhileRecording descriptionMode="tooltip" grouped />
+        <AudioFeedback grouped />
         <OutputDeviceSelector
           descriptionMode="tooltip"
-          grouped={true}
+          grouped
           disabled={!audioFeedbackEnabled}
         />
         <VolumeSlider disabled={!audioFeedbackEnabled} />
+      </SettingsGroup>
+
+      <SettingsGroup title={t("settings.general.groups.output")}>
+        <SmartFormatting descriptionMode="tooltip" grouped />
+        <FillerWordRemoval descriptionMode="tooltip" grouped />
+        {model?.supports_language_selection && (
+          <LanguageSelector
+            title={t("settings.general.language.modelTitle", {
+              model: model.name,
+            })}
+            descriptionMode="tooltip"
+            grouped
+            supportedLanguages={model.supported_languages}
+            supportsLanguageDetection={model.supports_language_detection}
+          />
+        )}
+        {model?.supports_translation && (
+          <TranslateToEnglish descriptionMode="tooltip" grouped />
+        )}
+      </SettingsGroup>
+
+      <SettingsGroup title={t("settings.general.groups.appearance")}>
+        <ThemeSelector descriptionMode="tooltip" grouped />
+        <AppLanguageSelector descriptionMode="tooltip" grouped />
       </SettingsGroup>
     </div>
   );

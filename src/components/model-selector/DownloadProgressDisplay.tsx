@@ -21,6 +21,7 @@ interface DownloadProgressDisplayProps {
   className?: string;
 }
 
+/** Footer download indicator: a short cell row and the speed in mono. */
 const DownloadProgressDisplay: React.FC<DownloadProgressDisplayProps> = ({
   downloadProgress,
   downloadStats,

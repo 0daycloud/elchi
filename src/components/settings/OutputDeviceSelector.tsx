@@ -52,8 +52,10 @@ export const OutputDeviceSelector: React.FC<OutputDeviceSelectorProps> =
           grouped={grouped}
           disabled={disabled}
         >
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center gap-1.5">
             <Dropdown
+              className="max-w-[220px]"
+              menuClassName="right-0 w-64 max-w-[calc(100vw-2rem)]"
               options={outputDeviceOptions}
               selectedValue={selectedOutputDevice}
               onSelect={handleOutputDeviceSelect}
@@ -70,12 +72,15 @@ export const OutputDeviceSelector: React.FC<OutputDeviceSelectorProps> =
               }
               onOpen={refreshOutputDevices}
             />
-            <ResetButton
-              onClick={handleReset}
-              disabled={
-                disabled || isUpdating("selected_output_device") || isLoading
-              }
-            />
+            {selectedOutputDevice !== "Default" && (
+              <ResetButton
+                onClick={handleReset}
+                disabled={
+                  disabled || isUpdating("selected_output_device") || isLoading
+                }
+                ariaLabel={t("settings.sound.outputDevice.reset")}
+              />
+            )}
           </div>
         </SettingContainer>
       );

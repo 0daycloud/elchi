@@ -1,31 +1,38 @@
-import React, { useState } from "react";
+import React, { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ToggleSwitch } from "../../ui/ToggleSwitch";
+import { SpectralCanvas } from "../../ui/SpectralCanvas";
+import { Switch } from "../../ui/Switch";
 import { daysLeft, useElchiPro } from "@/hooks/useElchiPro";
+import "./models.css";
 
 /**
- * Duyu Pro, the cloud model: the 7-day trial, Elchi Pro, or the upgrade
- * offer once the trial is over.
+ * Duyu Pro, the cloud model, as the page's one total-blue zone: the pixel
+ * field on the right fading into flat blue under the text. During the trial
+ * and on the free plan it carries the upgrade; with Elchi Pro it shows the
+ * subscription instead. The "use Duyu Pro" switch sits in a frosted tile at
+ * the bottom of the zone whenever the plan includes the cloud.
  */
 export const ElchiProCard: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { status, upgrade, setUsePro } = useElchiPro();
   const [error, setError] = useState<string | null>(null);
+  const titleId = useId();
+  const tileDescId = useId();
 
   if (!status) return null;
 
+  const plan = status.plan;
   const price = new Intl.NumberFormat(i18n.language, {
     style: "currency",
     currency: "TRY",
     currencyDisplay: "narrowSymbol",
     maximumFractionDigits: 0,
   }).format(status.price_try_monthly);
-  const date = (iso: string | null) =>
-    iso
-      ? new Intl.DateTimeFormat(i18n.language, { dateStyle: "long" }).format(
-          new Date(iso),
-        )
-      : "";
+  const proUntil = status.pro_until
+    ? new Intl.DateTimeFormat(i18n.language, { dateStyle: "long" }).format(
+        new Date(status.pro_until),
+      )
+    : null;
 
   const onUpgrade = async () => {
     setError(null);
@@ -36,81 +43,121 @@ export const ElchiProCard: React.FC = () => {
     }
   };
 
-  const plan = status.plan;
-  const headline =
-    plan === "pro"
-      ? t("elchiPro.card.proTitle")
-      : plan === "trial"
-        ? t("elchiPro.card.trialTitle", {
-            count: daysLeft(status.trial_ends_at) ?? 0,
-          })
+  // "DUYU PRO · BULUT · DENEME 6 GÜN" — the plan's state, from the server.
+  const planLabel =
+    plan === "trial"
+      ? t("settings.models.pro.trialDays", {
+          count: daysLeft(status.trial_ends_at) ?? 0,
+        })
+      : plan === "pro"
+        ? t("settings.models.pro.proPlan")
         : plan === "free"
-          ? t("elchiPro.card.freeTitle")
-          : t("elchiPro.card.title");
-  const detail =
-    plan === "pro"
-      ? t("elchiPro.card.proDetail", { date: date(status.pro_until) })
-      : plan === "free"
-        ? t("elchiPro.card.freeDetail")
-        : t("elchiPro.card.detail");
+          ? t("settings.models.pro.trialEnded")
+          : null;
+
+  const offer = [
+    t("settings.models.pro.price", { price }),
+    ...(status.free_months > 0
+      ? [t("settings.models.pro.freeMonths", { count: status.free_months })]
+      : []),
+  ].join(" · ");
+
+  const includesCloud = plan === "trial" || plan === "pro";
 
   return (
     <section
-      aria-labelledby="duyu-pro-title"
-      className={`rounded-2xl border-2 p-5 space-y-4 ${
-        plan === "free" ? "border-coral/60" : "border-logo-primary"
-      }`}
+      aria-labelledby={titleId}
+      className="pro-zone blue-zone relative overflow-hidden rounded-[12px] px-6 py-[22px]"
     >
-      <div className="space-y-1.5">
-        <p
-          className={`text-xs font-semibold uppercase tracking-widest ${
-            plan === "free" ? "text-coral" : "text-logo-primary"
-          }`}
-        >
-          {t("elchiPro.card.eyebrow")}
+      <SpectralCanvas
+        mode="pro"
+        seed={7}
+        className="absolute inset-y-0 end-0 h-full w-[55%]"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 rtl:-scale-x-100"
+        style={{
+          background:
+            "linear-gradient(90deg, #2140FF 50%, rgba(33,64,255,0) 88%)",
+        }}
+      />
+
+      <div className="relative flex flex-col gap-3.5">
+        <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/85">
+          {t("settings.models.pro.eyebrow")}
+          {planLabel && ` · ${planLabel}`}
         </p>
         <h2
-          id="duyu-pro-title"
-          className="text-2xl font-semibold leading-tight"
+          id={titleId}
+          className="max-w-[340px] text-[26px] font-light leading-[1.1] tracking-[-0.025em] text-balance"
         >
-          {headline}
+          {t("settings.models.pro.headline")}
         </h2>
-        <p className="text-[15px] text-mid-gray">{detail}</p>
-      </div>
-
-      {plan !== "pro" && (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <button
-            type="button"
-            onClick={onUpgrade}
-            className="rounded-xl bg-coral px-5 py-3 font-semibold text-on-coral hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/50 focus-visible:ring-offset-2"
-          >
-            {t("elchiPro.cta")}
-          </button>
-          <p className="text-sm">
-            <span className="font-semibold tabular-nums">
-              {t("elchiPro.pricePerMonth", { price })}
-            </span>
-            <span className="text-mid-gray"> · {t("elchiPro.freeMonth")}</span>
+        {plan === "free" && (
+          <p className="-mt-1 max-w-[340px] text-[12.5px] leading-normal text-white/80">
+            {t("settings.models.pro.freeNote")}
           </p>
-        </div>
-      )}
+        )}
 
-      {plan !== "free" && plan !== null && (
-        <ToggleSwitch
-          checked={status.use_pro}
-          onChange={(enabled) => setUsePro(enabled)}
-          label={t("elchiPro.card.useCloud")}
-          description={t("elchiPro.card.useCloudDescription")}
-          descriptionMode="inline"
-        />
-      )}
+        {plan === "pro" ? (
+          <p className="mt-1 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.04em] text-white/85">
+            <span
+              aria-hidden="true"
+              className="h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"
+            />
+            {proUntil
+              ? t("settings.models.pro.activeUntil", { date: proUntil })
+              : t("settings.models.pro.active")}
+          </p>
+        ) : (
+          <div className="mt-1 flex flex-wrap items-center gap-x-3.5 gap-y-2">
+            <button
+              type="button"
+              onClick={onUpgrade}
+              className="chrome-cta px-3.5 py-[9px] text-[13px] leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-accent"
+            >
+              {t("settings.models.pro.cta")}
+            </button>
+            <span className="font-mono text-[11px] uppercase tracking-[0.04em] text-white/80 tabular-nums">
+              {offer}
+            </span>
+          </div>
+        )}
 
-      {error && (
-        <p role="alert" className="text-sm text-error">
-          {error}
-        </p>
-      )}
+        {includesCloud && (
+          <div
+            role="group"
+            aria-describedby={tileDescId}
+            className="pro-zone-tile mt-1.5 flex items-center justify-between gap-4 rounded-[8px] px-3.5 py-3"
+            title={t("elchiPro.card.useCloudDescription")}
+          >
+            <div className="flex min-w-0 flex-col gap-[3px]">
+              <span className="text-[13px] font-medium leading-tight">
+                {t("elchiPro.card.useCloud")}
+              </span>
+              <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-white/80">
+                {t("settings.models.pro.useCloudOff")}
+              </span>
+              <span id={tileDescId} className="sr-only">
+                {t("elchiPro.card.useCloudDescription")}
+              </span>
+            </div>
+            <Switch
+              tone="onBlue"
+              checked={status.use_pro}
+              onChange={(enabled) => setUsePro(enabled)}
+              aria-label={t("elchiPro.card.useCloud")}
+            />
+          </div>
+        )}
+
+        {error && (
+          <p role="alert" className="text-[12.5px] text-white">
+            {error}
+          </p>
+        )}
+      </div>
     </section>
   );
 };

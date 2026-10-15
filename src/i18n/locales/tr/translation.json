@@ -13,18 +13,33 @@
     "general": "Genel",
     "models": "Modeller",
     "advanced": "Gelişmiş",
-    "postProcessing": "Son işlem",
-    "history": "Geçmiş",
+    "postProcessing": "Son işlem (LLM)",
     "debug": "Hata ayıklama",
     "about": "Hakkında",
     "label": "Bölümler",
-    "summary": "Özet",
-    "dictionary": "Sözlük"
+    "dictionary": "Sözlük",
+    "back": "ELCHI",
+    "hints": {
+      "general": "G",
+      "models": "M",
+      "dictionary": "S"
+    },
+    "developer": "Geliştirici",
+    "developerLink": "Geliştirici →",
+    "developerHide": "Gizle",
+    "pageSummary": {
+      "general": "Kısayol · Ses · Çıktı · Görünüm",
+      "modelsCloud": "Bulut · Duyu Pro aktif",
+      "modelsLocal": "Bu bilgisayarda · Duyu-small",
+      "phrases_one": "{{count}} ifade",
+      "phrases_other": "{{count}} ifade",
+      "changed_one": "Değiştirilen {{count}} ayar",
+      "changed_other": "Değiştirilen {{count}} ayar",
+      "reset": "Sıfırla",
+      "modelsWhere": "Konuşmanız nerede yazıya dökülür"
+    }
   },
   "onboarding": {
-    "subtitle": "Başlamak için bu bilgisayarda çalışacak bir model seçin",
-    "existingModelsTitle": "İndirilen modeller",
-    "downloadModelsTitle": "İndirilebilir modeller",
     "showAllModels": "{{total}} modelin tümünü göster",
     "showFewerModels": "Daha az model göster",
     "recommended": "Önerilen",
@@ -107,24 +122,30 @@
       "selectModel": "Model seçilemedi."
     },
     "permissions": {
-      "title": "Başlamadan önce",
-      "description": "Elchi'nin sizi duyabilmesi ve metni imlecin olduğu yere yazabilmesi için izninize ihtiyacı var.",
+      "description": "Elchi'nin sizi duyabilmesi ve metni imlecin olduğu yere yazabilmesi için.",
       "microphone": {
-        "title": "Mikrofon izni",
-        "description": "Konuşmanızı yazıya dökebilmek için gereklidir."
+        "title": "Mikrofon",
+        "description": "Konuşmanızı yazıya dökebilmek için."
       },
       "accessibility": {
-        "title": "Erişilebilirlik izni",
-        "description": "Yazıya dökülen metni kullandığınız uygulamalara yazabilmek için gereklidir."
+        "title": "Erişilebilirlik",
+        "description": "Metni kullandığınız uygulamalara yazabilmek için."
       },
       "grant": "İzin ver",
       "granted": "Verildi",
-      "waiting": "Bekleniyor...",
+      "waiting": "Bekleniyor",
       "allGranted": "Her şey hazır.",
       "errors": {
         "checkFailed": "İzinler denetlenemedi. Lütfen yeniden deneyin.",
         "requestFailed": "İzin istenemedi. Lütfen yeniden deneyin."
-      }
+      },
+      "title_one": "Başlamadan önce bir izin.",
+      "title_other": "Başlamadan önce iki izin.",
+      "descriptionMicrophone": "Elchi'nin sizi duyabilmesi için.",
+      "openSettings": "Ayarları aç",
+      "note": "Sistem ayarları açılacak",
+      "noteWindows": "Windows ayarları açılacak",
+      "progress": "{{granted}} / {{total}} izin verildi"
     },
     "tour": {
       "progress": "Adım {{step}} / {{total}}",
@@ -134,22 +155,34 @@
       "start": "Elchi'yi kullanmaya başla",
       "welcome": {
         "title": "Konuşun, Elchi yazsın.",
-        "lede": "Elchi söylediklerinizi yazıya döker ve metni imlecin olduğu yere bırakır: e-postaya, belgeye, sohbet penceresine. Çoğu zaman klavyeden daha hızlıdır.",
+        "lede": "Metin imlecin olduğu yere gelir — e-posta, belge, sohbet. Çoğu zaman klavyeden hızlı.",
         "anywhere": {
           "title": "Her uygulamada",
           "body": "E-posta, Slack, Word, tarayıcı… İmleç neredeyse metin oraya gelir."
         },
         "languages": {
           "title": "Türkçe ve İngilizce, aynı cümlede",
-          "body": "“Meeting'i cumaya aldık” gibi karışık cümleler de doğru yazılır; büyük harf ve noktalama kendiliğinden gelir."
+          "body": "“Meeting'i cumaya aldık” gibi karışık cümleler doğru yazılır."
         },
         "pro": {
           "title": "İlk 7 gün Duyu Pro",
-          "body": "En isabetli modelimiz Duyu Pro ile başlarsınız. Sonra Elchi, Duyu-small ile bu bilgisayarda ücretsiz çalışmaya devam eder."
+          "body": "En isabetli modelimizle başlarsınız; sonra Duyu-small ile ücretsiz devam."
+        },
+        "trial": {
+          "title_one": "{{count}} gün Duyu Pro",
+          "title_other": "{{count}} gün Duyu Pro"
+        },
+        "proActive": {
+          "title": "Duyu Pro açık",
+          "body": "En isabetli modelimiz Duyu Pro ile yazarsınız."
+        },
+        "free": {
+          "title": "Duyu-small ile ücretsiz",
+          "body": "Elchi bu bilgisayarda Duyu-small ile ücretsiz çalışır; isterseniz Pro'ya geçersiniz."
         }
       },
       "how": {
-        "title": "Nasıl kullanılır",
+        "title": "Tek kısayol.",
         "step1": "Yazmak istediğiniz yere tıklayın: bir e-posta, belge ya da sohbet kutusu.",
         "step2Hold": "Kısayolu basılı tutun ve konuşun.",
         "step3Hold": "Bırakın. Metin birkaç saniye içinde imlecin olduğu yere gelir.",
@@ -157,19 +190,43 @@
         "step3Toggle": "Bitince tekrar basın. Metin imlecin olduğu yere gelir.",
         "demo": "Yarın saat onda toplantımız var; sunumu Friday'e kadar bitiriyoruz.",
         "longer": "Uzun konuşmalarda kısayola bir kez basın, konuşun, bitince tekrar basın.",
-        "lede": "Tek bir kısayol. Mail'de, Slack'te, Word'de; imleç neredeyse oraya yazar."
+        "lede": "Mail'de, Slack'te, Word'de; imleç neredeyse oraya yazar."
       },
       "try": {
-        "title": "Bir deneyin",
-        "instructionHold": "Kısayolu basılı tutup aşağıdaki cümleyi okuyun, sonra bırakın:",
-        "instructionToggle": "Kısayola bir kez basın, aşağıdaki cümleyi okuyun, sonra tekrar basın:",
+        "title": "Bir deneyin.",
+        "instructionHold": "Kısayolu basılı tutun, cümleyi okuyun, bırakın.",
+        "instructionToggle": "Kısayola basın, cümleyi okuyun, yeniden basın.",
         "phrase": "Merhaba Elchi, yarınki meeting'i saat üçe alalım ve notları herkesle paylaşalım.",
         "boxLabel": "Metin buraya gelecek",
-        "placeholder": "İmleç bu kutuda; konuşmanız buraya yazılacak.",
-        "successTitle": "Harika, işte bu kadar.",
+        "placeholder": "İmleç burada; konuşmanız buraya yazılacak.",
+        "successTitle": "İşte bu kadar.",
         "successBody": "Söyledikleriniz birkaç saniyede yazıya döküldü.",
-        "anywhere": "Artık aynı kısayolla her uygulamada dikte edebilirsiniz."
+        "anywhere": "Artık aynı kısayolla her uygulamada dikte edebilirsiniz.",
+        "listening": "Dinliyor {{time}}",
+        "working": "Yazıyor…",
+        "done": "Yazıldı"
       }
+    },
+    "layout": {
+      "setupPermissions": "Kurulum · İzinler",
+      "tourStep": "Tur · {{step}} / {{total}}"
+    },
+    "modelPicker": {
+      "eyebrow": "Bu bilgisayarda çalışacak model",
+      "title": "Bir model seçin.",
+      "languages": "{{count}} dil",
+      "translation": "Çeviri",
+      "streaming": "Canlı",
+      "downloading": "%{{percentage}}",
+      "speed": "{{speed}} MB/sn",
+      "cancel": "İptal",
+      "verifying": "Doğrulanıyor",
+      "extracting": "Ayıklanıyor",
+      "switching": "Geçiliyor",
+      "select": "Seç",
+      "download": "İndir ve seç",
+      "downloaded": "İndirildi",
+      "custom": "Özel"
     }
   },
   "modelSelector": {
@@ -211,23 +268,51 @@
     }
   },
   "settings": {
-    "modelSettings": {
-      "title": "{{model}} ayarları"
-    },
     "models": {
-      "title": "Modeller",
-      "description": "Konuşmanızın nerede yazıya döküleceğini seçin: bulutta Duyu Pro ile ya da bu bilgisayarda Duyu-small ile.",
       "deleteConfirm": "{{modelName}} modelini silmek istediğinizden emin misiniz? Yeniden kullanmak için tekrar indirmeniz gerekir.",
       "deleteActiveConfirm": "{{modelName}} şu anda kullandığınız model. Silerseniz yeni bir model seçene kadar dikte çalışmaz. Emin misiniz?",
       "deleteTitle": "Modeli sil",
       "onDevice": {
         "title": "Bu bilgisayarda",
-        "description": "Duyu-small internet bağlantısı olmadan çalışır. Duyu Pro'ya ulaşılamadığında Elchi, Duyu-small ile devam eder.",
-        "fallback": "Yedek"
+        "fallback": "Yedek",
+        "hint": "İnternetsiz çalışır",
+        "hintFallback": "İnternetsiz çalışır · Yedek"
+      },
+      "pro": {
+        "eyebrow": "Duyu Pro · Bulut",
+        "trialDays_one": "Deneme {{count}} gün",
+        "trialDays_other": "Deneme {{count}} gün",
+        "trialEnded": "Deneme bitti",
+        "proPlan": "ELCHI PRO",
+        "headline": "En isabetli modelimiz. Hızlı konuşmada, isimlerde ve sayılarda daha az hata.",
+        "freeNote": "Elchi şimdi bu bilgisayarda Duyu-small ile çalışıyor.",
+        "cta": "Pro'ya geç",
+        "price": "{{price}} / ay",
+        "freeMonths_one": "İlk ay ücretsiz",
+        "freeMonths_other": "İlk {{count}} ay ücretsiz",
+        "active": "ELCHI PRO etkin",
+        "activeUntil": "ELCHI PRO etkin · {{date}} tarihine kadar",
+        "useCloudOff": "Kapalıyken Duyu-small"
+      },
+      "local": {
+        "downloaded": "İndirildi",
+        "notDownloaded": "İndirilmedi",
+        "accuracy": "Doğruluk",
+        "speed": "Hız",
+        "size": "Boyut",
+        "sizeMb": "{{size}} MB",
+        "sizeGb": "{{size}} GB",
+        "languages_one": "{{count}} dil",
+        "languages_other": "{{count}} dil",
+        "use": "Kullan",
+        "delete": "Sil",
+        "download": "İndir",
+        "downloading": "İndiriliyor · %{{percentage}}",
+        "downloadingLabel": "{{modelName}} indiriliyor",
+        "progressMb": "{{done}} / {{total}} MB"
       }
     },
     "general": {
-      "title": "Genel",
       "shortcut": {
         "title": "Elchi kısayolları",
         "description": "Dikteyi başlatan klavye kısayollarını ayarlayın",
@@ -242,7 +327,7 @@
             "description": "Sesinizi kaydedip yazıya döken klavye kısayolu."
           },
           "cancel": {
-            "name": "İptal kısayolu",
+            "name": "İptal",
             "description": "Süren kaydı iptal eden klavye kısayolu."
           },
           "transcribe_with_post_process": {
@@ -254,18 +339,21 @@
           "restore": "Önceki kısayol geri yüklenemedi",
           "set": "Kısayol ayarlanamadı: {{error}}",
           "reset": "Kısayol sıfırlanamadı"
-        }
+        },
+        "reset": "Varsayılan kısayola dön"
       },
       "language": {
         "title": "Dil",
         "description": "Konuşma tanıma dilini seçin. Otomatik seçenekte dil kendiliğinden algılanır; belirli bir dil seçmek o dilde doğruluğu artırabilir.",
         "searchPlaceholder": "Dil ara...",
         "noResults": "Dil bulunamadı",
-        "auto": "Otomatik"
+        "auto": "Otomatik",
+        "modelTitle": "{{model}} dili",
+        "reset": "Varsayılan dile dön"
       },
       "shortcutActivation": {
-        "title": "Kısayol davranışı",
-        "description": "Dikte kısayolunun kaydı nasıl başlatıp durduracağını seçin.",
+        "title": "Davranış",
+        "description": "Basılı tut ya da bir kez bas",
         "options": {
           "holdOrToggle": "Otomatik",
           "pushToTalk": "Basılı tut",
@@ -280,6 +368,11 @@
       "smartFormatting": {
         "title": "Akıllı biçimlendirme",
         "description": "Söyledikleriniz yapıştırılmadan önce düzenlenir: dolgu sözcükler ve düzeltmeler ayıklanır, listeler ve paragraflar kurulur. Metin bunun için kendi sunucularımızda işlenir; üçüncü bir tarafa gitmez, saklanmaz."
+      },
+      "groups": {
+        "shortcut": "Kısayol",
+        "output": "Çıktı",
+        "appearance": "Görünüm"
       }
     },
     "sound": {
@@ -288,7 +381,8 @@
         "title": "Mikrofon",
         "description": "Kullanmak istediğiniz mikrofonu seçin",
         "placeholder": "Mikrofon seçin...",
-        "loading": "Yükleniyor..."
+        "loading": "Yükleniyor...",
+        "reset": "Varsayılan mikrofona dön"
       },
       "channel": {
         "title": "Giriş kanalı",
@@ -304,7 +398,8 @@
         "title": "Çıkış aygıtı",
         "description": "Geri bildirim seslerinin çalınacağı aygıtı seçin",
         "placeholder": "Çıkış aygıtı seçin...",
-        "loading": "Yükleniyor..."
+        "loading": "Yükleniyor...",
+        "reset": "Varsayılan çıkışa dön"
       },
       "volume": {
         "title": "Ses düzeyi",
@@ -317,7 +412,10 @@
         "output": "Çıktı",
         "transcription": "Yazıya dökme",
         "history": "Geçmiş",
-        "experimental": "Deneysel"
+        "experimental": "Deneysel",
+        "indicator": "Gösterge",
+        "historyHint": "Bu bilgisayarda saklanır",
+        "system": "Sistem"
       },
       "experimentalToggle": {
         "label": "Deneysel özellikler",
@@ -464,6 +562,16 @@
           "simplified": "Basitleştirilmiş",
           "traditional": "Geleneksel"
         }
+      },
+      "recordingsFolder": {
+        "title": "Kayıt klasörü",
+        "description": "Ses kayıtlarının saklandığı klasörü açar."
+      },
+      "rare": {
+        "summary_one": "Nadiren değiştirilen {{count}} ayar daha — yapıştırma, pano, ses algılama, Çince yazı…",
+        "summary_other": "Nadiren değiştirilen {{count}} ayar daha — yapıştırma, pano, ses algılama, Çince yazı…",
+        "show": "Göster",
+        "hide": "Gizle"
       }
     },
     "postProcessing": {
@@ -529,24 +637,7 @@
         "createFirst": "İlk son işlem isteminizi oluşturmak için yukarıdaki “Yeni istem oluştur” düğmesine tıklayın."
       }
     },
-    "history": {
-      "title": "Geçmiş",
-      "openFolder": "Kayıt klasörünü aç",
-      "loading": "Geçmiş yükleniyor...",
-      "empty": "Henüz bir şey yazıya dökülmedi. Dikte ettikleriniz burada görünecek.",
-      "copyToClipboard": "Metni panoya kopyala",
-      "copyError": "Metin panoya kopyalanamadı.",
-      "save": "Kaydedilenlere ekle",
-      "unsave": "Kaydedilenlerden çıkar",
-      "delete": "Kaydı sil",
-      "deleteError": "Kayıt silinemedi. Lütfen yeniden deneyin.",
-      "retranscribe": "Yeniden yazıya dök",
-      "retranscribeError": "Kayıt yeniden yazıya dökülemedi. Lütfen yeniden deneyin.",
-      "transcribing": "Yazıya dökülüyor...",
-      "transcriptionFailed": "Kayıt yazıya dökülemedi. Yeniden denemek için yeniden deneme simgesini kullanabilirsiniz."
-    },
     "debug": {
-      "title": "Hata ayıklama",
       "logDirectory": {
         "title": "Günlük klasörü",
         "description": "Günlük dosyalarının bulunduğu konum"
@@ -678,6 +769,12 @@
         "modelsButton": "Model seçimi",
         "exitButton": "Önizlemeden çık",
         "tourButton": "Tanıtım turu"
+      },
+      "groups": {
+        "previews": "Önizlemeler",
+        "input": "Klavye ve yapıştırma",
+        "audio": "Ses",
+        "logs": "Günlükler"
       }
     },
     "about": {
@@ -707,12 +804,14 @@
       "whatsNewUpdates": {
         "label": "Yenilikleri göster",
         "description": "Elchi güncellendikten sonra sürüm notlarını gösterir"
+      },
+      "updates": {
+        "title": "Güncellemeler"
       }
     }
   },
   "footer": {
     "checkingUpdates": "Güncellemeler denetleniyor...",
-    "updateAvailableShort": "Güncelleme var",
     "upToDate": "Güncel",
     "updateCheckingDisabled": "Güncelleme denetimi kapalı",
     "downloading": "İndiriliyor... %{{progress}}",
@@ -723,7 +822,15 @@
     "portableUpdateMessage": "Taşınabilir sürüm kendiliğinden güncellenemez. Aşağıdan sisteminize uygun yükleyiciyi indirip çalıştırın ve aynı klasöre kurun. Data/ klasörünüz (ayarlar, modeller, kayıtlar) olduğu gibi kalır.",
     "portableUpdateButton": "Yükleyiciyi indir",
     "portableUpdateBrowseMessage": "Taşınabilir sürüm kendiliğinden güncellenemez. Sisteminize uygun son sürümü speech.patientdesk.ai/elchi adresinden indirip aynı klasöre kurun. Data/ klasörünüz (ayarlar, modeller, kayıtlar) olduğu gibi kalır.",
-    "portableUpdateBrowseButton": "İndirme sayfasını aç"
+    "portableUpdateBrowseButton": "İndirme sayfasını aç",
+    "rail": {
+      "upToDate": "<v>v{{version}}</v> · Güncel",
+      "checking": "<v>v{{version}}</v> · Denetleniyor",
+      "updateAvailable": "Güncelleme var · <v>v{{version}}</v> →",
+      "installing": "Güncelleniyor · %{{progress}}"
+    },
+    "updateAvailableVersion": "Güncelleme var · <v>v{{version}}</v>",
+    "installAndRestart": "Kur ve yeniden başlat"
   },
   "common": {
     "loading": "Yükleniyor...",
@@ -775,9 +882,10 @@
     }
   },
   "overlay": {
-    "transcribing": "Yazıya dökülüyor...",
-    "processing": "İşleniyor...",
-    "loadingModel": "Model yükleniyor..."
+    "transcribing": "Yazıya dökülüyor",
+    "processing": "Düzenleniyor",
+    "loadingModel": "Model yükleniyor",
+    "cancel": "İptal"
   },
   "whatsNew": {
     "title": "Elchi {{version}} sürümündeki yenilikler"
@@ -791,23 +899,14 @@
     "recorderBlockedNoCulprit": "macOS kısayol değişikliklerini geçici olarak engelliyor",
     "learnMore": "Nasıl düzeltilir?",
     "recorderBlocked": "Şu anda kısayol kaydedilemiyor: macOS'in Güvenli Klavye Girişi özelliği tuş olaylarını engelliyor. Önce Güvenli Klavye Girişi uyarısını giderin.",
-    "dismiss": "Kapat"
+    "dismiss": "Kapat",
+    "label": "Güvenli klavye girişi açık"
   },
   "elchiPro": {
     "cta": "Elchi Pro'ya geç",
-    "pricePerMonth": "Aylık {{price}}",
-    "freeMonth": "İlk ay ücretsiz, kart bilgisi gerekmez",
     "upgradeFailed": "Tarayıcı açılamadı. speech.patientdesk.ai/elchi adresinden devam edebilirsiniz.",
     "card": {
       "eyebrow": "Duyu Pro",
-      "title": "Tam modelimiz: Duyu Pro",
-      "detail": "Duyu Pro, Duyu-small'un daha büyük sürümüdür. Hızlı konuşmada, isimlerde ve sayılarda daha az hata yapar.",
-      "trialTitle_one": "Duyu Pro denemesi: {{count}} gün kaldı",
-      "trialTitle_other": "Duyu Pro denemesi: {{count}} gün kaldı",
-      "proTitle": "Elchi Pro etkin",
-      "proDetail": "Kayıtlarınız Duyu Pro ile yazıya dökülüyor. Aboneliğiniz {{date}} tarihine kadar geçerli.",
-      "freeTitle": "Duyu Pro denemeniz sona erdi",
-      "freeDetail": "Elchi artık bu bilgisayarda Duyu-small ile çalışıyor: ücretsiz ve sınırsız. Duyu Pro'yu yeniden kullanmak için Elchi Pro'ya geçin.",
       "useCloud": "Duyu Pro'yu kullan",
       "useCloudDescription": "Açıkken kayıtlarınız PatientDesk AI sunucularında Duyu Pro ile, kapalıyken bu bilgisayarda Duyu-small ile yazıya dökülür."
     },
@@ -820,36 +919,8 @@
     },
     "badge": {
       "trial_one": "Duyu Pro · {{count}} gün",
-      "trial_other": "Duyu Pro · {{count}} gün",
-      "pro": "Elchi Pro"
+      "trial_other": "Duyu Pro · {{count}} gün"
     }
-  },
-  "summary": {
-    "eyebrow": "Bu hafta",
-    "words_one": "{{n}} kelime",
-    "words_other": "{{n}} kelime",
-    "saved": "~{{time}} kazandın",
-    "savedNone": "Konuştukça burada birikir",
-    "hoursMinutes": "{{h}} sa {{m}} dk",
-    "minutes": "{{m}} dk",
-    "today": "Bugün",
-    "speed": "Hızın",
-    "speedValue": "{{wpm}} kelime/dk",
-    "faster": "klavyeden {{x}} kat hızlı",
-    "streak": "Seri",
-    "streakDays_one": "{{count}} gün",
-    "streakDays_other": "{{count}} gün",
-    "streakHint": "Her gün en az bir dikte",
-    "chart": "Son 7 gün, kelime",
-    "totals": "Toplam {{words}} kelime · {{dictations}} dikte · ~{{time}} kazanıldı",
-    "share": "Paylaş",
-    "copied": "Panoya kopyalandı",
-    "shareText": "Bu hafta Elchi ile {{words}} kelime yazdım ve ~{{time}} kazandım. Ücretsiz Türkçe dikte: speech.patientdesk.ai/elchi",
-    "emptyTitle": "İlk diktenizi bekliyoruz",
-    "emptyBody": "Kısayolu basılı tutun, konuşun, bırakın. Yazdıklarınız burada birikir.",
-    "upsellFree": "Duyu Pro ile daha az düzeltme: hızlı konuşmada, isimlerde ve sayılarda daha isabetli.",
-    "upsellTrial_one": "Duyu Pro denemenizde {{count}} gün kaldı.",
-    "upsellTrial_other": "Duyu Pro denemenizde {{count}} gün kaldı."
   },
   "dictionary": {
     "title": "Sözlük",
@@ -859,67 +930,127 @@
     "addPlaceholder": "Kelime ekleyin, ör. PatientDesk",
     "add": "Ekle",
     "learned": "öğrenildi",
-    "heardAs": "duyulan: {{forms}}",
     "remove": "{{word}} kelimesini kaldır",
-    "empty": "Henüz kelime yok. İlk düzeltmenizde burası dolmaya başlar.",
     "learnToggle": "Düzeltmelerden öğren",
-    "learnToggleDescription": "Açıkken Elchi, yapıştırdığı metinde yaptığınız düzeltmeleri okur ve yeni isimleri sözlüğe ekler. Okunan metin bilgisayarınızdan çıkmaz.",
+    "learnToggleDescription": "Yapıştırılan metinde yaptığınız düzeltmeleri okur, yeni isimleri ekler. Metin bilgisayardan çıkmaz.",
     "needsFormatting": "Sözlük, akıllı biçimlendirme ve Duyu Pro ile kullanılır. Akıllı biçimlendirme şu an kapalı.",
     "learnedToast": "Sözlüğe eklendi: {{words}}",
     "count_one": "{{count}} kelime",
     "count_other": "{{count}} kelime",
     "phrasesTitle": "Düzeltilen ifadeler",
-    "phrasesHint": "Elchi'nin yanlış duyduğu ve senin düzelttiğin kelime grupları. Aynı hata tekrar olursa biçimlendirme düzeltir."
-  },
-  "historyEdit": {
-    "edit": "Düzelt",
-    "save": "Kaydet",
-    "cancel": "Vazgeç",
-    "hint": "Düzeltin; Elchi yeni isimleri öğrenir.",
-    "saved": "Kaydedildi"
+    "phrasesHint": "Elchi'nin yanlış duyduğu ve senin düzelttiğin kelime grupları. Aynı hata tekrar olursa biçimlendirme düzeltir.",
+    "heardLabel": "Duyulan",
+    "emptyHint": "Henüz kelime yok",
+    "example": "Örnek",
+    "exampleHeard": "Kan",
+    "exampleWord": "Kaan"
   },
   "home": {
-    "week": "Bu hafta",
-    "saved": "kazandın",
-    "streak": "seri",
-    "words_one": "{{n}} kelime",
-    "words_other": "{{n}} kelime",
-    "streakDays_one": "{{count}} gün",
-    "streakDays_other": "{{count}} gün",
     "settings": "Ayarlar",
-    "home": "Ana sayfa",
     "engineCloud": "Duyu Pro",
     "engineLocal": "Duyu-small",
     "today": "Bugün",
     "yesterday": "Dün",
+    "fromElchi": "Elchi'den",
+    "words_one": "{{n}} kelime",
+    "words_other": "{{n}} kelime",
     "formatted": "biçimlendirildi",
-    "copy": "Kopyala",
-    "copied": "Kopyalandı",
-    "fix": "Düzelt",
-    "save": "Kaydet",
-    "cancel": "Vazgeç",
-    "fixHint": "Düzeltin; Elchi yeni isimleri öğrenir.",
+    "showHeard": "duyulanı gör",
+    "hideHeard": "duyulanı gizle",
+    "heard": "Duyulan",
+    "corrected": "Düzelttin",
+    "unknownApp": "Bir uygulama",
+    "more": "Daha eskileri yükle",
+    "moreFailed": "Eski kayıtlar yüklenemedi. Yeniden dene",
+    "loading": "Yükleniyor…",
+    "openFolder": "Kayıt klasörünü aç",
+    "bar": {
+      "words_one": "kelime",
+      "words_other": "kelime",
+      "saved": "kazanıldı",
+      "streak_one": "gün seri",
+      "streak_other": "gün seri",
+      "hoursMinutes": "{{h}} sa {{m}} dk",
+      "minutes": "{{m}} dk",
+      "engine": "Konuşma tanıma modeli"
+    },
+    "hero": {
+      "week": "Bu hafta",
+      "unit_one": "kelime",
+      "unit_other": "kelime",
+      "wpm": "{{n}} kelime/dk",
+      "faster": "klavyeden {{x}}×",
+      "streak_one": "{{count}} gün seri",
+      "streak_other": "{{count}} gün seri"
+    },
+    "empty": {
+      "title": "İlk diktenizi bekliyoruz.",
+      "body": "Basılı tutun, konuşun, bırakın. Yazdıklarınız burada birikir."
+    },
+    "row": {
+      "copy": "Kopyala",
+      "copied": "Kopyalandı",
+      "copyFailed": "Panoya kopyalanamadı.",
+      "edit": "Düzenle",
+      "toDictionary": "Sözlüğe",
+      "more": "Diğer işlemler",
+      "keep": "Hep sakla",
+      "unkeep": "Saklamayı bırak",
+      "kept": "Saklanıyor",
+      "retranscribe": "Yeniden yazıya dök",
+      "retranscribeFailed": "Yeniden yazıya dökülemedi. Lütfen yeniden deneyin.",
+      "delete": "Sil",
+      "deleteFailed": "Silinemedi. Lütfen yeniden deneyin.",
+      "failed": "Bu kayıt yazıya dökülemedi.",
+      "retry": "Yeniden dene",
+      "transcribing": "Yazıya dökülüyor…"
+    },
+    "player": {
+      "play": "Kaydı oynat",
+      "pause": "Kaydı duraklat",
+      "seek": "Kayıttaki konum"
+    },
+    "edit": {
+      "label": "Metni düzelt",
+      "save": "Kaydet",
+      "cancel": "Vazgeç",
+      "hint": "Düzeltirsen Elchi yeni isimleri öğrenir",
+      "editing": "Düzenleniyor",
+      "saved": "Düzeltme kaydedildi"
+    },
+    "dict": {
+      "placeholder": "Kelime ya da isim",
+      "add": "Ekle",
+      "added": "Sözlüğe eklendi · {{word}}",
+      "hint": "Eklemek için önce metinden bir kelime seçin"
+    },
+    "upsell": {
+      "label": "Duyu Pro",
+      "trialLabel_one": "Duyu Pro · deneme · {{count}} gün",
+      "trialLabel_other": "Duyu Pro · deneme · {{count}} gün",
+      "trialText": "Hızlı konuşmada, isimlerde ve sayılarda daha az düzeltme.",
+      "freeLabel": "Duyu Pro",
+      "freeTitle": "Duyu Pro denemeniz sona erdi.",
+      "freeText": "Elchi artık Duyu-small ile çalışıyor.",
+      "price": "{{price}} / ay",
+      "freeMonths_one": "İlk ay ücretsiz",
+      "freeMonths_other": "İlk {{count}} ay ücretsiz",
+      "cta": "Pro'ya geç"
+    },
+    "trialTitle_one": "Duyu Pro denemende {{count}} gün kaldı.",
+    "trialTitle_other": "Duyu Pro denemende {{count}} gün kaldı.",
+    "trialBody": "Sonra Duyu-small ile ücretsiz devam edersin — isteyince Pro'ya geçersin.",
+    "trialBodyFree": "Sonra Duyu-small ile ücretsiz devam edersin — isteyince Pro'ya geçersin, ilk ay ücretsiz.",
+    "trialCta": "Pro'ya geç",
+    "dontShowAgain": "Bir daha gösterme",
     "learnedTitle": "Yeni kelime: {{word}}.",
     "learnedHeard": "“{{heard}}” diye yazdığımı düzelttin; artık doğru yazacağım.",
     "learnedAdded": "Sözlüğe ekledim.",
-    "streakTitle": "{{count}}. gün!",
+    "learnedPhraseTitle": "Yeni düzeltme: “{{heard}}” → “{{word}}”.",
+    "learnedPhraseBody": "Bir dahaki sefere böyle duyarsam düzelteceğim.",
+    "streakTitle": "{{count}}. gün.",
     "streakBody": "{{count}} gündür her gün konuşarak yazıyorsun.",
     "milestoneTitle": "{{n}} kelime!",
-    "milestoneBody": "Konuşarak {{n}} kelimeyi geçtin; klavyeyle aşağı yukarı {{time}} sürerdi.",
-    "trialTitle_one": "Duyu Pro denemende {{count}} gün kaldı.",
-    "trialTitle_other": "Duyu Pro denemende {{count}} gün kaldı.",
-    "trialBody": "Sonra Duyu-small ile ücretsiz devam edersin. İstersen Elchi Pro'ya geç: ilk ay ücretsiz.",
-    "freeTitle": "Duyu Pro ile daha az düzeltme.",
-    "freeBody": "Hızlı konuşmada, isimlerde ve sayılarda daha isabetli. İlk ay ücretsiz, kart gerekmez.",
-    "welcomeTitle": "Merhaba, ben Elchi.",
-    "welcomeBody": "{{keys}} kısayolunu basılı tut, konuş, bırak. Yazdıkların burada akacak.",
-    "more": "Daha eskileri Geçmiş'te",
-    "unknownApp": "Bir uygulama",
-    "corrected": "Düzelttin:",
-    "showHeard": "duyulanı gör",
-    "hideHeard": "gizle",
-    "heard": "Duyulan:",
-    "learnedPhraseTitle": "Yeni düzeltme: “{{heard}}” → “{{word}}”.",
-    "learnedPhraseBody": "Bir dahaki sefere böyle duyarsam düzelteceğim."
+    "milestoneBody": "Konuşarak {{n}} kelimeyi geçtin; klavyeyle aşağı yukarı {{time}} sürerdi."
   }
 }

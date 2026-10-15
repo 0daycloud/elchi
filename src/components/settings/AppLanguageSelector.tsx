@@ -24,7 +24,7 @@ export const AppLanguageSelector: React.FC<AppLanguageSelectorProps> =
 
     const languageOptions = SUPPORTED_LANGUAGES.map((lang) => ({
       value: lang.code,
-      label: `${lang.nativeName} (${lang.name})`,
+      label: lang.nativeName,
     }));
 
     const handleLanguageChange = (langCode: string) => {

@@ -20,6 +20,42 @@ interface ModelStatusButtonProps {
   className?: string;
 }
 
+/** The status dot: the glowing blue dot when ready, red on errors. */
+const StatusDot: React.FC<{ status: ModelStatus }> = ({ status }) => {
+  switch (status) {
+    case "ready":
+      return <span aria-hidden="true" className="dot-accent shrink-0" />;
+    case "loading":
+    case "downloading":
+    case "verifying":
+    case "extracting":
+      return (
+        <span
+          aria-hidden="true"
+          className="dot-accent shrink-0 motion-safe:animate-pulse"
+        />
+      );
+    case "error":
+    case "none":
+      return (
+        <span
+          aria-hidden="true"
+          className="w-1.5 h-1.5 rounded-full shrink-0 bg-error"
+        />
+      );
+    default:
+      return (
+        <span
+          aria-hidden="true"
+          className="w-1.5 h-1.5 rounded-full shrink-0 bg-text/30"
+        />
+      );
+  }
+};
+
+// Mono and uppercase, like every label in the footer bar.
+const LABEL = "font-mono text-[10.5px] uppercase tracking-[0.06em]";
+
 const ModelStatusButton: React.FC<ModelStatusButtonProps> = ({
   status,
   displayText,
@@ -28,36 +64,10 @@ const ModelStatusButton: React.FC<ModelStatusButtonProps> = ({
   interactive = true,
   className = "",
 }) => {
-  const getStatusColor = (status: ModelStatus): string => {
-    switch (status) {
-      case "ready":
-        return "bg-green-400";
-      case "loading":
-        return "bg-yellow-400 animate-pulse";
-      case "downloading":
-        return "bg-logo-primary animate-pulse";
-      case "verifying":
-        return "bg-orange-400 animate-pulse";
-      case "extracting":
-        return "bg-orange-400 animate-pulse";
-      case "error":
-        return "bg-red-400";
-      case "unloaded":
-        return "bg-mid-gray/60";
-      case "none":
-        return "bg-red-400";
-      default:
-        return "bg-mid-gray/60";
-    }
-  };
-
   if (!interactive) {
     return (
-      <span className={`flex items-center gap-2 ${className}`}>
-        <span
-          aria-hidden="true"
-          className={`w-2 h-2 rounded-full ${getStatusColor(status)}`}
-        />
+      <span className={`flex items-center gap-2 ${LABEL} ${className}`}>
+        <StatusDot status={status} />
         <span>{displayText}</span>
       </span>
     );
@@ -65,13 +75,15 @@ const ModelStatusButton: React.FC<ModelStatusButtonProps> = ({
 
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`flex items-center gap-2 hover:text-text/80 transition-colors ${className}`}
-      title={`Model status: ${displayText}`}
+      className={`flex items-center gap-2 rounded-sm ${LABEL} hover:text-text/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${className}`}
+      title={displayText}
     >
-      <div className={`w-2 h-2 rounded-full ${getStatusColor(status)}`} />
+      <StatusDot status={status} />
       <span className="max-w-28 truncate">{displayText}</span>
       <svg
+        aria-hidden="true"
         className={`w-3 h-3 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
         fill="none"
         stroke="currentColor"

@@ -447,6 +447,11 @@ impl HistoryManager {
                 "DELETE FROM transcription_history WHERE id = ?1",
                 params![id],
             )?;
+            // Tell open views, which may still show the pruned entry and would
+            // otherwise act on a deleted row and recording.
+            if let Err(e) = (HistoryUpdatePayload::Deleted { id: *id }).emit(&self.app_handle) {
+                error!("Failed to emit history-updated event: {}", e);
+            }
 
             // Delete WAV file
             let file_path = self.recordings_dir.join(file_name);

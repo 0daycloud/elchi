@@ -11,6 +11,7 @@ import type {
 } from "@/bindings";
 import i18n, { syncLanguageFromSettings } from "@/i18n";
 import type { ModelStateEvent } from "@/lib/types/events";
+import { formatKeyCombination } from "@/lib/utils/keyboard";
 import { getLanguageDirection } from "@/lib/utils/rtl";
 
 type OverlayState =
@@ -20,9 +21,34 @@ type OverlayState =
   | "transcribing"
   | "processing";
 
-// Number of reactive bars in the waveform (the simple, smoothed style shared by
-// every overlay form). Mic levels arrive as 16 FFT buckets; we take the first N.
-const WAVE_BARS = 9;
+// Number of bar cells in the waveform (shared by every overlay form). Mic
+// levels arrive as 16 FFT buckets, resampled across the bars.
+const WAVE_BARS = 24;
+const MIC_BUCKETS = 16;
+
+// Cells in the model-loading meter; a highlight scans across them.
+const LOAD_CELLS = 14;
+
+// Resample the smoothed FFT buckets onto the bar count (linear interpolation),
+// so every bar moves instead of neighbours repeating one bucket.
+const resampleLevels = (buckets: number[]): number[] =>
+  Array.from({ length: WAVE_BARS }, (_, i) => {
+    const pos = (i / (WAVE_BARS - 1)) * (buckets.length - 1);
+    const lo = Math.floor(pos);
+    const hi = Math.min(buckets.length - 1, lo + 1);
+    const f = pos - lo;
+    return (buckets[lo] ?? 0) * (1 - f) + (buckets[hi] ?? 0) * f;
+  });
+
+// Bars grow in whole 3px cells (2px lit + 1px gap), so the top cell is never cut.
+const barHeight = (v: number): number => {
+  const cells = Math.max(1, Math.min(6, 1 + Math.round(Math.pow(v, 0.7) * 5)));
+  return cells * 3 - 1;
+};
+
+// The cancel shortcut as a keycap label ("escape" -> "Esc"; CSS uppercases it).
+const cancelKeyLabel = (binding: string): string =>
+  formatKeyCombination(binding, "unknown").replace(/\bEscape\b/, "Esc");
 
 // Only call out a model load in the Live preview once it has run this long.
 // Warm loads finish in well under this (~0.2s on Apple Silicon, ~1.5s on a
@@ -67,13 +93,19 @@ const RecordingOverlay: React.FC = () => {
   // while overflowing, so the resting first line stays crisp flush under the pill.
   const [overflowing, setOverflowing] = useState(false);
 
-  const smoothedLevelsRef = useRef<number[]>(Array(16).fill(0));
+  // The user's cancel shortcut, shown as the keycap on the Live panel.
+  const [cancelKey, setCancelKey] = useState("escape");
+
+  const smoothedLevelsRef = useRef<number[]>(Array(MIC_BUCKETS).fill(0));
   // Live-text scroll-back: the text region "sticks" to the newest line while the
   // user is at the bottom; if they scroll up to read history, auto-follow pauses
   // until they scroll back down.
   const capRef = useRef<HTMLDivElement>(null);
   const pinnedRef = useRef(true);
   const direction = getLanguageDirection(i18n.language);
+  // Uppercase mono labels need the language on an ancestor so Turkish i maps
+  // to İ; the document's own lang can still hold the pre-sync default.
+  const lang = i18n.language;
 
   useEffect(() => {
     const setupEventListeners = async () => {
@@ -84,9 +116,10 @@ const RecordingOverlay: React.FC = () => {
         // them would overwrite that event and leave the overlay stuck arming.
         if (overlayState === "recording" || overlayState === "streaming") {
           setCaptureReady(false);
-          smoothedLevelsRef.current = Array(16).fill(0);
+          smoothedLevelsRef.current = Array(MIC_BUCKETS).fill(0);
           setLevels(Array(WAVE_BARS).fill(0));
           setStreamText({ committed: "", tentative: "" });
+          setElapsed(0);
         }
 
         await syncLanguageFromSettings();
@@ -97,6 +130,9 @@ const RecordingOverlay: React.FC = () => {
           if (settings.status === "ok") {
             setPosition(
               settings.data.overlay_position === "top" ? "top" : "bottom",
+            );
+            setCancelKey(
+              settings.data.bindings?.cancel?.current_binding ?? "escape",
             );
           }
         } catch {
@@ -125,14 +161,14 @@ const RecordingOverlay: React.FC = () => {
 
       const unlistenLevel = await listen<number[]>("mic-level", (event) => {
         const newLevels = event.payload as number[];
-        // Exponential smoothing across the 16 buckets, then take the first N
-        // bars for the shared waveform.
+        // Exponential smoothing across the 16 buckets, then resample them onto
+        // the waveform's bars.
         const smoothed = smoothedLevelsRef.current.map((prev, i) => {
           const target = newLevels[i] || 0;
           return prev * 0.7 + target * 0.3;
         });
         smoothedLevelsRef.current = smoothed;
-        setLevels(smoothed.slice(0, WAVE_BARS));
+        setLevels(resampleLevels(smoothed));
       });
 
       const unlistenStream = await events.streamTextEvent.listen((event) => {
@@ -189,7 +225,8 @@ const RecordingOverlay: React.FC = () => {
 
   // Elapsed capture timer starts only once microphone samples are flowing.
   useEffect(() => {
-    if (state !== "streaming" || !isVisible || !captureReady) return;
+    const capturing = state === "streaming" || state === "recording";
+    if (!capturing || !isVisible || !captureReady) return;
     const id = setInterval(() => setElapsed((e) => e + 1), 1000);
     return () => clearInterval(id);
   }, [state, isVisible, captureReady]);
@@ -233,60 +270,111 @@ const RecordingOverlay: React.FC = () => {
     : t("overlay.transcribing");
 
   // ---- Shared building blocks (one visual language for every overlay form) ----
+  // Blue while arming (shortcut seen, no samples yet), red once the mic is live.
+  const dot = <span className={`sdot ${captureReady ? "live" : "arming"}`} />;
+
+  // Bar cells driven by the mic levels. While arming they lie flat as a dashed
+  // line, so nothing pretends audio is already arriving.
   const waveform = (
-    <div className={`swave ${captureReady ? "ready" : "arming"}`}>
+    <div
+      className={`swave ${captureReady ? "ready" : "arming"}`}
+      aria-hidden="true"
+    >
       {levels.map((v, i) => (
         <i
           key={i}
-          style={{
-            height: `${Math.max(3, Math.min(18, 3 + Math.pow(v, 0.7) * 15))}px`,
-          }}
+          style={
+            captureReady
+              ? { height: `${barHeight(v)}px` }
+              : ({ "--i": i } as React.CSSProperties)
+          }
         />
       ))}
     </div>
   );
 
+  const timer = (
+    <span className={`stimer ${captureReady ? "" : "arming"}`}>
+      {fmtTime(elapsed)}
+    </span>
+  );
+
   const cancelBtn = (
     <button
+      type="button"
       className="sx"
-      aria-label="cancel"
+      aria-label={t("overlay.cancel")}
       onClick={() => commands.cancelOperation()}
     >
       <svg viewBox="0 0 16 16" aria-hidden="true">
         <path
-          d="M4 4 L12 12 M12 4 L4 12"
+          d="M5 5 L11 11 M11 5 L5 11"
           stroke="currentColor"
-          strokeWidth="1.6"
+          strokeWidth="1.5"
           strokeLinecap="round"
         />
       </svg>
     </button>
   );
 
-  // dot (left) | waveform (center) | timer + cancel (right) — same structure for
-  // pill & panel, so the Live morph is a pure width change.
-  const listeningRow = (showTimer: boolean, showCancel: boolean) => (
+  // The Live panel names the cancel shortcut as a keycap instead of the round
+  // ×; it stays clickable. Falls back to × if the shortcut is unbound.
+  const keyLabel = cancelKeyLabel(cancelKey);
+  const cancelKeycap = keyLabel ? (
+    <button
+      type="button"
+      className="skey"
+      aria-label={t("overlay.cancel")}
+      title={t("overlay.cancel")}
+      onClick={() => commands.cancelOperation()}
+    >
+      {keyLabel}
+    </button>
+  ) : (
+    cancelBtn
+  );
+
+  // Indeterminate progress line: the backend reports no percentage, so a short
+  // segment sweeps the track instead of faking a fill.
+  const progress = (
+    <span className="sprogress" aria-hidden="true">
+      <i />
+    </span>
+  );
+
+  // Model loading: a row of cells with a highlight scanning across them.
+  const loadCells = (
+    <span className="scells" aria-hidden="true">
+      {Array.from({ length: LOAD_CELLS }, (_, i) => (
+        <i key={i} style={{ "--i": i } as React.CSSProperties} />
+      ))}
+    </span>
+  );
+
+  // dot | waveform | timer + cancel — the same row in the pill and the panel.
+  const listeningRow = (end: React.ReactNode) => (
     <div className="sbase">
-      <div className="sbase-l">
-        <span className={`sdot ${captureReady ? "ready" : "arming"}`} />
-      </div>
+      {dot}
       {waveform}
       <div className="sbase-r">
-        {showTimer && <span className="stimer">{fmtTime(elapsed)}</span>}
-        {showCancel && cancelBtn}
+        {timer}
+        {end}
       </div>
     </div>
   );
 
-  // spinner (left) | label (center) | cancel (right) — same 3-zone grid as the
-  // listening row, so the label is centered.
-  const workingRow = (label: string, showCancel: boolean) => (
-    <div className="sbase">
-      <div className="sbase-l">
-        <span className="sspinner" />
-      </div>
-      <span className="swork-label">{label}</span>
-      <div className="sbase-r">{showCancel && cancelBtn}</div>
+  // progress line (or loading cells) | mono label | cancel
+  const workingRow = (
+    label: string,
+    loading: boolean,
+    end: React.ReactNode,
+  ) => (
+    <div className="sbase working">
+      {loading ? loadCells : progress}
+      <span className="swork-label" aria-live="polite">
+        {label}
+      </span>
+      {end}
     </div>
   );
 
@@ -299,14 +387,16 @@ const RecordingOverlay: React.FC = () => {
     // text would be, so speech that isn't transcribing yet doesn't look ignored.
     const loadingNotice = modelLoadSlow && !working && !hasText;
     // Keep the panel open whenever there's text — even while finalizing — so the
-    // transcript stays put under a working spinner instead of collapsing and
+    // transcript stays put under a working line instead of collapsing and
     // squishing the text mid-stream. Only fall back to the small working pill
     // when there was no text to preserve.
     const open = hasText || loadingNotice || (loadNoticeShown && !working);
     const collapsed = working && !hasText;
+    const polishing = workKind === "polishing";
+    const end = open ? cancelKeycap : cancelBtn;
 
     return (
-      <div dir={direction} className={`ov-stage ${position}`}>
+      <div dir={direction} lang={lang} className={`ov-stage ${position}`}>
         <div
           key={session}
           className={`scard ${open ? "open" : ""} ${collapsed ? "working" : ""} ${
@@ -320,39 +410,42 @@ const RecordingOverlay: React.FC = () => {
                 ref={capRef}
                 onScroll={handleStreamScroll}
               >
-                <p>
-                  {loadingNotice && (
-                    <span className="sloading">
+                {loadingNotice ? (
+                  <p className="sloading">
+                    {loadCells}
+                    <span className="swork-label">
                       {t("overlay.loadingModel")}
                     </span>
-                  )}
-                  <span className="committed">
-                    {streamText.committed ? streamText.committed + " " : ""}
-                  </span>
-                  <span className="tentative">{streamText.tentative}</span>
-                  {/* Drop the blinking caret once finalizing — it's no longer
-                      capturing, and a static spinner conveys the work. */}
-                  {!working && !loadingNotice && <span className="scaret" />}
-                </p>
+                  </p>
+                ) : (
+                  <p>
+                    <span className="committed">
+                      {streamText.committed ? streamText.committed + " " : ""}
+                    </span>
+                    <span className="tentative">{streamText.tentative}</span>
+                    {/* Drop the blinking caret once finalizing — it's no
+                        longer capturing, and the working line conveys it. */}
+                    {!working && <span className="scaret" />}
+                  </p>
+                )}
               </div>
             </div>
           </div>
           {working
             ? workingRow(
-                workKind === "polishing"
-                  ? t("overlay.processing")
-                  : transcribingLabel,
-                true,
+                polishing ? t("overlay.processing") : transcribingLabel,
+                modelLoading && !polishing,
+                end,
               )
-            : listeningRow(open, true)}
+            : listeningRow(end)}
         </div>
       </div>
     );
   }
 
   // ---- Minimal overlay: exactly one row at a time — waveform (recording), or a
-  // spinner + label (transcribing / processing). Never both. The pill animates its
-  // width between them; the cancel button is in both rows so it stays put.
+  // progress line + label (transcribing / processing). Never both. The cancel
+  // button is in both rows so it stays put.
   const working = state === "transcribing" || state === "processing";
   const workLabel =
     state === "processing" ? t("overlay.processing") : transcribingLabel;
@@ -363,16 +456,19 @@ const RecordingOverlay: React.FC = () => {
   return (
     <div
       dir={direction}
+      lang={lang}
       className={`ov-stage ${position} ov-fade ${isVisible ? "show" : ""}`}
     >
-      <div
-        className={`scard compact ${idle ? "idle" : ""} ${working && isVisible ? "cworking" : ""}`}
-      >
+      <div className={`scard compact ${idle ? "idle" : ""}`}>
         {idle
           ? null
           : working
-            ? workingRow(workLabel, true)
-            : listeningRow(false, true)}
+            ? workingRow(
+                workLabel,
+                state === "transcribing" && modelLoading,
+                cancelBtn,
+              )
+            : listeningRow(cancelBtn)}
       </div>
     </div>
   );

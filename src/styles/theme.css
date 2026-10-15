@@ -1,70 +1,79 @@
-/* Elchi colors: Akdeniz.
+/* Elchi colors: obsidian + electric blue.
  *
- * Light, "Çini": white ground, deep teal, a coral for the one action that
- * matters, turquoise for tile decoration.
- *   teal      #0b6e79   accent, filled controls, header band (5.96:1 on white)
- *   turquoise #3fb8c0   decoration only (tile pattern, borders)
- *   coral     #f0654a   decoration (the star's eye); filled buttons use the
- *                       deeper #c8452b so white text on it passes (4.84:1)
- *   ink       #0d2b33   text (14.9:1 on white)
+ * Dark, "Obsidian" (the primary look): a near-black ground, graphite "steel"
+ * chrome lit from above, and one accent, electric blue #2140FF. The blue is
+ * used either contained (waveforms, a dot, a toggle track) or as a total-blue
+ * zone (the Duyu Pro card), never as a wash behind text.
+ *   ground    #09090b   text #ececee (17:1)
+ *   blue      #2140ff   fills only; text on dark uses blue-soft #8aa0ff (7.4:1)
  *
- * Dark, "Gece": deep-sea ground with a brighter teal and coral.
- *   ground    #0a2026   text #e3f2f3 (14.6:1), teal #5fd0d6 (9.2:1)
- *   coral     #ff7a5c   filled buttons carry dark text #1c0905 (7.5:1)
+ * Light, "Paper" (derived from dark): paper-white ground, white cards and
+ * light-steel chrome, the same blue. Accent text uses the deeper #1b2bd6.
+ *
+ * The token names predate this palette (teal, coral, tile…). They are kept
+ * and remapped so every component that still uses them picks up the new look:
+ * `logo-primary` is accent text, `background-ui` and `coral` are blue fills.
  */
 
 :root {
   /* Palette source of truth: each themed color is a light/dark pair. The
      active tokens below and the `data-theme` overrides reference these. */
-  --light-color-text: #0d2b33;
-  --light-color-background: #ffffff;
-  --light-color-logo-primary: #0b6e79;
-  --light-color-logo-stroke: #0b6e79;
-  --light-color-ink-2: #3fb8c0;
-  --light-color-mid-gray: #47646b;
-  --light-color-background-ui: #0b6e79;
-  --light-color-coral: #c8452b;
+  --light-color-text: #141418;
+  --light-color-background: #f4f4f6;
+  --light-color-logo-primary: #1b2bd6;
+  --light-color-logo-stroke: #1b2bd6;
+  --light-color-ink-2: #2140ff;
+  --light-color-mid-gray: #6b6b74;
+  --light-color-background-ui: #2140ff;
+  --light-color-coral: #2140ff;
   --light-color-on-coral: #ffffff;
-  --light-color-surface: #eef7f8;
-  --light-color-surface-warm: #fff4f0;
-  --light-color-border: #d5e6e8;
-  --light-color-header: #0b6e79;
-  --light-color-on-header: #ffffff;
-  --light-color-on-header-muted: #cfe8ea;
-  --light-color-tile: #3fb8c0;
-  --light-color-star: #f0654a;
+  --light-color-surface: #ffffff;
+  --light-color-surface-warm: #eef0ff;
+  --light-color-border: #dcdce2;
+  --light-color-header: #ededf1;
+  --light-color-on-header: #141418;
+  --light-color-on-header-muted: #6b6b74;
+  --light-color-tile: #c9c9d2;
+  --light-color-star: #2140ff;
+  --light-color-accent-soft: #1b2bd6;
+  --light-color-ground-deep: #e9e9ee;
 
-  --dark-color-text: #e3f2f3;
-  --dark-color-background: #0a2026;
-  --dark-color-logo-primary: #5fd0d6;
-  --dark-color-logo-stroke: #5fd0d6;
-  --dark-color-ink-2: #1d4a52;
-  --dark-color-mid-gray: #8fb3b8;
-  --dark-color-background-ui: #5fd0d6;
-  --dark-color-coral: #ff7a5c;
-  --dark-color-on-coral: #1c0905;
-  --dark-color-surface: #0f2e35;
-  --dark-color-surface-warm: #2a1712;
-  --dark-color-border: #16363d;
-  --dark-color-header: #071a1f;
-  --dark-color-on-header: #e3f2f3;
-  --dark-color-on-header-muted: #8fb3b8;
-  --dark-color-tile: #1d4a52;
-  --dark-color-star: #ff7a5c;
+  --dark-color-text: #ececee;
+  --dark-color-background: #09090b;
+  --dark-color-logo-primary: #8aa0ff;
+  --dark-color-logo-stroke: #8aa0ff;
+  --dark-color-ink-2: #2140ff;
+  --dark-color-mid-gray: #8b8b93;
+  --dark-color-background-ui: #2140ff;
+  --dark-color-coral: #2140ff;
+  --dark-color-on-coral: #ffffff;
+  --dark-color-surface: #121216;
+  --dark-color-surface-warm: #10132a;
+  --dark-color-border: #1f1f25;
+  --dark-color-header: #121318;
+  --dark-color-on-header: #ececee;
+  --dark-color-on-header-muted: #8b8b93;
+  --dark-color-tile: #2a2c36;
+  --dark-color-star: #2140ff;
+  --dark-color-accent-soft: #8aa0ff;
+  --dark-color-ground-deep: #050506;
 
   /* Semantic status colors. */
   --light-color-warning: #9a5a07;
-  --light-color-error: #b3261e;
+  --light-color-error: #c62e22;
   --dark-color-warning: #f2c14e;
-  --dark-color-error: #ff8f80;
+  --dark-color-error: #ff6b6b;
 
-  /* Tokens that do not change between light and dark. The old Iznik names
-     are kept, mapped onto Akdeniz, so nothing that still uses them breaks. */
+  /* Tokens that do not change between light and dark. */
   --color-text-stroke: #ffffff;
   --color-paper: #ffffff;
-  --color-ink: #0b6e79;
-  --color-ink-light: #3fb8c0;
-  --color-night: #071a1f;
+  --color-ink: #2140ff;
+  --color-ink-light: #8aa0ff;
+  --color-night: #050506;
+  /* The one accent, for fills (toggle tracks, the Pro zone, dots). */
+  --color-accent: #2140ff;
+  --color-on-accent: #ffffff;
+  --color-live: #ff3b3b;
 
   /* Active palette: light by default, follows the OS via the media query
      below, or is forced by `data-theme` (see the overrides below). */
@@ -85,6 +94,8 @@
   --color-on-header-muted: var(--light-color-on-header-muted);
   --color-tile: var(--light-color-tile);
   --color-star: var(--light-color-star);
+  --color-accent-soft: var(--light-color-accent-soft);
+  --color-ground-deep: var(--light-color-ground-deep);
   --color-warning: var(--light-color-warning);
   --color-error: var(--light-color-error);
 }
@@ -108,6 +119,8 @@
     --color-on-header-muted: var(--dark-color-on-header-muted);
     --color-tile: var(--dark-color-tile);
     --color-star: var(--dark-color-star);
+    --color-accent-soft: var(--dark-color-accent-soft);
+    --color-ground-deep: var(--dark-color-ground-deep);
     --color-warning: var(--dark-color-warning);
     --color-error: var(--dark-color-error);
   }
@@ -141,6 +154,8 @@
   --color-on-header-muted: var(--light-color-on-header-muted);
   --color-tile: var(--light-color-tile);
   --color-star: var(--light-color-star);
+  --color-accent-soft: var(--light-color-accent-soft);
+  --color-ground-deep: var(--light-color-ground-deep);
   --color-warning: var(--light-color-warning);
   --color-error: var(--light-color-error);
 }
@@ -163,6 +178,8 @@
   --color-on-header-muted: var(--dark-color-on-header-muted);
   --color-tile: var(--dark-color-tile);
   --color-star: var(--dark-color-star);
+  --color-accent-soft: var(--dark-color-accent-soft);
+  --color-ground-deep: var(--dark-color-ground-deep);
   --color-warning: var(--dark-color-warning);
   --color-error: var(--dark-color-error);
 }

@@ -20,6 +20,7 @@ import { ApiKeyField } from "../PostProcessingSettingsApi/ApiKeyField";
 import { ModelSelect } from "../PostProcessingSettingsApi/ModelSelect";
 import { usePostProcessProviderState } from "../PostProcessingSettingsApi/usePostProcessProviderState";
 import { ShortcutInput } from "../ShortcutInput";
+import { PostProcessingToggle } from "../PostProcessingToggle";
 import { useSettings } from "../../../hooks/useSettings";
 
 const PostProcessingSettingsApiComponent: React.FC = () => {
@@ -91,7 +92,7 @@ const PostProcessingSettingsApiComponent: React.FC = () => {
               title={t("settings.postProcessing.api.baseUrl.title")}
               description={t("settings.postProcessing.api.baseUrl.description")}
               descriptionMode="tooltip"
-              layout="horizontal"
+              layout="stacked"
               grouped={true}
             >
               <div className="flex items-center gap-2">
@@ -106,7 +107,7 @@ const PostProcessingSettingsApiComponent: React.FC = () => {
                       : t("settings.postProcessing.api.baseUrl.placeholder")
                   }
                   disabled={state.isBaseUrlUpdating}
-                  className="min-w-[380px]"
+                  className="w-full min-w-0"
                 />
               </div>
             </SettingContainer>
@@ -116,7 +117,7 @@ const PostProcessingSettingsApiComponent: React.FC = () => {
             title={t("settings.postProcessing.api.apiKey.title")}
             description={t("settings.postProcessing.api.apiKey.description")}
             descriptionMode="tooltip"
-            layout="horizontal"
+            layout="stacked"
             grouped={true}
           >
             <div className="flex items-center gap-2">
@@ -127,7 +128,7 @@ const PostProcessingSettingsApiComponent: React.FC = () => {
                   "settings.postProcessing.api.apiKey.placeholder",
                 )}
                 disabled={state.isApiKeyUpdating}
-                className="min-w-[320px]"
+                className="w-full min-w-0"
               />
             </div>
           </SettingContainer>
@@ -162,7 +163,7 @@ const PostProcessingSettingsApiComponent: React.FC = () => {
               onSelect={state.handleModelSelect}
               onCreate={state.handleModelCreate}
               onBlur={() => {}}
-              className="flex-1 min-w-[380px]"
+              className="flex-1 min-w-0"
             />
             <ResetButton
               onClick={state.handleRefreshModels}
@@ -328,7 +329,7 @@ const PostProcessingSettingsPromptsComponent: React.FC = () => {
         {!isCreating && hasPrompts && selectedPrompt && (
           <div className="space-y-3">
             <div className="space-y-2 flex flex-col">
-              <label className="text-sm font-semibold">
+              <label className="label-mono">
                 {t("settings.postProcessing.prompts.promptLabel")}
               </label>
               <Input
@@ -343,7 +344,7 @@ const PostProcessingSettingsPromptsComponent: React.FC = () => {
             </div>
 
             <div className="space-y-2 flex flex-col">
-              <label className="text-sm font-semibold">
+              <label className="label-mono">
                 {t("settings.postProcessing.prompts.promptInstructions")}
               </label>
               <Textarea
@@ -353,7 +354,7 @@ const PostProcessingSettingsPromptsComponent: React.FC = () => {
                   "settings.postProcessing.prompts.promptInstructionsPlaceholder",
                 )}
               />
-              <p className="text-xs text-mid-gray/70">
+              <p className="text-[11.5px] text-mid-gray">
                 <Trans
                   i18nKey="settings.postProcessing.prompts.promptTip"
                   components={{ code: <code /> }}
@@ -383,8 +384,8 @@ const PostProcessingSettingsPromptsComponent: React.FC = () => {
         )}
 
         {!isCreating && !selectedPrompt && (
-          <div className="p-3 bg-mid-gray/5 rounded-md border border-mid-gray/20">
-            <p className="text-sm text-mid-gray">
+          <div className="well px-3 py-2.5">
+            <p className="text-[12.5px] text-mid-gray">
               {hasPrompts
                 ? t("settings.postProcessing.prompts.selectToEdit")
                 : t("settings.postProcessing.prompts.createFirst")}
@@ -394,8 +395,8 @@ const PostProcessingSettingsPromptsComponent: React.FC = () => {
 
         {isCreating && (
           <div className="space-y-3">
-            <div className="space-y-2 block flex flex-col">
-              <label className="text-sm font-semibold text-text">
+            <div className="space-y-2 flex flex-col">
+              <label className="label-mono">
                 {t("settings.postProcessing.prompts.promptLabel")}
               </label>
               <Input
@@ -410,7 +411,7 @@ const PostProcessingSettingsPromptsComponent: React.FC = () => {
             </div>
 
             <div className="space-y-2 flex flex-col">
-              <label className="text-sm font-semibold">
+              <label className="label-mono">
                 {t("settings.postProcessing.prompts.promptInstructions")}
               </label>
               <Textarea
@@ -420,7 +421,7 @@ const PostProcessingSettingsPromptsComponent: React.FC = () => {
                   "settings.postProcessing.prompts.promptInstructionsPlaceholder",
                 )}
               />
-              <p className="text-xs text-mid-gray/70">
+              <p className="text-[11.5px] text-mid-gray">
                 <Trans
                   i18nKey="settings.postProcessing.prompts.promptTip"
                   components={{ code: <code /> }}
@@ -466,8 +467,9 @@ export const PostProcessingSettings: React.FC = () => {
   const { t } = useTranslation();
 
   return (
-    <div className="max-w-3xl w-full mx-auto space-y-6">
+    <div className="flex flex-col gap-[22px]">
       <SettingsGroup title={t("settings.postProcessing.hotkey.title")}>
+        <PostProcessingToggle descriptionMode="tooltip" grouped />
         <ShortcutInput
           shortcutId="transcribe_with_post_process"
           descriptionMode="tooltip"

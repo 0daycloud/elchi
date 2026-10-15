@@ -17,7 +17,6 @@ import { ModelStateEvent, RecordingErrorEvent } from "./lib/types/events";
 import "./App.css";
 import AccessibilityPermissions from "./components/AccessibilityPermissions";
 import SecureInputWarning from "./components/SecureInputWarning";
-import Footer from "./components/footer";
 import Onboarding, { AccessibilityOnboarding } from "./components/onboarding";
 import WelcomeTour from "./components/onboarding/WelcomeTour";
 import { HomeFeed } from "./components/home/HomeFeed";
@@ -27,10 +26,12 @@ import {
 } from "./components/settings";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import {
-  AppHeader,
+  SettingsRail,
+  SettingsPageHeader,
   SidebarSection,
   SECTIONS_CONFIG,
 } from "./components/Sidebar";
+import { UpdaterProvider } from "./components/update-checker";
 import { ElchiProBanner } from "./components/ElchiProBanner";
 import { WhatsNewGate } from "./components/whats-new";
 import { useSettings } from "./hooks/useSettings";
@@ -83,7 +84,7 @@ function App() {
     (state) => state.refreshOutputDevices,
   );
   const hasCompletedPostOnboardingInit = useRef(false);
-  const settingsScrollRef = useRef<HTMLDivElement>(null);
+  const settingsScrollRef = useRef<HTMLElement>(null);
   const isShowingOnboarding =
     onboardingPreview !== null ||
     onboardingStep === "accessibility" ||
@@ -349,13 +350,17 @@ function App() {
       theme="system"
       toastOptions={{
         unstyled: true,
+        // Steel toasts from the design's "system states" frame (2d).
         classNames: {
           toast:
-            "bg-background border border-mid-gray/20 rounded-lg shadow-lg px-4 py-3 flex items-center gap-3 text-sm",
-          title: "font-medium",
-          description: "text-mid-gray",
+            "steel-panel !rounded-[10px] w-[356px] px-3.5 py-3 flex items-center gap-3 text-[13px] text-text",
+          title: "font-normal",
+          description:
+            "font-mono text-[10.5px] tracking-[0.04em] text-mid-gray",
           actionButton:
-            "px-2 py-1 text-xs font-medium rounded-lg border bg-mid-gray/10 border-mid-gray/20 hover:bg-background-ui/30 hover:border-logo-primary cursor-pointer whitespace-nowrap",
+            "steel-chip px-2.5 py-1 font-mono text-[10px] tracking-[0.06em] uppercase cursor-pointer whitespace-nowrap",
+          icon: "shrink-0",
+          error: "!border-[rgba(255,138,138,0.35)]",
         },
       }}
     />
@@ -386,7 +391,7 @@ function App() {
         <button
           type="button"
           onClick={() => setOnboardingPreview(null)}
-          className="fixed top-4 end-4 z-50 rounded-lg border border-mid-gray/20 bg-background px-4 py-2 text-sm font-medium text-text shadow-lg hover:bg-background-ui/30 cursor-pointer"
+          className="steel-chip fixed top-4 end-4 z-50 px-3 py-1.5 font-mono text-[10.5px] tracking-[0.06em] uppercase hover:brightness-110 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
         >
           {t("settings.debug.onboardingPreview.exitButton")}
         </button>
@@ -413,40 +418,36 @@ function App() {
     content = (
       <div
         dir={direction}
-        className="h-screen flex flex-col select-none cursor-default"
+        className="h-screen grid grid-cols-[200px_minmax(0,1fr)] select-none cursor-default bg-background"
       >
         <ErrorBoundary context="What's New">
           <WhatsNewGate />
         </ErrorBoundary>
-        <AppHeader
+        <SettingsRail
           activeSection={currentSection}
           onSectionChange={setCurrentSection}
           onHome={() => setView("home")}
         />
-        {/* Main content area that takes remaining space */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Scrollable content area */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <div ref={settingsScrollRef} className="flex-1 overflow-y-auto">
-              <div className="flex flex-col items-center px-6 py-5 gap-4">
-                {currentSection !== "models" && <ElchiProBanner />}
-                <AccessibilityPermissions />
-                <SecureInputWarning />
-                {renderSettingsContent(currentSection, setOnboardingPreview)}
-              </div>
-            </div>
+        <main ref={settingsScrollRef} className="min-w-0 overflow-y-auto">
+          <div className="flex flex-col gap-[22px] px-8 pt-[26px] pb-8">
+            <SettingsPageHeader section={currentSection} />
+            {currentSection !== "models" && <ElchiProBanner />}
+            <AccessibilityPermissions />
+            <SecureInputWarning />
+            {renderSettingsContent(currentSection, setOnboardingPreview)}
           </div>
-        </div>
-        {/* Fixed footer at bottom */}
-        <Footer />
+        </main>
       </div>
     );
   }
 
+  // The updater lives above both views so a check started on Home (or from
+  // the tray) is still known when the settings rail shows the version.
+  const isMainView = !onboardingPreview && onboardingStep === "done";
   return (
     <>
       {toaster}
-      {content}
+      {isMainView ? <UpdaterProvider>{content}</UpdaterProvider> : content}
     </>
   );
 }

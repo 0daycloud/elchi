@@ -1,7 +1,14 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
-import { Check, Copy, Pencil, Settings } from "lucide-react";
+import { convertFileSrc } from "@tauri-apps/api/core";
+import { readFile } from "@tauri-apps/plugin-fs";
 import { toast } from "sonner";
 import {
   commands,
@@ -14,66 +21,27 @@ import { daysLeft, useElchiPro } from "@/hooks/useElchiPro";
 import { useSettings } from "@/hooks/useSettings";
 import { useOsType } from "@/hooks/useOsType";
 import { formatKeyCombination } from "@/lib/utils/keyboard";
-import ElchiStar from "../icons/ElchiStar";
-import ElchiLogo from "../icons/ElchiLogo";
 import type { SidebarSection } from "../Sidebar";
+import { DictationRow } from "./DictationRow";
+import { ChipButton, ElchiPost, GhostButton } from "./FeedRow";
+import { TopBar } from "./TopBar";
+import { UpsellCard } from "./UpsellCard";
+import { EmptyHero, WeekHero } from "./WeekHero";
+import { dayKey, pastedText } from "./text";
+import { useIsDark } from "./useIsDark";
 
-/** How many of the latest dictations the feed shows; older ones live in History. */
+/** Dictations fetched per page; scrolling to the end fetches the next. */
 const PAGE = 40;
 
-/** Brand colours of the apps people dictate into most; anything else gets a hue
- *  from its name, so an app keeps its colour. */
-const APP_COLORS: Record<string, string> = {
-  mail: "#2f7de1",
-  slack: "#4a154b",
-  cursor: "#13232a",
-  "vs code": "#0065a9",
-  code: "#0065a9",
-  chrome: "#1a73e8",
-  "google chrome": "#1a73e8",
-  safari: "#0a84ff",
-  notes: "#d4a500",
-  notlar: "#d4a500",
-  whatsapp: "#25a855",
-  telegram: "#2aabee",
-  word: "#2b579a",
-  "microsoft word": "#2b579a",
-  outlook: "#0078d4",
-  "microsoft outlook": "#0078d4",
-  teams: "#5b5fc7",
-  "microsoft teams": "#5b5fc7",
-  notion: "#191919",
-  terminal: "#2b2b2b",
-  messages: "#34c759",
-  mesajlar: "#34c759",
-};
+/** Remembers "don't show again" on the trial post, for that trial only. */
+const TRIAL_POST_KEY = "elchi.home.trialPostDismissed";
 
-const appColor = (name: string) => {
-  const known = APP_COLORS[name.toLowerCase()];
-  if (known) return known;
-  let h = 0;
-  for (const c of name) h = (h * 31 + c.charCodeAt(0)) % 360;
-  return `hsl(${h} 45% 38%)`;
-};
-
-const pastedText = (e: HistoryEntry) =>
-  e.post_processed_text ?? e.transcription_text;
-
-/** The words of a text alone: lower case, no punctuation, single spaces. */
-const wordsOf = (text: string) =>
-  text
-    .toLocaleLowerCase("tr")
-    .replace(/[^\p{L}\p{N}\s]/gu, " ")
-    .split(/\s+/)
-    .filter(Boolean)
-    .join(" ");
-
-const countWords = (text: string) =>
-  text.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
-
-const dayKey = (ms: number) => {
-  const d = new Date(ms);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const readDismissed = () => {
+  try {
+    return localStorage.getItem(TRIAL_POST_KEY);
+  } catch {
+    return null;
+  }
 };
 
 type Item =
@@ -82,287 +50,18 @@ type Item =
   | { kind: "streak"; at: number; days: number }
   | { kind: "milestone"; at: number; words: number };
 
-/** What changed between two versions of a text, word by word: up to `max` hunks
- *  of removed and added words ("petro" -> "spero"). */
-export const wordChanges = (before: string, after: string, max = 3) => {
-  const a = before.split(/\s+/).filter(Boolean);
-  const b = after.split(/\s+/).filter(Boolean);
-  const dp = Array.from({ length: a.length + 1 }, () =>
-    new Array<number>(b.length + 1).fill(0),
-  );
-  for (let i = a.length - 1; i >= 0; i--)
-    for (let j = b.length - 1; j >= 0; j--)
-      dp[i][j] =
-        a[i] === b[j]
-          ? dp[i + 1][j + 1] + 1
-          : Math.max(dp[i + 1][j], dp[i][j + 1]);
-  const hunks: { from: string; to: string }[] = [];
-  let i = 0,
-    j = 0,
-    from: string[] = [],
-    to: string[] = [];
-  const flush = () => {
-    if (from.length || to.length)
-      hunks.push({ from: from.join(" "), to: to.join(" ") });
-    from = [];
-    to = [];
-  };
-  while (i < a.length || j < b.length) {
-    if (i < a.length && j < b.length && a[i] === b[j]) {
-      flush();
-      i++;
-      j++;
-    } else if (
-      j >= b.length ||
-      (i < a.length && dp[i + 1][j] >= dp[i][j + 1])
-    ) {
-      from.push(a[i++]);
-    } else {
-      to.push(b[j++]);
-    }
-  }
-  flush();
-  return hunks.slice(0, max);
-};
-
-const Avatar: React.FC<{ app?: string | null; icon?: string }> = ({
-  app,
-  icon,
-}) =>
-  icon ? (
-    <img
-      src={icon}
-      alt=""
-      aria-hidden="true"
-      className="flex-none size-9 object-contain"
-      draggable={false}
-    />
-  ) : app ? (
-    <span
-      aria-hidden="true"
-      className="flex-none size-9 rounded-[10px] text-white font-bold text-[15px] flex items-center justify-center"
-      style={{ background: appColor(app) }}
-    >
-      {app.trim()[0]?.toUpperCase()}
-    </span>
-  ) : (
-    <span
-      aria-hidden="true"
-      className="flex-none size-9 rounded-[10px] bg-mid-gray/20"
-    />
-  );
-
-const ElchiAvatar: React.FC = () => (
-  <span
-    aria-hidden="true"
-    className="flex-none size-9 rounded-full bg-logo-primary/10 flex items-center justify-center"
-  >
-    <ElchiStar size={22} ring="var(--color-background)" />
-  </span>
-);
-
-const PostShell: React.FC<{
-  avatar: React.ReactNode;
-  name: string;
-  when: string;
-  children: React.ReactNode;
-  actions?: React.ReactNode;
-}> = ({ avatar, name, when, children, actions }) => (
-  <article className="group flex gap-3 py-3.5 border-b border-border">
-    {avatar}
-    <div className="flex-1 min-w-0">
-      <div className="flex items-center gap-2 text-[13.5px]">
-        <span className="font-semibold">{name}</span>
-        <span className="text-mid-gray">· {when}</span>
-        {actions && (
-          <span className="ml-auto flex gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
-            {actions}
-          </span>
-        )}
-      </div>
-      {children}
-    </div>
-  </article>
-);
-
-const IconAction: React.FC<{
-  label: string;
-  onClick: () => void;
-  children: React.ReactNode;
-}> = ({ label, onClick, children }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    title={label}
-    aria-label={label}
-    className="p-1.5 rounded-md text-mid-gray hover:text-logo-primary hover:bg-logo-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary/40"
-  >
+const DayHeader: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <h2 className="pt-[26px] pb-2.5 font-mono text-[10px] tracking-[0.12em] uppercase font-normal text-text/40">
     {children}
-  </button>
-);
-
-const DictationPost: React.FC<{
-  entry: HistoryEntry;
-  when: string;
-  icon?: string;
-}> = ({ entry, when, icon }) => {
-  const { t, i18n } = useTranslation();
-  const [copied, setCopied] = useState(false);
-  const [draft, setDraft] = useState<string | null>(null);
-  const [showHeard, setShowHeard] = useState(false);
-  const text = pastedText(entry);
-  const words = countWords(text);
-  // What was pasted: before the user's correction, if they made one.
-  const pasted = entry.edited_from ?? text;
-  // "Formatted" only when the formatter changed the words (fillers dropped, a
-  // correction resolved, a list made), not just capitals, punctuation or spacing,
-  // which it touches in nearly every dictation.
-  const formatted = wordsOf(pasted) !== wordsOf(entry.transcription_text);
-  const changes = entry.edited_from ? wordChanges(entry.edited_from, text) : [];
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      /* refused clipboard: nothing to do */
-    }
-  };
-
-  const save = async () => {
-    if (draft === null) return;
-    const r = await commands.editHistoryText(entry.id, draft);
-    if (r.status === "error") {
-      toast.error(r.error);
-      return;
-    }
-    setDraft(null);
-  };
-
-  return (
-    <PostShell
-      avatar={<Avatar app={entry.app_name} icon={icon} />}
-      name={entry.app_name ?? t("home.unknownApp")}
-      when={when}
-      actions={
-        draft === null && (
-          <>
-            <IconAction
-              label={copied ? t("home.copied") : t("home.copy")}
-              onClick={copy}
-            >
-              {copied ? <Check size={15} /> : <Copy size={15} />}
-            </IconAction>
-            <IconAction label={t("home.fix")} onClick={() => setDraft(text)}>
-              <Pencil size={15} />
-            </IconAction>
-          </>
-        )
-      }
-    >
-      {draft === null ? (
-        <p className="text-[16px] leading-[1.42] mt-0.5 whitespace-pre-wrap break-words select-text cursor-text">
-          {text}
-        </p>
-      ) : (
-        <div className="mt-1.5 space-y-2">
-          <textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            autoFocus
-            aria-label={t("home.fix")}
-            rows={Math.min(8, Math.max(2, draft.split("\n").length + 1))}
-            className="w-full text-[15px] rounded-lg border border-logo-primary/60 bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-logo-primary/40"
-          />
-          <div className="flex items-center gap-2 text-sm">
-            <button
-              type="button"
-              onClick={save}
-              className="rounded-lg bg-logo-primary px-3 py-1.5 font-semibold text-background hover:opacity-90"
-            >
-              {t("home.save")}
-            </button>
-            <button
-              type="button"
-              onClick={() => setDraft(null)}
-              className="rounded-lg px-3 py-1.5 hover:bg-mid-gray/10"
-            >
-              {t("home.cancel")}
-            </button>
-            <span className="text-xs text-mid-gray">{t("home.fixHint")}</span>
-          </div>
-        </div>
-      )}
-      {changes.length > 0 && (
-        <p className="text-[13px] mt-1.5">
-          <span className="font-semibold text-coral">
-            {t("home.corrected")}
-          </span>{" "}
-          {changes.map((c, k) => (
-            <span key={k} className="mr-2">
-              {c.from && (
-                <span className="line-through decoration-coral/70 text-mid-gray">
-                  {c.from}
-                </span>
-              )}
-              {c.from && c.to && <span className="text-mid-gray"> → </span>}
-              {c.to && <span className="font-medium">{c.to}</span>}
-            </span>
-          ))}
-        </p>
-      )}
-      <p className="text-[12.5px] text-mid-gray mt-1">
-        {t("home.words", {
-          count: words,
-          n: new Intl.NumberFormat(i18n.language).format(words),
-        })}
-        {formatted && (
-          <>
-            {" · "}
-            <button
-              type="button"
-              onClick={() => setShowHeard((v) => !v)}
-              aria-expanded={showHeard}
-              className="text-logo-primary hover:underline focus:outline-none focus-visible:underline"
-            >
-              {t("home.formatted")} ·{" "}
-              {showHeard ? t("home.hideHeard") : t("home.showHeard")}
-            </button>
-          </>
-        )}
-      </p>
-      {formatted && showHeard && (
-        <p className="mt-1.5 text-[13.5px] text-mid-gray border-l-2 border-border pl-3 whitespace-pre-wrap break-words select-text cursor-text">
-          <span className="font-semibold">{t("home.heard")}</span>{" "}
-          {entry.transcription_text}
-        </p>
-      )}
-    </PostShell>
-  );
-};
-
-const ElchiPost: React.FC<{
-  when: string;
-  title: string;
-  body?: React.ReactNode;
-  accent?: "coral" | "teal";
-}> = ({ when, title, body, accent = "teal" }) => (
-  <PostShell avatar={<ElchiAvatar />} name="Elchi" when={when}>
-    <p className="text-[16px] leading-[1.42] mt-0.5">
-      <b className={accent === "coral" ? "text-coral" : "text-logo-primary"}>
-        {title}
-      </b>{" "}
-      {body}
-    </p>
-  </PostShell>
+  </h2>
 );
 
 /**
- * Elchi's home: a timeline of what you dictated, newest first and grouped by
- * day, each post from the app it went into, with Elchi's own posts in between
- * (words it learned, streaks, milestones, the trial). Settings are behind the
- * gear.
+ * Elchi's home: this week up top, then everything you dictated, newest
+ * first and grouped by day, each from the app it went into, with Elchi's
+ * own posts in between (words it learned, streaks, milestones, the trial).
+ * History lives here too: hover a dictation to copy, fix, add a word to the
+ * dictionary or play its recording; older ones load as you scroll.
  */
 export const HomeFeed: React.FC<{
   onOpenSettings: (section?: SidebarSection) => void;
@@ -372,42 +71,127 @@ export const HomeFeed: React.FC<{
   const { status, upgrade } = useElchiPro();
   const { settings } = useSettings();
   const osType = useOsType();
+  const dark = useIsDark();
   const [entries, setEntries] = useState<HistoryEntry[] | null>(null);
-  const [icons, setIcons] = useState<Record<string, string>>({});
   const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  // An older page failed to load: scrolling stops fetching until the user
+  // asks again, so a persistent error can't loop requests.
+  const [moreFailed, setMoreFailed] = useState(false);
+  const [icons, setIcons] = useState<Record<string, string>>({});
   const [stats, setStats] = useState<DictationStats | null>(null);
   const [dictionary, setDictionary] = useState<DictionaryWord[]>([]);
   const [now, setNow] = useState(() => Date.now());
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [dismissedTrial, setDismissedTrial] = useState(readDismissed);
+  const entriesRef = useRef<HistoryEntry[] | null>(null);
+  const loadingMoreRef = useRef(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const load = useCallback(() => {
-    commands.getHistoryEntries(null, PAGE).then((r) => {
-      if (r.status === "ok") {
-        setEntries(r.data.entries);
-        setHasMore(r.data.has_more);
-      }
-    });
+  useEffect(() => {
+    entriesRef.current = entries;
+  }, [entries]);
+
+  const refreshStats = useCallback(() => {
     commands.getDictationStats().then((r) => {
       if (r.status === "ok") setStats(r.data);
     });
-    commands.getDictionary().then(setDictionary);
     setNow(Date.now());
   }, []);
 
+  // The newest page, merged over whatever older pages are already loaded.
+  const refresh = useCallback(() => {
+    commands.getHistoryEntries(null, PAGE).then((r) => {
+      if (r.status !== "ok") return;
+      const first = r.data.entries;
+      const prev = entriesRef.current;
+      const oldest = first[first.length - 1];
+      if (!prev || !oldest || prev.length <= first.length) {
+        setEntries(first);
+        setHasMore(r.data.has_more);
+      } else {
+        setEntries([...first, ...prev.filter((e) => e.id < oldest.id)]);
+      }
+    });
+    commands.getDictionary().then(setDictionary);
+    refreshStats();
+  }, [refreshStats]);
+
+  // Stable (state read through refs), so the scroll observer below is not
+  // torn down and re-armed every time a request starts or ends.
+  const loadMore = useCallback(async () => {
+    const last = entriesRef.current?.[entriesRef.current.length - 1];
+    if (!last || loadingMoreRef.current) return;
+    loadingMoreRef.current = true;
+    setLoadingMore(true);
+    const r = await commands
+      .getHistoryEntries(last.id, PAGE)
+      .catch(() => ({ status: "error" as const }));
+    loadingMoreRef.current = false;
+    setLoadingMore(false);
+    if (r.status !== "ok") {
+      setMoreFailed(true);
+      return;
+    }
+    setMoreFailed(false);
+    setEntries((prev) => {
+      const have = new Set((prev ?? []).map((e) => e.id));
+      return [
+        ...(prev ?? []),
+        ...r.data.entries.filter((e) => !have.has(e.id)),
+      ];
+    });
+    setHasMore(r.data.has_more);
+  }, []);
+
   useEffect(() => {
-    load();
-    const unHistory = events.historyUpdatePayload.listen(load);
+    refresh();
+    const unHistory = events.historyUpdatePayload.listen(({ payload }) => {
+      if (payload.action === "added")
+        setEntries((prev) =>
+          prev?.some((e) => e.id === payload.entry.id)
+            ? prev
+            : [payload.entry, ...(prev ?? [])],
+        );
+      else if (payload.action === "updated")
+        setEntries((prev) =>
+          (prev ?? []).map((e) =>
+            e.id === payload.entry.id ? payload.entry : e,
+          ),
+        );
+      else if (payload.action === "deleted")
+        setEntries((prev) => (prev ?? []).filter((e) => e.id !== payload.id));
+      else
+        setEntries((prev) =>
+          (prev ?? []).map((e) =>
+            e.id === payload.id ? { ...e, saved: !e.saved } : e,
+          ),
+        );
+      refreshStats();
+    });
     const unDict = listen<DictionaryWord[]>("dictionary-changed", (e) =>
       setDictionary(e.payload),
     );
     const tick = setInterval(() => setNow(Date.now()), 60_000);
-    window.addEventListener("focus", load);
+    window.addEventListener("focus", refresh);
     return () => {
       unHistory.then((f) => f());
       unDict.then((f) => f());
       clearInterval(tick);
-      window.removeEventListener("focus", load);
+      window.removeEventListener("focus", refresh);
     };
-  }, [load]);
+  }, [refresh, refreshStats]);
+
+  // Older pages load when the end of the feed scrolls into view.
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !hasMore || moreFailed) return;
+    const io = new IntersectionObserver((seen) => {
+      if (seen[0]?.isIntersecting) loadMore();
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasMore, moreFailed, loadMore]);
 
   // The apps' own icons (macOS), fetched once per app name.
   useEffect(() => {
@@ -433,18 +217,63 @@ export const HomeFeed: React.FC<{
     });
   }, [entries, icons]);
 
+  const getAudioUrl = useCallback(
+    async (fileName: string) => {
+      try {
+        const r = await commands.getAudioFilePath(fileName);
+        if (r.status !== "ok") return null;
+        if (osType === "linux") {
+          const data = await readFile(r.data);
+          return URL.createObjectURL(new Blob([data], { type: "audio/wav" }));
+        }
+        return convertFileSrc(r.data, "asset");
+      } catch {
+        return null;
+      }
+    },
+    [osType],
+  );
+
+  const toggleSaved = useCallback(async (id: number) => {
+    // The list follows the backend's "toggled" event.
+    const r = await commands.toggleHistoryEntrySaved(id);
+    if (r.status === "error") toast.error(r.error);
+  }, []);
+
+  const deleteEntry = useCallback(
+    async (id: number) => {
+      setEntries((prev) => (prev ?? []).filter((e) => e.id !== id));
+      const r = await commands.deleteHistoryEntry(id);
+      if (r.status === "error") {
+        toast.error(t("home.row.deleteFailed"));
+        refresh();
+      }
+    },
+    [refresh, t],
+  );
+
+  const onUpgrade = () =>
+    upgrade().catch(() => toast.error(t("elchiPro.upgradeFailed")));
+
+  const openFolder = async () => {
+    const r = await commands.openRecordingsFolder();
+    if (r.status === "error") toast.error(r.error);
+  };
+
   const n = (v: number) => new Intl.NumberFormat(lang).format(v);
   const minutes = (m: number) => {
     const r = Math.max(m > 0 ? 1 : 0, Math.round(m));
     return r >= 60
-      ? t("summary.hoursMinutes", { h: Math.floor(r / 60), m: r % 60 })
-      : t("summary.minutes", { m: r });
+      ? t("home.bar.hoursMinutes", { h: Math.floor(r / 60), m: r % 60 })
+      : t("home.bar.minutes", { m: r });
   };
 
   const items = useMemo<Item[]>(() => {
-    const out: Item[] = (entries ?? [])
-      .filter((e) => pastedText(e).trim())
-      .map((e) => ({ kind: "dictation", at: e.timestamp * 1000, entry: e }));
+    const out: Item[] = (entries ?? []).map((e) => ({
+      kind: "dictation",
+      at: e.timestamp * 1000,
+      entry: e,
+    }));
     const oldest = out.length ? Math.min(...out.map((i) => i.at)) : now;
     for (const w of dictionary) {
       if (w.learned && (w.added_at ?? 0) * 1000 >= oldest)
@@ -455,7 +284,10 @@ export const HomeFeed: React.FC<{
       if (at >= oldest) out.push({ kind: "milestone", at, words: m.words });
     }
     const today = out.filter(
-      (i) => i.kind === "dictation" && dayKey(i.at) === dayKey(now),
+      (i) =>
+        i.kind === "dictation" &&
+        dayKey(i.at) === dayKey(now) &&
+        pastedText(i.entry).trim(),
     );
     if ((stats?.streak_days ?? 0) >= 3 && today.length) {
       // Right after the day's first dictation: that is when the streak grew.
@@ -480,6 +312,7 @@ export const HomeFeed: React.FC<{
       new Intl.RelativeTimeFormat(lang, { numeric: "auto", style: "short" }),
     [lang],
   );
+  // "4 dk. önce" -> "4 dk önce": the mono labels drop abbreviation dots.
   const when = (at: number) => {
     const s = Math.max(0, Math.round((now - at) / 1000));
     if (dayKey(at) !== dayKey(now))
@@ -487,9 +320,13 @@ export const HomeFeed: React.FC<{
         hour: "2-digit",
         minute: "2-digit",
       });
-    if (s < 60) return rtf.format(0, "second");
-    if (s < 3600) return rtf.format(-Math.floor(s / 60), "minute");
-    return rtf.format(-Math.floor(s / 3600), "hour");
+    const rel =
+      s < 60
+        ? rtf.format(0, "second")
+        : s < 3600
+          ? rtf.format(-Math.floor(s / 60), "minute")
+          : rtf.format(-Math.floor(s / 3600), "hour");
+    return rel.replace(/\./g, "");
   };
   const dayLabel = (k: string) => {
     if (k === dayKey(now)) return t("home.today");
@@ -501,197 +338,179 @@ export const HomeFeed: React.FC<{
     });
   };
 
-  const keys = formatKeyCombination(
-    settings?.bindings?.transcribe?.current_binding ?? "",
-    osType,
-  );
+  const binding = settings?.bindings?.transcribe?.current_binding ?? "";
+  const keys = formatKeyCombination(binding, osType)
+    .split(" + ")
+    .filter(Boolean);
   const plan = status?.plan;
   const trialDays = daysLeft(status?.trial_ends_at);
+  const empty = entries !== null && items.length === 0;
+  const trialPost =
+    plan === "trial" &&
+    trialDays !== null &&
+    trialDays <= 3 &&
+    dismissedTrial !== status?.trial_ends_at;
+  const showCard =
+    !!status && !trialPost && (plan === "free" || (plan === "trial" && !empty));
+  const editingDay = groups.find(([, list]) =>
+    list.some((i) => i.kind === "dictation" && i.entry.id === editingId),
+  )?.[0];
+
+  const dismissTrial = () => {
+    const v = status?.trial_ends_at ?? "";
+    setDismissedTrial(v);
+    try {
+      localStorage.setItem(TRIAL_POST_KEY, v);
+    } catch {
+      /* the post comes back next launch; nothing else to do */
+    }
+  };
 
   return (
-    <div className="h-screen flex flex-col bg-background select-none cursor-default">
-      <header className="flex-none h-16 border-b border-border flex items-center gap-2.5 px-6">
-        <ElchiLogo size={22} />
-        {stats && stats.week_words > 0 && (
-          <button
-            type="button"
-            onClick={() => onOpenSettings("summary")}
-            className="ml-3 truncate text-[13.5px] text-mid-gray hover:text-text focus:outline-none focus-visible:underline"
-          >
-            {t("home.week")}{" "}
-            <b className="text-text">
-              {t("home.words", {
-                count: stats.week_words,
-                n: n(stats.week_words),
-              })}
-            </b>
-            {stats.week_minutes_saved > 0 && (
-              <>
-                {" · "}
-                <b className="text-coral">
-                  ~{minutes(stats.week_minutes_saved)}
-                </b>{" "}
-                {t("home.saved")}
-              </>
-            )}
-            {stats.streak_days > 1 && (
-              <>
-                {" · "}
-                <b className="text-text">
-                  {t("home.streakDays", { count: stats.streak_days })}
-                </b>{" "}
-                {t("home.streak")}
-              </>
-            )}
-          </button>
-        )}
-        <span className="ml-auto flex items-center gap-1.5 text-xs text-mid-gray whitespace-nowrap">
-          <span
-            aria-hidden="true"
-            className={`size-2 rounded-full ${status?.cloud_active ? "bg-green-500" : "bg-logo-primary"}`}
-          />
-          {status?.cloud_active ? t("home.engineCloud") : t("home.engineLocal")}
-        </span>
-        <button
-          type="button"
-          onClick={() => onOpenSettings()}
-          title={t("home.settings")}
-          aria-label={t("home.settings")}
-          className="ml-1 size-9 rounded-[10px] flex items-center justify-center text-logo-primary bg-logo-primary/10 hover:bg-logo-primary/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary/40"
-        >
-          <Settings size={18} />
-        </button>
-      </header>
+    <div
+      className={`h-screen flex flex-col bg-background select-none cursor-default ${dark ? "grain" : ""}`}
+    >
+      <TopBar stats={stats} status={status} onOpenSettings={onOpenSettings} />
 
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-[580px] mx-auto px-6 pb-10">
-          {plan === "free" && (
-            <ElchiPost
-              when={t("home.today")}
-              title={t("home.freeTitle")}
-              accent="coral"
-              body={
-                <>
-                  {t("home.freeBody")}{" "}
-                  <button
-                    type="button"
-                    onClick={() => upgrade().catch(() => undefined)}
-                    className="font-semibold text-coral underline underline-offset-2"
-                  >
-                    {t("elchiPro.cta")}
-                  </button>
-                </>
-              }
-            />
-          )}
-          {plan === "trial" && trialDays !== null && trialDays <= 3 && (
-            <ElchiPost
-              when={t("home.today")}
-              title={t("home.trialTitle", { count: trialDays })}
-              accent="coral"
-              body={
-                <>
-                  {t("home.trialBody")}{" "}
-                  <button
-                    type="button"
-                    onClick={() => upgrade().catch(() => undefined)}
-                    className="font-semibold text-coral underline underline-offset-2"
-                  >
-                    {t("elchiPro.cta")}
-                  </button>
-                </>
-              }
-            />
+        <div className="max-w-[1040px] mx-auto px-7 max-[720px]:px-5 pt-7 pb-7">
+          {empty ? (
+            <EmptyHero keys={keys} mac={osType === "macos"} dark={dark} />
+          ) : (
+            stats && entries !== null && <WeekHero stats={stats} dark={dark} />
           )}
 
-          {entries !== null && items.length === 0 && (
-            <ElchiPost
-              when={t("home.today")}
-              title={t("home.welcomeTitle")}
-              body={t("home.welcomeBody", { keys: keys || "⌥ Space" })}
-            />
-          )}
+          <div className="pt-2">
+            {trialPost && (
+              <section aria-label={t("home.fromElchi")}>
+                <DayHeader>{t("home.fromElchi")}</DayHeader>
+                <ElchiPost
+                  dark={dark}
+                  when={t("home.today")}
+                  title={t("home.trialTitle", { count: trialDays ?? 0 })}
+                  body={
+                    status && status.free_months > 0
+                      ? t("home.trialBodyFree")
+                      : t("home.trialBody")
+                  }
+                  actions={
+                    <>
+                      <ChipButton onClick={onUpgrade}>
+                        {t("home.trialCta")}
+                      </ChipButton>
+                      <GhostButton onClick={dismissTrial}>
+                        {t("home.dontShowAgain")}
+                      </GhostButton>
+                    </>
+                  }
+                />
+              </section>
+            )}
 
-          {groups.map(([day, list]) => (
-            <section key={day} aria-label={dayLabel(day)}>
-              <h2 className="pt-5 pb-0.5 text-[11.5px] font-bold uppercase tracking-[0.12em] text-mid-gray">
-                {dayLabel(day)}
-              </h2>
-              {list.map((it) => {
-                const w = when(it.at);
-                switch (it.kind) {
-                  case "dictation":
-                    return (
-                      <DictationPost
-                        key={`d${it.entry.id}`}
-                        entry={it.entry}
-                        when={w}
-                        icon={
-                          (it.entry.app_name && icons[it.entry.app_name]) ||
-                          undefined
-                        }
-                      />
-                    );
-                  case "learned":
-                    return (
-                      <ElchiPost
-                        key={`l${it.word.word}`}
-                        when={w}
-                        accent="coral"
-                        title={
-                          it.word.phrase && it.word.heard?.length
-                            ? t("home.learnedPhraseTitle", {
-                                heard: it.word.heard[0],
-                                word: it.word.word,
-                              })
-                            : t("home.learnedTitle", { word: it.word.word })
-                        }
-                        body={
-                          it.word.phrase
-                            ? t("home.learnedPhraseBody")
-                            : it.word.heard?.length
-                              ? t("home.learnedHeard", {
+            {groups.map(([day, list]) => (
+              <section key={day} aria-label={dayLabel(day)}>
+                <DayHeader>
+                  {dayLabel(day)}
+                  {day === editingDay && <> · {t("home.edit.editing")}</>}
+                </DayHeader>
+                {list.map((it) => {
+                  const w = when(it.at);
+                  switch (it.kind) {
+                    case "dictation":
+                      return (
+                        <DictationRow
+                          key={`d${it.entry.id}`}
+                          entry={it.entry}
+                          when={w}
+                          dark={dark}
+                          icon={
+                            (it.entry.app_name && icons[it.entry.app_name]) ||
+                            undefined
+                          }
+                          editing={editingId === it.entry.id}
+                          onEdit={(on) => setEditingId(on ? it.entry.id : null)}
+                          getAudioUrl={getAudioUrl}
+                          onToggleSaved={toggleSaved}
+                          onDelete={deleteEntry}
+                        />
+                      );
+                    case "learned":
+                      return (
+                        <ElchiPost
+                          key={`l${it.word.word}`}
+                          dark={dark}
+                          when={w}
+                          title={
+                            it.word.phrase && it.word.heard?.length
+                              ? t("home.learnedPhraseTitle", {
                                   heard: it.word.heard[0],
+                                  word: it.word.word,
                                 })
-                              : t("home.learnedAdded")
-                        }
-                      />
-                    );
-                  case "streak":
-                    return (
-                      <ElchiPost
-                        key="streak"
-                        when={w}
-                        title={t("home.streakTitle", { count: it.days })}
-                        body={t("home.streakBody", { count: it.days })}
-                      />
-                    );
-                  case "milestone":
-                    return (
-                      <ElchiPost
-                        key={`m${it.words}`}
-                        when={w}
-                        title={t("home.milestoneTitle", { n: n(it.words) })}
-                        body={t("home.milestoneBody", {
-                          n: n(it.words),
-                          time: minutes(it.words / (stats?.typing_wpm ?? 40)),
-                        })}
-                      />
-                    );
-                }
-              })}
-            </section>
-          ))}
+                              : t("home.learnedTitle", { word: it.word.word })
+                          }
+                          body={
+                            it.word.phrase
+                              ? t("home.learnedPhraseBody")
+                              : it.word.heard?.length
+                                ? t("home.learnedHeard", {
+                                    heard: it.word.heard[0],
+                                  })
+                                : t("home.learnedAdded")
+                          }
+                        />
+                      );
+                    case "streak":
+                      return (
+                        <ElchiPost
+                          key="streak"
+                          dark={dark}
+                          when={w}
+                          title={t("home.streakTitle", { count: it.days })}
+                          body={t("home.streakBody", { count: it.days })}
+                        />
+                      );
+                    case "milestone":
+                      return (
+                        <ElchiPost
+                          key={`m${it.words}`}
+                          dark={dark}
+                          when={w}
+                          title={t("home.milestoneTitle", { n: n(it.words) })}
+                          body={t("home.milestoneBody", {
+                            n: n(it.words),
+                            time: minutes(it.words / (stats?.typing_wpm ?? 40)),
+                          })}
+                        />
+                      );
+                  }
+                })}
+              </section>
+            ))}
 
-          {hasMore && (
-            <button
-              type="button"
-              onClick={() => onOpenSettings("history")}
-              className="mt-5 text-sm font-semibold text-logo-primary hover:underline"
-            >
-              {t("home.more")} →
-            </button>
-          )}
+            {hasMore && (
+              <div ref={sentinelRef} className="flex justify-center pt-5">
+                <GhostButton onClick={loadMore} disabled={loadingMore}>
+                  {loadingMore
+                    ? t("home.loading")
+                    : moreFailed
+                      ? t("home.moreFailed")
+                      : t("home.more")}
+                </GhostButton>
+              </div>
+            )}
+
+            {showCard && status && (
+              <UpsellCard status={status} onUpgrade={onUpgrade} />
+            )}
+
+            {entries !== null && entries.length > 0 && !hasMore && (
+              <div className="flex justify-center pt-5">
+                <GhostButton onClick={openFolder}>
+                  {t("home.openFolder")} ↗
+                </GhostButton>
+              </div>
+            )}
+          </div>
         </div>
       </main>
     </div>

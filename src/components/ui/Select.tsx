@@ -39,29 +39,28 @@ type NonCreatableProps = {
 
 export type SelectProps = BaseProps & (CreatableProps | NonCreatableProps);
 
-const baseBackground =
-  "color-mix(in srgb, var(--color-mid-gray) 10%, transparent)";
-const hoverBackground =
-  "color-mix(in srgb, var(--color-logo-primary) 12%, transparent)";
+// Matches the `.well` recipe (src/styles/recipes.css).
+const baseBackground = "var(--well-bg)";
+const hoverBackground = "color-mix(in srgb, var(--color-text) 6%, transparent)";
 const focusBackground =
-  "color-mix(in srgb, var(--color-logo-primary) 20%, transparent)";
-const neutralBorder =
-  "color-mix(in srgb, var(--color-mid-gray) 80%, transparent)";
+  "color-mix(in srgb, var(--color-accent) 15%, transparent)";
+const neutralBorder = "var(--well-border)";
 
 const selectStyles: StylesConfig<SelectOption, false> = {
   control: (base, state) => ({
     ...base,
     minHeight: 40,
-    borderRadius: 6,
-    borderColor: state.isFocused ? "var(--color-logo-primary)" : neutralBorder,
-    boxShadow: state.isFocused ? "0 0 0 1px var(--color-logo-primary)" : "none",
-    backgroundColor: state.isFocused ? focusBackground : baseBackground,
-    fontSize: "0.875rem",
+    borderRadius: 8,
+    borderColor: state.isFocused ? "rgba(33, 64, 255, 0.6)" : neutralBorder,
+    boxShadow: state.isFocused
+      ? "var(--well-shadow), 0 0 0 3px rgba(33, 64, 255, 0.15)"
+      : "var(--well-shadow)",
+    background: baseBackground,
+    fontSize: "13px",
     color: "var(--color-text)",
     transition: "all 150ms ease",
     ":hover": {
-      borderColor: "var(--color-logo-primary)",
-      backgroundColor: hoverBackground,
+      borderColor: "rgba(33, 64, 255, 0.45)",
     },
   }),
   valueContainer: (base) => ({
@@ -96,11 +95,12 @@ const selectStyles: StylesConfig<SelectOption, false> = {
   menu: (provided) => ({
     ...provided,
     zIndex: 30,
-    backgroundColor: "var(--color-background)",
+    background: "var(--steel-panel-bg)",
     color: "var(--color-text)",
-    border:
-      "1px solid color-mix(in srgb, var(--color-mid-gray) 30%, transparent)",
-    boxShadow: "0 10px 30px rgba(15, 15, 15, 0.2)",
+    border: "1px solid var(--steel-panel-border)",
+    borderRadius: 8,
+    boxShadow: "var(--steel-panel-shadow)",
+    padding: 4,
   }),
   option: (base, state) => ({
     ...base,
@@ -110,6 +110,8 @@ const selectStyles: StylesConfig<SelectOption, false> = {
         ? hoverBackground
         : "transparent",
     color: "var(--color-text)",
+    borderRadius: 6,
+    fontSize: 13,
     cursor: state.isDisabled ? "not-allowed" : base.cursor,
     opacity: state.isDisabled ? 0.5 : 1,
   }),

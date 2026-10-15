@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
 import { formatKeyCombination } from "../../lib/utils/keyboard";
 import { ResetButton } from "../ui/ResetButton";
+import { ShortcutButton } from "./ShortcutKeys";
 import { SettingContainer } from "../ui/SettingContainer";
 import { useSettings } from "../../hooks/useSettings";
 import { useOsType } from "../../hooks/useOsType";
@@ -37,7 +38,7 @@ export const HandyKeysShortcutInput: React.FC<HandyKeysShortcutInputProps> = ({
   const [isRecording, setIsRecording] = useState(false);
   const [currentKeys, setCurrentKeys] = useState<string>("");
   const [originalBinding, setOriginalBinding] = useState<string>("");
-  const shortcutRef = useRef<HTMLDivElement | null>(null);
+  const shortcutRef = useRef<HTMLElement | null>(null);
   const unlistenRef = useRef<(() => void) | null>(null);
   // Use a ref to track currentKeys for the event handler (avoids stale closure)
   const currentKeysRef = useRef<string>("");
@@ -203,8 +204,16 @@ export const HandyKeysShortcutInput: React.FC<HandyKeysShortcutInputProps> = ({
       }
     };
 
-    window.addEventListener("click", handleClickOutside);
-    return () => window.removeEventListener("click", handleClickOutside);
+    // Attach after the click that started recording has finished bubbling,
+    // or that same click would read as "outside" and cancel at once.
+    const timer = window.setTimeout(
+      () => window.addEventListener("click", handleClickOutside),
+      0,
+    );
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("click", handleClickOutside);
+    };
   }, [isRecording, cancelRecording]);
 
   // Start recording a new shortcut
@@ -328,26 +337,25 @@ export const HandyKeysShortcutInput: React.FC<HandyKeysShortcutInputProps> = ({
       disabled={disabled}
       layout="horizontal"
     >
-      <div className="flex items-center space-x-1">
-        {isRecording ? (
-          <div
-            ref={shortcutRef}
-            className="px-2 py-1 text-sm font-semibold border border-logo-primary bg-logo-primary/30 rounded-md"
-          >
-            {formatCurrentKeys()}
-          </div>
-        ) : (
-          <div
-            className="px-2 py-1 text-sm font-semibold bg-mid-gray/10 border border-mid-gray/80 hover:bg-logo-primary/10 rounded-md cursor-pointer hover:border-logo-primary"
-            onClick={startRecording}
-          >
-            {formatKeyCombination(binding.current_binding, osType)}
-          </div>
-        )}
-        <ResetButton
-          onClick={() => resetBinding(shortcutId)}
-          disabled={isUpdating(`binding_${shortcutId}`)}
+      <div className="flex items-center gap-1.5">
+        <ShortcutButton
+          binding={binding.current_binding}
+          osType={osType}
+          recording={isRecording}
+          recordingLabel={formatCurrentKeys()}
+          recorderRef={(ref) => {
+            shortcutRef.current = ref;
+          }}
+          onStart={startRecording}
+          label={translatedName}
         />
+        {binding.current_binding !== binding.default_binding && (
+          <ResetButton
+            onClick={() => resetBinding(shortcutId)}
+            disabled={isUpdating(`binding_${shortcutId}`)}
+            ariaLabel={t("settings.general.shortcut.reset")}
+          />
+        )}
       </div>
     </SettingContainer>
   );

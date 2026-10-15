@@ -13,18 +13,33 @@
     "general": "General",
     "models": "Models",
     "advanced": "Advanced",
-    "postProcessing": "Post Process",
-    "history": "History",
+    "postProcessing": "Post-processing (LLM)",
     "debug": "Debug",
     "about": "About",
     "label": "Sections",
-    "summary": "Summary",
-    "dictionary": "Dictionary"
+    "dictionary": "Dictionary",
+    "back": "ELCHI",
+    "hints": {
+      "general": "G",
+      "models": "M",
+      "dictionary": "D"
+    },
+    "developer": "Developer",
+    "developerLink": "Developer →",
+    "developerHide": "Hide",
+    "pageSummary": {
+      "general": "Shortcut · Sound · Output · Look",
+      "modelsCloud": "Cloud · Duyu Pro active",
+      "modelsLocal": "On this computer · Duyu-small",
+      "phrases_one": "{{count}} phrase",
+      "phrases_other": "{{count}} phrases",
+      "changed_one": "{{count}} setting changed",
+      "changed_other": "{{count}} settings changed",
+      "reset": "Reset",
+      "modelsWhere": "Where your speech becomes text"
+    }
   },
   "onboarding": {
-    "subtitle": "To get started, choose a model that runs on this computer",
-    "existingModelsTitle": "Downloaded Models",
-    "downloadModelsTitle": "Available to Download",
     "showAllModels": "Show all {{total}} models",
     "showFewerModels": "Show fewer models",
     "recommended": "Recommended",
@@ -107,24 +122,30 @@
       "selectModel": "Failed to select model"
     },
     "permissions": {
-      "title": "Before we start",
-      "description": "Elchi needs your permission to hear you and to type the text where your cursor is.",
+      "description": "So Elchi can hear you and type the text where your cursor is.",
       "microphone": {
-        "title": "Microphone Access",
-        "description": "Required to hear your voice for transcription."
+        "title": "Microphone",
+        "description": "To turn what you say into text."
       },
       "accessibility": {
-        "title": "Accessibility Access",
-        "description": "Required to type transcribed text into your applications."
+        "title": "Accessibility",
+        "description": "To type the text into the apps you use."
       },
-      "grant": "Grant Permission",
+      "grant": "Allow",
       "granted": "Granted",
-      "waiting": "Waiting...",
+      "waiting": "Waiting",
       "allGranted": "All set.",
       "errors": {
         "checkFailed": "Failed to check permissions. Please try again.",
         "requestFailed": "Failed to request permission. Please try again."
-      }
+      },
+      "title_one": "One permission first.",
+      "title_other": "Two permissions first.",
+      "descriptionMicrophone": "So Elchi can hear you.",
+      "openSettings": "Open Settings",
+      "note": "System Settings will open",
+      "noteWindows": "Windows Settings will open",
+      "progress": "{{granted}} of {{total}} permissions granted"
     },
     "tour": {
       "progress": "Step {{step}} of {{total}}",
@@ -134,22 +155,34 @@
       "start": "Start using Elchi",
       "welcome": {
         "title": "Speak, and Elchi writes.",
-        "lede": "Elchi turns what you say into text and drops it where your cursor is: an e-mail, a document, a chat window. It is often faster than typing.",
+        "lede": "The text lands where your cursor is: an e-mail, a document, a chat. Often faster than typing.",
         "anywhere": {
           "title": "In every app",
           "body": "E-mail, Slack, Word, the browser… Wherever the cursor is, the text goes."
         },
         "languages": {
           "title": "Turkish and English in one sentence",
-          "body": "Mixed sentences like “Meeting'i cumaya aldık” come out right, with capitals and punctuation."
+          "body": "Mixed sentences like “Meeting'i cumaya aldık” come out right."
         },
         "pro": {
           "title": "Duyu Pro for the first 7 days",
-          "body": "You start with Duyu Pro, our most accurate model. After that, Elchi keeps working for free on this computer with Duyu-small."
+          "body": "You start with our most accurate model, then carry on for free with Duyu-small."
+        },
+        "trial": {
+          "title_one": "{{count}} day of Duyu Pro",
+          "title_other": "{{count}} days of Duyu Pro"
+        },
+        "proActive": {
+          "title": "Duyu Pro is on",
+          "body": "You dictate with Duyu Pro, our most accurate model."
+        },
+        "free": {
+          "title": "Free with Duyu-small",
+          "body": "Elchi runs free on this computer with Duyu-small; move to Pro whenever you like."
         }
       },
       "how": {
-        "title": "How to use it",
+        "title": "One shortcut.",
         "step1": "Click where you want to write: an e-mail, a document or a chat box.",
         "step2Hold": "Hold the shortcut and speak.",
         "step3Hold": "Let go. The text appears at your cursor within seconds.",
@@ -157,19 +190,43 @@
         "step3Toggle": "Press it again when you're done. The text appears at your cursor.",
         "demo": "Yarın saat onda toplantımız var; sunumu Friday'e kadar bitiriyoruz.",
         "longer": "For longer dictation, press the shortcut once, speak, and press it again when you're done.",
-        "lede": "One shortcut. In Mail, Slack or Word, it writes wherever your cursor is."
+        "lede": "In Mail, Slack or Word: it writes wherever your cursor is."
       },
       "try": {
-        "title": "Give it a try",
-        "instructionHold": "Hold the shortcut, read the sentence below, then let go:",
-        "instructionToggle": "Press the shortcut once, read the sentence below, then press it again:",
+        "title": "Give it a try.",
+        "instructionHold": "Hold the shortcut, read the sentence, let go.",
+        "instructionToggle": "Press the shortcut, read the sentence, press it again.",
         "phrase": "Merhaba Elchi, yarınki meeting'i saat üçe alalım ve notları herkesle paylaşalım.",
         "boxLabel": "Your text will land here",
-        "placeholder": "The cursor is in this box; what you say will be typed here.",
+        "placeholder": "The cursor is here; what you say will be typed here.",
         "successTitle": "That's it.",
         "successBody": "What you said was written out in seconds.",
-        "anywhere": "You can now dictate with the same shortcut in any app."
+        "anywhere": "You can now dictate with the same shortcut in any app.",
+        "listening": "Listening {{time}}",
+        "working": "Writing…",
+        "done": "Written"
       }
+    },
+    "layout": {
+      "setupPermissions": "Setup · Permissions",
+      "tourStep": "Tour · {{step}} / {{total}}"
+    },
+    "modelPicker": {
+      "eyebrow": "The model that runs on this computer",
+      "title": "Choose a model.",
+      "languages": "{{count}} languages",
+      "translation": "Translation",
+      "streaming": "Live",
+      "downloading": "{{percentage}}%",
+      "speed": "{{speed}} MB/s",
+      "cancel": "Cancel",
+      "verifying": "Verifying",
+      "extracting": "Extracting",
+      "switching": "Switching",
+      "select": "Select",
+      "download": "Download",
+      "downloaded": "Downloaded",
+      "custom": "Custom"
     }
   },
   "modelSelector": {
@@ -211,11 +268,7 @@
     }
   },
   "settings": {
-    "modelSettings": {
-      "title": "{{model}} Settings"
-    },
     "general": {
-      "title": "General",
       "shortcut": {
         "title": "Elchi Shortcuts",
         "description": "Configure keyboard shortcuts to trigger speech-to-text recording",
@@ -230,7 +283,7 @@
             "description": "The keyboard shortcut to record and transcribe your voice."
           },
           "cancel": {
-            "name": "Cancel Shortcut",
+            "name": "Cancel",
             "description": "The keyboard shortcut to cancel the current recording."
           },
           "transcribe_with_post_process": {
@@ -242,18 +295,21 @@
           "restore": "Failed to restore original shortcut",
           "set": "Failed to set shortcut: {{error}}",
           "reset": "Failed to reset shortcut to original value"
-        }
+        },
+        "reset": "Restore the default shortcut"
       },
       "language": {
         "title": "Language",
         "description": "Select the language for speech recognition. Auto will automatically determine the language, while selecting a specific language can improve accuracy for that language.",
         "searchPlaceholder": "Search languages...",
         "noResults": "No languages found",
-        "auto": "Auto"
+        "auto": "Auto",
+        "modelTitle": "{{model}} language",
+        "reset": "Restore the default language"
       },
       "shortcutActivation": {
-        "title": "Shortcut Behavior",
-        "description": "Choose how the transcribe shortcut starts and stops recording.",
+        "title": "Behavior",
+        "description": "Hold it, or press once",
         "options": {
           "holdOrToggle": "Auto",
           "pushToTalk": "Hold",
@@ -268,18 +324,55 @@
       "smartFormatting": {
         "title": "Smart formatting",
         "description": "Your dictation is tidied before it is pasted: fillers and self-corrections removed, lists and paragraphs laid out. The text is processed on our own servers, never by a third party, and is not stored."
+      },
+      "groups": {
+        "shortcut": "Shortcut",
+        "output": "Output",
+        "appearance": "Look"
       }
     },
     "models": {
-      "title": "Models",
-      "description": "Choose where your speech is turned into text: with Duyu Pro in the cloud, or with Duyu-small on this computer.",
       "deleteConfirm": "Are you sure you want to delete {{modelName}}? You will need to download it again to use it.",
       "deleteActiveConfirm": "{{modelName}} is your active model. Deleting it will stop transcriptions until you select a new model. Are you sure?",
       "deleteTitle": "Delete Model",
       "onDevice": {
         "title": "On this computer",
-        "description": "Duyu-small works without the internet. When Duyu Pro can't be reached, Elchi carries on with it.",
-        "fallback": "Fallback"
+        "fallback": "Fallback",
+        "hint": "Works offline",
+        "hintFallback": "Works offline · Fallback"
+      },
+      "pro": {
+        "eyebrow": "Duyu Pro · Cloud",
+        "trialDays_one": "Trial · {{count}} day left",
+        "trialDays_other": "Trial · {{count}} days left",
+        "trialEnded": "Trial ended",
+        "proPlan": "ELCHI PRO",
+        "headline": "Our most accurate model. Fewer mistakes with fast speech, names and numbers.",
+        "freeNote": "Elchi now runs on this computer with Duyu-small.",
+        "cta": "Get Pro",
+        "price": "{{price}} / month",
+        "freeMonths_one": "First month free",
+        "freeMonths_other": "First {{count}} months free",
+        "active": "ELCHI PRO is on",
+        "activeUntil": "ELCHI PRO is on · until {{date}}",
+        "useCloudOff": "When off: Duyu-small"
+      },
+      "local": {
+        "downloaded": "Downloaded",
+        "notDownloaded": "Not downloaded",
+        "accuracy": "Accuracy",
+        "speed": "Speed",
+        "size": "Size",
+        "sizeMb": "{{size}} MB",
+        "sizeGb": "{{size}} GB",
+        "languages_one": "{{count}} language",
+        "languages_other": "{{count}} languages",
+        "use": "Use",
+        "delete": "Delete",
+        "download": "Download",
+        "downloading": "Downloading · {{percentage}}%",
+        "downloadingLabel": "Downloading {{modelName}}",
+        "progressMb": "{{done}} / {{total}} MB"
       }
     },
     "sound": {
@@ -288,7 +381,8 @@
         "title": "Microphone",
         "description": "Select your preferred microphone device",
         "placeholder": "Select microphone...",
-        "loading": "Loading..."
+        "loading": "Loading...",
+        "reset": "Use the default microphone"
       },
       "channel": {
         "title": "Input Channel",
@@ -304,7 +398,8 @@
         "title": "Output Device",
         "description": "Select your preferred audio output device for feedback sounds",
         "placeholder": "Select output device...",
-        "loading": "Loading..."
+        "loading": "Loading...",
+        "reset": "Use the default output"
       },
       "volume": {
         "title": "Volume",
@@ -317,7 +412,10 @@
         "output": "Output",
         "transcription": "Transcription",
         "history": "History",
-        "experimental": "Experimental"
+        "experimental": "Experimental",
+        "indicator": "Indicator",
+        "historyHint": "Kept on this computer",
+        "system": "System"
       },
       "experimentalToggle": {
         "label": "Experimental Features",
@@ -464,6 +562,16 @@
           "simplified": "Simplified",
           "traditional": "Traditional"
         }
+      },
+      "recordingsFolder": {
+        "title": "Recordings folder",
+        "description": "Opens the folder where audio recordings are kept."
+      },
+      "rare": {
+        "summary_one": "{{count}} more rarely changed setting — pasting, clipboard, voice detection, Chinese script…",
+        "summary_other": "{{count}} more rarely changed settings — pasting, clipboard, voice detection, Chinese script…",
+        "show": "Show",
+        "hide": "Hide"
       }
     },
     "postProcessing": {
@@ -529,24 +637,7 @@
         "createFirst": "Click 'Create New Prompt' above to create your first post-processing prompt."
       }
     },
-    "history": {
-      "title": "History",
-      "openFolder": "Open Recordings Folder",
-      "loading": "Loading history...",
-      "empty": "Nothing transcribed yet. Your dictations will appear here.",
-      "copyToClipboard": "Copy transcription to clipboard",
-      "copyError": "Failed to copy transcription to clipboard.",
-      "save": "Save transcription",
-      "unsave": "Remove from saved",
-      "delete": "Delete entry",
-      "deleteError": "Failed to delete entry. Please try again.",
-      "retranscribe": "Re-transcribe",
-      "retranscribeError": "Failed to re-transcribe. Please try again.",
-      "transcribing": "Transcribing...",
-      "transcriptionFailed": "Transcription failed. You can re-transcribe using the retry icon."
-    },
     "debug": {
-      "title": "Debug",
       "logDirectory": {
         "title": "Log Directory",
         "description": "Location where log files are stored"
@@ -678,6 +769,12 @@
         "verdictOk": "Key events are reaching Elchi normally.",
         "verdictNoEvents": "No events captured — did you press any keys during the test?",
         "failed": "Diagnostic failed: {{error}}"
+      },
+      "groups": {
+        "previews": "Previews",
+        "input": "Keyboard and pasting",
+        "audio": "Audio",
+        "logs": "Logs"
       }
     },
     "about": {
@@ -707,12 +804,14 @@
           "description": "High-performance inference engine for running machine learning models on device",
           "details": "Duyu-small runs on this computer through ONNX Runtime. Thanks to Microsoft and the ONNX Runtime contributors."
         }
+      },
+      "updates": {
+        "title": "Updates"
       }
     }
   },
   "footer": {
     "checkingUpdates": "Checking for updates...",
-    "updateAvailableShort": "Update available",
     "upToDate": "Up to date",
     "updateCheckingDisabled": "Update Checking Disabled",
     "downloading": "Downloading... {{progress}}%",
@@ -723,7 +822,15 @@
     "portableUpdateMessage": "Portable installs cannot be updated automatically. Download the installer for your system below, run it, and install to the same folder — your Data/ folder (settings, models, recordings) is kept in place.",
     "portableUpdateButton": "Download installer",
     "portableUpdateBrowseMessage": "Portable installs cannot be updated automatically. Download the latest version for your system from speech.patientdesk.ai/elchi and install it to the same folder — your Data/ folder (settings, models, recordings) is kept in place.",
-    "portableUpdateBrowseButton": "Open Download Page"
+    "portableUpdateBrowseButton": "Open Download Page",
+    "rail": {
+      "upToDate": "<v>v{{version}}</v> · Up to date",
+      "checking": "<v>v{{version}}</v> · Checking",
+      "updateAvailable": "Update available · <v>v{{version}}</v> →",
+      "installing": "Updating · {{progress}}%"
+    },
+    "updateAvailableVersion": "Update available · <v>v{{version}}</v>",
+    "installAndRestart": "Install and restart"
   },
   "whatsNew": {
     "title": "New in Elchi {{version}}"
@@ -778,9 +885,10 @@
     }
   },
   "overlay": {
-    "transcribing": "Transcribing...",
-    "processing": "Processing...",
-    "loadingModel": "Loading model..."
+    "transcribing": "Transcribing",
+    "processing": "Polishing",
+    "loadingModel": "Loading model",
+    "cancel": "Cancel"
   },
   "secureInput": {
     "blockedWithCulprit_one": "{{name}} may be blocking 1 shortcut",
@@ -791,23 +899,14 @@
     "recorderBlockedNoCulprit": "macOS is temporarily blocking shortcut changes",
     "learnMore": "How to fix",
     "recorderBlocked": "Can't record shortcuts right now — macOS Secure Input is blocking key events. Resolve the Secure Input warning first.",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "label": "Secure keyboard entry is on"
   },
   "elchiPro": {
     "cta": "Get Elchi Pro",
-    "pricePerMonth": "{{price}} / month",
-    "freeMonth": "First month free, no card needed",
     "upgradeFailed": "Couldn't open the browser. You can continue at speech.patientdesk.ai/elchi.",
     "card": {
       "eyebrow": "Duyu Pro",
-      "title": "Our full model: Duyu Pro",
-      "detail": "Duyu Pro is the larger model behind Duyu-small. It makes fewer mistakes with fast speech, names and numbers.",
-      "trialTitle_one": "Duyu Pro trial: {{count}} day left",
-      "trialTitle_other": "Duyu Pro trial: {{count}} days left",
-      "proTitle": "Elchi Pro is on",
-      "proDetail": "Your recordings are transcribed by Duyu Pro. Your subscription runs until {{date}}.",
-      "freeTitle": "Your Duyu Pro trial has ended",
-      "freeDetail": "Elchi now runs on this computer with Duyu-small: free and unlimited. To go back to Duyu Pro, get Elchi Pro.",
       "useCloud": "Use Duyu Pro",
       "useCloudDescription": "When on, recordings are transcribed by Duyu Pro on PatientDesk AI's servers; when off, by Duyu-small on this computer."
     },
@@ -820,36 +919,8 @@
     },
     "badge": {
       "trial_one": "Duyu Pro · {{count}} day",
-      "trial_other": "Duyu Pro · {{count}} days",
-      "pro": "Elchi Pro"
+      "trial_other": "Duyu Pro · {{count}} days"
     }
-  },
-  "summary": {
-    "eyebrow": "This week",
-    "words_one": "{{n}} word",
-    "words_other": "{{n}} words",
-    "saved": "~{{time}} saved",
-    "savedNone": "It adds up as you speak",
-    "hoursMinutes": "{{h}} h {{m}} min",
-    "minutes": "{{m}} min",
-    "today": "Today",
-    "speed": "Your speed",
-    "speedValue": "{{wpm}} words/min",
-    "faster": "{{x}}× faster than typing",
-    "streak": "Streak",
-    "streakDays_one": "{{count}} day",
-    "streakDays_other": "{{count}} days",
-    "streakHint": "At least one dictation a day",
-    "chart": "Last 7 days, words",
-    "totals": "{{words}} words in all · {{dictations}} dictations · ~{{time}} saved",
-    "share": "Share",
-    "copied": "Copied to the clipboard",
-    "shareText": "This week I wrote {{words}} words with Elchi and saved ~{{time}}. Free Turkish dictation: speech.patientdesk.ai/elchi",
-    "emptyTitle": "Waiting for your first dictation",
-    "emptyBody": "Hold the shortcut, speak, let go. What you write adds up here.",
-    "upsellFree": "Fewer corrections with Duyu Pro: more accurate with fast speech, names and numbers.",
-    "upsellTrial_one": "{{count}} day left in your Duyu Pro trial.",
-    "upsellTrial_other": "{{count}} days left in your Duyu Pro trial."
   },
   "dictionary": {
     "title": "Dictionary",
@@ -859,67 +930,127 @@
     "addPlaceholder": "Add a word, e.g. PatientDesk",
     "add": "Add",
     "learned": "learned",
-    "heardAs": "heard as: {{forms}}",
     "remove": "Remove {{word}}",
-    "empty": "No words yet. Your first correction starts it.",
     "learnToggle": "Learn from corrections",
-    "learnToggleDescription": "When on, Elchi reads the corrections you make to text it pasted and adds new names to the dictionary. What it reads never leaves your computer.",
+    "learnToggleDescription": "Reads the corrections you make to pasted text and adds new names. The text never leaves your computer.",
     "needsFormatting": "The dictionary is used by smart formatting and Duyu Pro. Smart formatting is off.",
     "learnedToast": "Added to your dictionary: {{words}}",
     "count_one": "{{count}} word",
     "count_other": "{{count}} words",
     "phrasesTitle": "Corrected phrases",
-    "phrasesHint": "Groups of words Elchi misheard and you corrected. If the same mistake comes back, formatting fixes it."
-  },
-  "historyEdit": {
-    "edit": "Fix",
-    "save": "Save",
-    "cancel": "Cancel",
-    "hint": "Fix it; Elchi learns new names.",
-    "saved": "Saved"
+    "phrasesHint": "Groups of words Elchi misheard and you corrected. If the same mistake comes back, formatting fixes it.",
+    "heardLabel": "Heard",
+    "emptyHint": "No words yet",
+    "example": "Example",
+    "exampleHeard": "Kan",
+    "exampleWord": "Kaan"
   },
   "home": {
-    "week": "This week",
-    "saved": "saved",
-    "streak": "streak",
-    "words_one": "{{n}} word",
-    "words_other": "{{n}} words",
-    "streakDays_one": "{{count}} day",
-    "streakDays_other": "{{count}} days",
     "settings": "Settings",
-    "home": "Home",
     "engineCloud": "Duyu Pro",
     "engineLocal": "Duyu-small",
     "today": "Today",
     "yesterday": "Yesterday",
+    "fromElchi": "From Elchi",
+    "words_one": "{{n}} word",
+    "words_other": "{{n}} words",
     "formatted": "formatted",
-    "copy": "Copy",
-    "copied": "Copied",
-    "fix": "Fix",
-    "save": "Save",
-    "cancel": "Cancel",
-    "fixHint": "Fix it; Elchi learns new names.",
+    "showHeard": "see what was heard",
+    "hideHeard": "hide what was heard",
+    "heard": "Heard",
+    "corrected": "You fixed",
+    "unknownApp": "An app",
+    "more": "Load older",
+    "moreFailed": "Couldn't load older dictations. Try again",
+    "loading": "Loading…",
+    "openFolder": "Open recordings folder",
+    "bar": {
+      "words_one": "word",
+      "words_other": "words",
+      "saved": "saved",
+      "streak_one": "day streak",
+      "streak_other": "day streak",
+      "hoursMinutes": "{{h}} h {{m}} min",
+      "minutes": "{{m}} min",
+      "engine": "Speech recognition model"
+    },
+    "hero": {
+      "week": "This week",
+      "unit_one": "word",
+      "unit_other": "words",
+      "wpm": "{{n}} words/min",
+      "faster": "{{x}}× typing speed",
+      "streak_one": "{{count}} day streak",
+      "streak_other": "{{count}} day streak"
+    },
+    "empty": {
+      "title": "Waiting for your first dictation.",
+      "body": "Hold, speak, let go. What you write collects here."
+    },
+    "row": {
+      "copy": "Copy",
+      "copied": "Copied",
+      "copyFailed": "Couldn't copy to the clipboard.",
+      "edit": "Edit",
+      "toDictionary": "To dictionary",
+      "more": "More actions",
+      "keep": "Keep forever",
+      "unkeep": "Stop keeping",
+      "kept": "Kept",
+      "retranscribe": "Transcribe again",
+      "retranscribeFailed": "Couldn't transcribe it again. Please try again.",
+      "delete": "Delete",
+      "deleteFailed": "Couldn't delete it. Please try again.",
+      "failed": "This recording couldn't be transcribed.",
+      "retry": "Try again",
+      "transcribing": "Transcribing…"
+    },
+    "player": {
+      "play": "Play recording",
+      "pause": "Pause recording",
+      "seek": "Position in recording"
+    },
+    "edit": {
+      "label": "Fix the text",
+      "save": "Save",
+      "cancel": "Cancel",
+      "hint": "Fix it and Elchi learns new names",
+      "editing": "Editing",
+      "saved": "Fix saved"
+    },
+    "dict": {
+      "placeholder": "Word or name",
+      "add": "Add",
+      "added": "Added to dictionary · {{word}}",
+      "hint": "Select a word in the text first to add it"
+    },
+    "upsell": {
+      "label": "Duyu Pro",
+      "trialLabel_one": "Duyu Pro · trial · {{count}} day",
+      "trialLabel_other": "Duyu Pro · trial · {{count}} days",
+      "trialText": "Fewer corrections with fast speech, names and numbers.",
+      "freeLabel": "Duyu Pro",
+      "freeTitle": "Your Duyu Pro trial has ended.",
+      "freeText": "Elchi now runs with Duyu-small.",
+      "price": "{{price}} / month",
+      "freeMonths_one": "First month free",
+      "freeMonths_other": "First {{count}} months free",
+      "cta": "Go Pro"
+    },
+    "trialTitle_one": "{{count}} day left in your Duyu Pro trial.",
+    "trialTitle_other": "{{count}} days left in your Duyu Pro trial.",
+    "trialBody": "After that you carry on free with Duyu-small, and can go Pro whenever you like.",
+    "trialBodyFree": "After that you carry on free with Duyu-small, and can go Pro whenever you like; the first month is free.",
+    "trialCta": "Go Pro",
+    "dontShowAgain": "Don't show again",
     "learnedTitle": "New word: {{word}}.",
     "learnedHeard": "You fixed “{{heard}}”; I'll write it right from now on.",
     "learnedAdded": "Added to your dictionary.",
-    "streakTitle": "Day {{count}}!",
+    "learnedPhraseTitle": "New correction: “{{heard}}” → “{{word}}”.",
+    "learnedPhraseBody": "If I hear it that way again, I'll fix it.",
+    "streakTitle": "Day {{count}}.",
     "streakBody": "You've dictated every day for {{count}} days.",
     "milestoneTitle": "{{n}} words!",
-    "milestoneBody": "You've passed {{n}} spoken words; typing them would have taken about {{time}}.",
-    "trialTitle_one": "{{count}} day left in your Duyu Pro trial.",
-    "trialTitle_other": "{{count}} days left in your Duyu Pro trial.",
-    "trialBody": "After that you carry on free with Duyu-small. Or move to Elchi Pro: the first month is free.",
-    "freeTitle": "Fewer corrections with Duyu Pro.",
-    "freeBody": "More accurate with fast speech, names and numbers. First month free, no card needed.",
-    "welcomeTitle": "Hi, I'm Elchi.",
-    "welcomeBody": "Hold {{keys}}, speak, let go. What you write will show up here.",
-    "more": "Older ones are in History",
-    "unknownApp": "An app",
-    "corrected": "You fixed:",
-    "showHeard": "see what was heard",
-    "hideHeard": "hide",
-    "heard": "Heard:",
-    "learnedPhraseTitle": "New correction: “{{heard}}” → “{{word}}”.",
-    "learnedPhraseBody": "If I hear it that way again, I'll fix it."
+    "milestoneBody": "You've passed {{n}} spoken words; typing them would have taken about {{time}}."
   }
 }

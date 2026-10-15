@@ -27,7 +27,7 @@ export const ApiKeyField: React.FC<ApiKeyFieldProps> = React.memo(
         placeholder={placeholder}
         variant="compact"
         disabled={disabled}
-        className={`flex-1 min-w-[320px] ${className}`}
+        className={`flex-1 min-w-0 ${className}`}
       />
     );
   },
