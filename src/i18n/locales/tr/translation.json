@@ -1101,13 +1101,14 @@
       "processing": "Yazılıyor",
       "noNotes": "Not yok",
       "interrupted": "Yarıda kaldı",
-      "empty": "Boş"
+      "empty": "Boş",
+      "noNotesLong": "Henüz not yok; döküm duruyor."
     },
     "new": {
       "title": "Yeni toplantı",
       "body": "Elchi görüşmeyi senin mikrofonundan ve bilgisayarın sesinden dinler; aramaya kimse katılmaz. Bitirince notları senin notlarının etrafında yazarım.",
       "bodyFree": "Elchi görüşmeyi senin mikrofonundan ve bilgisayarın sesinden dinler; aramaya kimse katılmaz. Döküm ücretsiz; notları Duyu Pro yazar.",
-      "start": "Başlat"
+      "start": "Toplantıyı başlat"
     },
     "live": {
       "label": "Süren toplantı",
@@ -1116,8 +1117,9 @@
       "cancel": "Vazgeç",
       "cancelConfirm": "Silinsin mi?",
       "micOnly": "Yalnızca senin mikrofonun kaydediliyor: karşı tarafın sesi için macOS 14.6 veya üstü gerekiyor.",
-      "notesPlaceholder": "Önemli gördüklerini yaz. Notları bunların etrafında yazarım.",
-      "waiting": "Konuşulanlar birkaç saniye içinde burada görünür."
+      "notesPlaceholder": "Önemli gördüğünü yaz, gerisini toplantıdan ben tamamlarım.",
+      "waiting": "Konuşulanlar birkaç saniye içinde burada görünür.",
+      "rail": "Canlı döküm"
     },
     "consent": {
       "title": "Kayda başlamadan önce",
@@ -1125,6 +1127,24 @@
       "privacy": "Varsayılan olarak ses kaydı tutulmaz; notlar yazılınca döküm de silinir. Bunu Ayarlar > Gelişmiş'ten değiştirebilirsin.",
       "accept": "Anladım, başlat",
       "cancel": "Vazgeç"
-    }
+    },
+    "defaultMic": "Varsayılan mikrofon",
+    "callAudio": "Görüşmenin sesi",
+    "privacy": {
+      "notKept": "Ses kaydı saklanmıyor · notlar kalır",
+      "kept": "Ses ve döküm saklanıyor"
+    },
+    "todo_one": "{{count}} yapılacak",
+    "todo_other": "{{count}} yapılacak",
+    "titleLabel": "Toplantının adı",
+    "titlePlaceholder": "Başlıksız toplantı",
+    "legend": {
+      "mine": "Senin yazdığın",
+      "elchi": "Elchi'nin toplantıdan eklediği"
+    },
+    "onlyMine": "Yalnızca benim yazdıklarım",
+    "showTranscript_one": "Dökümü göster · {{count}} satır",
+    "showTranscript_other": "Dökümü göster · {{count}} satır",
+    "hideTranscript": "Dökümü gizle"
   }
 }

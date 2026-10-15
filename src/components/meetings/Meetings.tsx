@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Mic, Volume2 } from "lucide-react";
 import {
   commands,
   type ActiveMeeting,
@@ -16,7 +16,14 @@ import { useSettings } from "@/hooks/useSettings";
 import { ChipButton, GhostButton } from "../home/FeedRow";
 import { MiniPlayer } from "../home/MiniPlayer";
 import { useIsDark } from "../home/useIsDark";
-import { NotesMarkdown } from "./NotesMarkdown";
+import { dayKey } from "../home/text";
+import {
+  openTasks,
+  parseNotes,
+  summaryOf,
+  toggleTask,
+  type Section,
+} from "./notesModel";
 import {
   useActiveMeeting,
   useLiveMeeting,
@@ -31,10 +38,42 @@ const clock = (seconds: number) => {
   return h > 0 ? `${h}:${pad(m)}:${pad(s % 60)}` : `${m}:${pad(s % 60)}`;
 };
 
-const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <h2 className="font-mono text-[10px] tracking-[0.12em] uppercase font-normal text-text/40">
+const minutesOf = (m: Meeting) =>
+  m.ended_at ? Math.max(1, Math.round((m.ended_at - m.started_at) / 60)) : null;
+
+const mono =
+  "font-mono text-[10.5px] tracking-[0.06em] uppercase text-[color:var(--text-faint)]";
+
+const Label: React.FC<{ children: React.ReactNode; accent?: boolean }> = ({
+  children,
+  accent,
+}) => (
+  <h2
+    className={`font-mono text-[10px] tracking-[0.12em] uppercase font-normal ${
+      accent ? "text-logo-primary" : "text-text/40"
+    }`}
+  >
     {children}
   </h2>
+);
+
+/** The screen's steel bar: the way back, and what this view needs on the right. */
+const Bar: React.FC<{
+  back: string;
+  onBack: () => void;
+  center?: React.ReactNode;
+  children?: React.ReactNode;
+}> = ({ back, onBack, center, children }) => (
+  <header className="steel-bar relative z-10 flex-none h-14 px-6 max-[720px]:px-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+    <div>
+      <GhostButton onClick={onBack} className="!px-1">
+        <ArrowLeft className="inline w-3 h-3 me-1" aria-hidden="true" />
+        {back}
+      </GhostButton>
+    </div>
+    <div>{center}</div>
+    <div className="flex items-center justify-end gap-2">{children}</div>
+  </header>
 );
 
 /** A two-step destructive button: the first click asks, the second does it. */
@@ -58,6 +97,21 @@ const ConfirmButton: React.FC<{
     </GhostButton>
   );
 };
+
+/** **bold** in the model's notes, nothing else. */
+const Inline: React.FC<{ text: string }> = ({ text }) => (
+  <>
+    {text.split(/(\*\*.+?\*\*)/g).map((part, i) =>
+      part.startsWith("**") && part.endsWith("**") ? (
+        <strong key={i} className="font-medium">
+          {part.slice(2, -2)}
+        </strong>
+      ) : (
+        <React.Fragment key={i}>{part}</React.Fragment>
+      ),
+    )}
+  </>
+);
 
 /** Before the first meeting: the people in it must be told it is recorded. */
 const ConsentDialog: React.FC<{
@@ -96,66 +150,43 @@ const ConsentDialog: React.FC<{
   );
 };
 
-const Meter: React.FC<{ label: string; level: number }> = ({
-  label,
+/** Three bars that move with one side's level, for the live capsule. */
+const Bars: React.FC<{ level: number; color: string; label: string }> = ({
   level,
-}) => (
-  <div className="flex items-center gap-2.5 min-w-0">
-    <span className="w-[86px] flex-none font-mono text-[10px] tracking-[0.08em] uppercase text-[color:var(--text-faint)]">
-      {label}
-    </span>
-    <span className="relative h-1.5 flex-1 rounded-full bg-mid-gray/15 overflow-hidden">
-      <span
-        className="absolute inset-y-0 start-0 rounded-full bg-accent transition-[width] duration-300"
-        style={{ width: `${Math.min(100, Math.sqrt(level) * 260)}%` }}
-      />
-    </span>
-  </div>
-);
-
-const TranscriptLines: React.FC<{ segments: Segment[]; follow?: boolean }> = ({
-  segments,
-  follow,
+  color,
+  label,
 }) => {
-  const { t } = useTranslation();
-  const end = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (follow) end.current?.scrollIntoView({ block: "end" });
-  }, [segments.length, follow]);
+  const v = Math.min(1, Math.sqrt(level) * 2.6);
   return (
-    <div className="flex flex-col gap-2.5 select-text cursor-text">
-      {segments.map((s) => (
-        <p key={s.id} className="text-[14.5px] leading-[1.5]">
-          <span
-            className={`me-2 font-mono text-[10px] tracking-[0.08em] uppercase ${
-              s.speaker === "me"
-                ? "text-accent"
-                : "text-[color:var(--text-faint)]"
-            }`}
-          >
-            {s.speaker === "me" ? t("meetings.me") : t("meetings.them")}{" "}
-            {clock(s.start_ms / 1000)}
-          </span>
-          {s.text}
-        </p>
+    <span
+      role="img"
+      aria-label={label}
+      className="flex items-end gap-[2px] h-3.5"
+    >
+      {[0.55, 1, 0.75].map((k, i) => (
+        <span
+          key={i}
+          className="w-[3px] rounded-sm transition-[height] duration-200"
+          style={{ height: `${Math.max(3, v * k * 14)}px`, background: color }}
+        />
       ))}
-      <div ref={end} />
-    </div>
+    </span>
   );
 };
 
-/** The meeting being recorded: time, both sides' levels, the transcript as it comes, and
- *  the user's own notes, which the notes are written around. */
+/** The meeting being recorded, as a notebook: the user writes; the transcript runs beside. */
 const LiveMeeting: React.FC<{
   active: ActiveMeeting;
+  onBack: () => void;
   onStopped: (id: number) => void;
-}> = ({ active, onStopped }) => {
-  const { t } = useTranslation();
+}> = ({ active, onBack, onStopped }) => {
+  const { t, i18n } = useTranslation();
   const { segments, levels } = useLiveMeeting(active.id);
   const [now, setNow] = useState(Date.now());
   const [notes, setNotes] = useState("");
+  const [title, setTitle] = useState("");
   const [stopping, setStopping] = useState(false);
-  const saved = useRef("");
+  const saved = useRef({ notes: "", title: "" });
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
@@ -164,30 +195,35 @@ const LiveMeeting: React.FC<{
 
   useEffect(() => {
     commands.getMeeting(active.id).then((r) => {
-      if (r.status === "ok") {
-        setNotes(r.data.meeting.user_notes);
-        saved.current = r.data.meeting.user_notes;
-      }
+      if (r.status !== "ok") return;
+      setNotes(r.data.meeting.user_notes);
+      setTitle(r.data.meeting.title);
+      saved.current = {
+        notes: r.data.meeting.user_notes,
+        title: r.data.meeting.title,
+      };
     });
   }, [active.id]);
 
   const save = useCallback(
-    async (text: string) => {
-      if (text === saved.current) return;
-      saved.current = text;
-      await commands.setMeetingUserNotes(active.id, text);
+    async (next: { notes: string; title: string }) => {
+      if (next.notes !== saved.current.notes)
+        await commands.setMeetingUserNotes(active.id, next.notes);
+      if (next.title !== saved.current.title)
+        await commands.setMeetingTitle(active.id, next.title);
+      saved.current = next;
     },
     [active.id],
   );
 
   useEffect(() => {
-    const timer = setTimeout(() => save(notes), 600);
+    const timer = setTimeout(() => save({ notes, title }), 600);
     return () => clearTimeout(timer);
-  }, [notes, save]);
+  }, [notes, title, save]);
 
   const stop = async () => {
     setStopping(true);
-    await save(notes);
+    await save({ notes, title });
     const r = await commands.stopMeeting();
     if (r.status === "error") {
       toast.error(r.error);
@@ -202,87 +238,235 @@ const LiveMeeting: React.FC<{
     if (r.status === "error") toast.error(r.error);
   };
 
+  const recent = segments.slice(-8);
+  const started = new Date(active.started_at * 1000);
+
   return (
-    <section
-      aria-label={t("meetings.live.label")}
-      className="steel-panel p-5 flex flex-col gap-4"
-    >
-      <div className="flex flex-wrap items-center gap-3">
-        <span className="flex items-center gap-2 font-mono text-[11px] tracking-[0.08em] uppercase">
-          <span
-            aria-hidden="true"
-            className="h-2 w-2 rounded-full bg-red-500 animate-pulse"
-          />
-          {t("meetings.live.recording")} ·{" "}
-          {clock(now / 1000 - active.started_at)}
-        </span>
-        <span className="flex-1" />
+    <>
+      <Bar
+        back={t("meetings.back")}
+        onBack={onBack}
+        center={
+          <div
+            role="group"
+            aria-label={t("meetings.live.label")}
+            className="flex items-center gap-3.5 ps-3.5 pe-1.5 py-1.5 rounded-full text-white shadow-[0_8px_20px_-10px_rgba(0,0,0,0.6)] bg-[linear-gradient(180deg,#23252e,#121318)]"
+          >
+            <span className="flex items-center gap-2 font-mono text-[12px] tabular-nums">
+              <span
+                aria-hidden="true"
+                className="h-2 w-2 rounded-full bg-[#ff4646] animate-pulse"
+              />
+              {clock(now / 1000 - active.started_at)}
+            </span>
+            <Bars level={levels.me} color="#8ea0ff" label={t("meetings.me")} />
+            {active.call_audio && (
+              <Bars
+                level={levels.them}
+                color="rgba(255,255,255,0.75)"
+                label={t("meetings.them")}
+              />
+            )}
+            <button
+              type="button"
+              onClick={stop}
+              disabled={stopping}
+              className="inline-flex items-center gap-1.5 px-3.5 min-h-[30px] rounded-full bg-white text-[#141418] text-[13px] font-medium cursor-pointer disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/70"
+            >
+              {stopping && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+              {t("meetings.live.stop")}
+            </button>
+          </div>
+        }
+      >
         <ConfirmButton
           label={t("meetings.live.cancel")}
           confirm={t("meetings.live.cancelConfirm")}
           onConfirm={cancel}
         />
-        <button
-          type="button"
-          onClick={stop}
-          disabled={stopping}
-          className="chrome-cta inline-flex items-center gap-1.5 px-3.5 py-[9px] text-[13px] leading-none disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/70"
-        >
-          {stopping && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-          {t("meetings.live.stop")}
-        </button>
-      </div>
+      </Bar>
 
-      <div className="flex flex-col gap-1.5">
-        <Meter label={t("meetings.me")} level={levels.me} />
-        {active.call_audio ? (
-          <Meter label={t("meetings.them")} level={levels.them} />
-        ) : (
-          <p className="text-[12.5px] text-mid-gray">
-            {t("meetings.live.micOnly")}
+      <div className="flex-1 min-h-0 flex flex-wrap overflow-y-auto">
+        <main className="flex-[999_1_480px] min-w-0 px-14 max-[720px]:px-6 py-12 flex flex-col gap-3">
+          <label className="flex flex-col">
+            <span className="sr-only">{t("meetings.titleLabel")}</span>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={t("meetings.titlePlaceholder")}
+              className="bg-transparent border-0 p-0 text-[32px] leading-tight font-medium tracking-[-0.02em] placeholder:text-text/30 focus:outline-none select-text"
+            />
+          </label>
+          <p className={mono}>
+            {started.toLocaleString(i18n.language, {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
           </p>
-        )}
-      </div>
+          <label className="flex-1 flex flex-col pt-4">
+            <span className="sr-only">{t("meetings.yourNotes")}</span>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              onBlur={() => save({ notes, title })}
+              placeholder={t("meetings.live.notesPlaceholder")}
+              autoFocus
+              className="flex-1 min-h-[320px] resize-none bg-transparent border-0 p-0 text-[17px] leading-[1.6] placeholder:text-text/30 focus:outline-none select-text"
+            />
+          </label>
+        </main>
 
-      <div className="grid grid-cols-2 max-[760px]:grid-cols-1 gap-4">
-        <label className="flex flex-col gap-2">
-          <Label>{t("meetings.yourNotes")}</Label>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            onBlur={() => save(notes)}
-            placeholder={t("meetings.live.notesPlaceholder")}
-            className="min-h-[220px] resize-y rounded-lg border border-mid-gray/20 bg-background/60 px-3 py-2.5 text-[14.5px] leading-[1.5] select-text focus:outline-none focus:ring-2 focus:ring-accent/40"
-          />
-        </label>
-        <div className="flex flex-col gap-2 min-w-0">
-          <Label>{t("meetings.transcript")}</Label>
-          <div className="max-h-[300px] overflow-y-auto pe-1">
-            {segments.length === 0 ? (
-              <p className="text-[13px] text-mid-gray">
-                {t("meetings.live.waiting")}
+        <aside
+          aria-label={t("meetings.live.rail")}
+          className="flex-[1_1_240px] max-w-[300px] max-[720px]:max-w-none px-5 py-7 border-s border-mid-gray/15 flex flex-col gap-3.5"
+        >
+          <Label>{t("meetings.live.rail")}</Label>
+          {!active.call_audio && (
+            <p className="text-[12.5px] leading-[1.5] text-mid-gray">
+              {t("meetings.live.micOnly")}
+            </p>
+          )}
+          {recent.length === 0 ? (
+            <p className="text-[13px] text-mid-gray">
+              {t("meetings.live.waiting")}
+            </p>
+          ) : (
+            recent.map((s, i) => (
+              <p
+                key={s.id}
+                className="text-[13px] leading-[1.5] select-text"
+                style={{ opacity: 0.35 + (0.65 * (i + 1)) / recent.length }}
+              >
+                <span
+                  className={`block font-mono text-[9.5px] tracking-[0.06em] uppercase ${
+                    s.speaker === "me" ? "text-logo-primary" : "text-text/60"
+                  }`}
+                >
+                  {s.speaker === "me" ? t("meetings.me") : t("meetings.them")}
+                </span>
+                {s.text}
               </p>
-            ) : (
-              <TranscriptLines segments={segments} follow />
-            )}
-          </div>
-        </div>
+            ))
+          )}
+        </aside>
       </div>
-    </section>
+    </>
   );
 };
 
-const meetingTitle = (m: Meeting, t: (k: string) => string) =>
-  m.title.trim() || t("meetings.untitled");
+const TranscriptLines: React.FC<{ segments: Segment[] }> = ({ segments }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-col gap-2.5 select-text cursor-text">
+      {segments.map((s) => (
+        <p key={s.id} className="text-[14.5px] leading-[1.5]">
+          <span
+            className={`me-2 font-mono text-[10px] tracking-[0.08em] uppercase ${
+              s.speaker === "me"
+                ? "text-logo-primary"
+                : "text-[color:var(--text-faint)]"
+            }`}
+          >
+            {s.speaker === "me" ? t("meetings.me") : t("meetings.them")}{" "}
+            {clock(s.start_ms / 1000)}
+          </span>
+          {s.text}
+        </p>
+      ))}
+    </div>
+  );
+};
 
-/** A finished meeting: its notes, the user's own notes, and what is kept of it. */
+/** The notes, the notebook way: the user's own lines as headings, Elchi's additions under
+ *  them in its quieter ink, then the to-dos to tick. */
+const Notes: React.FC<{
+  sections: Section[];
+  anyMine: boolean;
+  onlyMine: boolean;
+  onToggle: (at: number) => void;
+}> = ({ sections, anyMine, onlyMine, onToggle }) => {
+  const dark = useIsDark();
+  const added = anyMine ? (dark ? "#9aa3e0" : "#555c8f") : undefined;
+  const shown = onlyMine ? sections.filter((s) => s.mine) : sections;
+  return (
+    <article className="flex flex-col gap-6 select-text cursor-text">
+      {shown.map((s, i) =>
+        s.tasks ? (
+          <section
+            key={i}
+            className="steel-panel px-5 py-4 flex flex-col gap-2.5 cursor-default"
+          >
+            <Label accent>{s.heading}</Label>
+            {s.lines.map(
+              (l) =>
+                l.kind === "task" && (
+                  <label
+                    key={l.at}
+                    className="flex gap-2.5 items-start text-[15px] leading-[1.45] cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={l.done}
+                      onChange={() => onToggle(l.at)}
+                      className="mt-[3px] h-[17px] w-[17px] accent-[color:var(--color-accent)]"
+                    />
+                    <span
+                      className={l.done ? "line-through text-mid-gray" : ""}
+                    >
+                      <Inline text={l.text} />
+                    </span>
+                  </label>
+                ),
+            )}
+          </section>
+        ) : (
+          <section key={i} className="flex flex-col gap-1.5">
+            {s.heading && (
+              <h3
+                className={`text-[18px] leading-snug ${
+                  s.mine || !anyMine ? "font-medium" : "font-medium"
+                }`}
+                style={{ color: s.mine || !anyMine ? undefined : added }}
+              >
+                {s.heading}
+              </h3>
+            )}
+            {!onlyMine && s.lines.length > 0 && (
+              <ul
+                className="flex flex-col gap-1 ps-5 list-disc text-[16px] leading-[1.55]"
+                style={{ color: added }}
+              >
+                {s.lines.map((l) => (
+                  <li
+                    key={l.at}
+                    className={l.kind === "text" ? "list-none -ms-5" : ""}
+                  >
+                    <Inline text={l.text} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ),
+      )}
+    </article>
+  );
+};
+
+/** A finished meeting. */
 const MeetingView: React.FC<{ id: number; onBack: () => void }> = ({
   id,
   onBack,
 }) => {
   const { t, i18n } = useTranslation();
   const { status, upgrade } = useElchiPro();
+  const dark = useIsDark();
   const [detail, setDetail] = useState<MeetingDetail | null>(null);
+  const [onlyMine, setOnlyMine] = useState(false);
+  const [showTranscript, setShowTranscript] = useState(false);
   const [audio, setAudio] = useState<{
     me: string | null;
     them: string | null;
@@ -315,12 +499,17 @@ const MeetingView: React.FC<{ id: number; onBack: () => void }> = ({
 
   if (!detail) return null;
   const m = detail.meeting;
-  const started = new Date(m.started_at * 1000);
-  const minutes = m.ended_at
-    ? Math.max(1, Math.round((m.ended_at - m.started_at) / 60))
-    : null;
+  const sections = m.notes ? parseNotes(m.notes, m.user_notes) : [];
+  const anyMine = sections.some((s) => s.mine);
+  const minutes = minutesOf(m);
   const pro = !!status?.cloud_active;
 
+  const toggle = async (at: number) => {
+    if (!m.notes) return;
+    const notes = toggleTask(m.notes, at);
+    setDetail({ ...detail, meeting: { ...m, notes } });
+    await commands.setMeetingNotes(id, notes);
+  };
   const copy = async () => {
     await navigator.clipboard.writeText(
       [m.title && `# ${m.title}`, m.notes].filter(Boolean).join("\n\n"),
@@ -338,121 +527,19 @@ const MeetingView: React.FC<{ id: number; onBack: () => void }> = ({
   };
 
   return (
-    <article className="flex flex-col gap-5">
-      <div>
-        <GhostButton onClick={onBack} className="!px-0">
-          <ArrowLeft className="inline w-3 h-3 me-1" aria-hidden="true" />
-          {t("meetings.all")}
-        </GhostButton>
-      </div>
-      <header className="flex flex-col gap-1">
-        <h1 className="text-[22px] leading-tight tracking-[-0.01em] font-medium select-text">
-          {meetingTitle(m, t)}
-        </h1>
-        <p className="font-mono text-[11px] tracking-[0.04em] uppercase text-[color:var(--text-faint)]">
-          {started.toLocaleString(i18n.language, {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-          {minutes !== null &&
-            ` · ${t("meetings.minutes", { count: minutes })}`}
-        </p>
-      </header>
-
-      {m.status === "processing" && (
-        <p className="flex items-center gap-2 text-[14px] text-mid-gray">
-          <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
-          {t("meetings.writing")}
-        </p>
-      )}
-      {m.status === "empty" && (
-        <p className="text-[14px] text-mid-gray">{t("meetings.empty")}</p>
-      )}
-      {(m.status === "no_notes" || m.status === "interrupted") && (
-        <div className="steel-panel px-5 py-4 flex flex-wrap items-center gap-3">
-          <p className="flex-1 min-w-[220px] text-[14px] leading-[1.5]">
-            {!pro
-              ? t("meetings.proOnly")
-              : m.status === "interrupted"
-                ? t("meetings.interrupted")
-                : t("meetings.failed")}
-          </p>
-          {!pro ? (
-            <ChipButton
-              onClick={() =>
-                upgrade().catch(() => toast.error(t("elchiPro.upgradeFailed")))
-              }
-            >
-              {t("meetings.upgrade")}
-            </ChipButton>
-          ) : (
-            m.has_transcript && (
-              <ChipButton onClick={retry}>{t("meetings.retry")}</ChipButton>
-            )
-          )}
-        </div>
-      )}
-
-      {m.notes && (
-        <section className="flex flex-col gap-3">
-          <NotesMarkdown markdown={m.notes} />
-        </section>
-      )}
-
-      {m.user_notes.trim() && (
-        <section className="flex flex-col gap-2">
-          <Label>{t("meetings.yourNotes")}</Label>
-          <p className="whitespace-pre-wrap text-[14.5px] leading-[1.5] text-mid-gray select-text cursor-text">
-            {m.user_notes}
-          </p>
-        </section>
-      )}
-
-      {(audio.me || audio.them) && (
-        <section className="flex flex-col gap-2">
-          <Label>{t("meetings.recording")}</Label>
-          {audio.me && (
-            <div className="flex items-center gap-3">
-              <span className="w-[86px] font-mono text-[10px] tracking-[0.08em] uppercase text-[color:var(--text-faint)]">
-                {t("meetings.me")}
-              </span>
-              <MiniPlayer
-                load={async () => convertFileSrc(audio.me!, "asset")}
-                warm
-              />
-            </div>
-          )}
-          {audio.them && (
-            <div className="flex items-center gap-3">
-              <span className="w-[86px] font-mono text-[10px] tracking-[0.08em] uppercase text-[color:var(--text-faint)]">
-                {t("meetings.them")}
-              </span>
-              <MiniPlayer
-                load={async () => convertFileSrc(audio.them!, "asset")}
-                warm
-              />
-            </div>
-          )}
-        </section>
-      )}
-
-      {detail.segments.length > 0 && (
-        <details className="group" open={!m.notes}>
-          <summary className="cursor-pointer list-none">
-            <Label>
-              {t("meetings.transcript")} · {detail.segments.length}
-            </Label>
-          </summary>
-          <div className="pt-3">
-            <TranscriptLines segments={detail.segments} />
-          </div>
-        </details>
-      )}
-
-      <div className="flex items-center gap-1.5 pt-1">
+    <>
+      <Bar back={t("meetings.title")} onBack={onBack}>
+        {anyMine && (
+          <label className="flex items-center gap-2 text-[12.5px] text-mid-gray cursor-pointer max-[720px]:hidden">
+            <input
+              type="checkbox"
+              checked={onlyMine}
+              onChange={(e) => setOnlyMine(e.target.checked)}
+              className="h-4 w-4 accent-[color:var(--color-accent)]"
+            />
+            {t("meetings.onlyMine")}
+          </label>
+        )}
         {m.notes && (
           <ChipButton onClick={copy}>{t("meetings.copy")}</ChipButton>
         )}
@@ -461,36 +548,330 @@ const MeetingView: React.FC<{ id: number; onBack: () => void }> = ({
           confirm={t("meetings.deleteConfirm")}
           onConfirm={remove}
         />
-      </div>
-    </article>
+      </Bar>
+
+      <main className="flex-1 overflow-y-auto">
+        <div className="max-w-[700px] mx-auto px-7 max-[720px]:px-5 pt-12 pb-14 flex flex-col gap-4">
+          <h1 className="text-[32px] leading-tight tracking-[-0.02em] font-medium select-text">
+            {m.title.trim() || t("meetings.untitled")}
+          </h1>
+          <p className={mono}>
+            {new Date(m.started_at * 1000).toLocaleString(i18n.language, {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+            {minutes !== null &&
+              ` · ${t("meetings.minutes", { count: minutes })}`}
+          </p>
+          {anyMine && !onlyMine && (
+            <p className="flex flex-wrap gap-4 text-[12.5px] text-mid-gray">
+              <span className="inline-flex items-center gap-1.5">
+                <span
+                  aria-hidden="true"
+                  className="h-2.5 w-2.5 rounded-[3px] bg-text"
+                />
+                {t("meetings.legend.mine")}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span
+                  aria-hidden="true"
+                  className="h-2.5 w-2.5 rounded-[3px]"
+                  style={{ background: dark ? "#9aa3e0" : "#8b93c9" }}
+                />
+                {t("meetings.legend.elchi")}
+              </span>
+            </p>
+          )}
+
+          <div className="pt-3 flex flex-col gap-6">
+            {m.status === "processing" && (
+              <p className="flex items-center gap-2 text-[14px] text-mid-gray">
+                <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                {t("meetings.writing")}
+              </p>
+            )}
+            {m.status === "empty" && (
+              <p className="text-[14px] text-mid-gray">{t("meetings.empty")}</p>
+            )}
+            {(m.status === "no_notes" || m.status === "interrupted") && (
+              <div className="steel-panel px-5 py-4 flex flex-wrap items-center gap-3">
+                <p className="flex-1 min-w-[220px] text-[14px] leading-[1.5]">
+                  {!pro
+                    ? t("meetings.proOnly")
+                    : m.status === "interrupted"
+                      ? t("meetings.interrupted")
+                      : t("meetings.failed")}
+                </p>
+                {!pro ? (
+                  <ChipButton
+                    onClick={() =>
+                      upgrade().catch(() =>
+                        toast.error(t("elchiPro.upgradeFailed")),
+                      )
+                    }
+                  >
+                    {t("meetings.upgrade")}
+                  </ChipButton>
+                ) : (
+                  m.has_transcript && (
+                    <ChipButton onClick={retry}>
+                      {t("meetings.retry")}
+                    </ChipButton>
+                  )
+                )}
+              </div>
+            )}
+
+            {sections.length > 0 && (
+              <Notes
+                sections={sections}
+                anyMine={anyMine}
+                onlyMine={onlyMine}
+                onToggle={toggle}
+              />
+            )}
+
+            {!m.notes && m.user_notes.trim() && (
+              <section className="flex flex-col gap-2">
+                <Label>{t("meetings.yourNotes")}</Label>
+                <p className="whitespace-pre-wrap text-[16px] leading-[1.55] select-text cursor-text">
+                  {m.user_notes}
+                </p>
+              </section>
+            )}
+
+            {(audio.me || audio.them) && (
+              <section className="flex flex-col gap-2">
+                <Label>{t("meetings.recording")}</Label>
+                {(["me", "them"] as const).map(
+                  (side) =>
+                    audio[side] && (
+                      <div key={side} className="flex items-center gap-3">
+                        <span className={`w-[90px] ${mono}`}>
+                          {side === "me"
+                            ? t("meetings.me")
+                            : t("meetings.them")}
+                        </span>
+                        <MiniPlayer
+                          load={async () =>
+                            convertFileSrc(audio[side]!, "asset")
+                          }
+                          warm
+                        />
+                      </div>
+                    ),
+                )}
+              </section>
+            )}
+
+            {detail.segments.length > 0 && (
+              <section className="flex flex-col gap-3">
+                <GhostButton
+                  onClick={() => setShowTranscript((v) => !v)}
+                  aria-expanded={showTranscript || !m.notes}
+                  className="self-start !px-0"
+                >
+                  {showTranscript || !m.notes
+                    ? t("meetings.hideTranscript")
+                    : t("meetings.showTranscript", {
+                        count: detail.segments.length,
+                      })}
+                </GhostButton>
+                {(showTranscript || !m.notes) && (
+                  <TranscriptLines segments={detail.segments} />
+                )}
+              </section>
+            )}
+          </div>
+        </div>
+      </main>
+    </>
   );
 };
 
-const statusLabel = (m: Meeting, t: (k: string) => string) =>
-  ({
-    recording: t("meetings.status.recording"),
-    processing: t("meetings.status.processing"),
-    no_notes: t("meetings.status.noNotes"),
-    interrupted: t("meetings.status.interrupted"),
-    empty: t("meetings.status.empty"),
-  })[m.status] ?? "";
+/** The meetings list: start one, then every meeting by day with its first points. */
+const MeetingList: React.FC<{
+  meetings: Meeting[] | null;
+  onBack: () => void;
+  onOpen: (id: number) => void;
+  onStart: () => void;
+  starting: boolean;
+}> = ({ meetings, onBack, onOpen, onStart, starting }) => {
+  const { t, i18n } = useTranslation();
+  const { getSetting } = useSettings();
+  const { status } = useElchiPro();
+  const keep = getSetting("meeting_keep_recording") ?? false;
+  const mic = getSetting("selected_microphone") || t("meetings.defaultMic");
+  const pro = !!status?.cloud_active;
+
+  const now = Date.now();
+  const dayLabel = (k: string) => {
+    if (k === dayKey(now)) return t("home.today");
+    if (k === dayKey(now - 86_400_000)) return t("home.yesterday");
+    return new Date(`${k}T12:00:00`).toLocaleDateString(i18n.language, {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
+  };
+  const groups: [string, Meeting[]][] = [];
+  for (const m of meetings ?? []) {
+    const k = dayKey(m.started_at * 1000);
+    const last = groups[groups.length - 1];
+    if (last && last[0] === k) last[1].push(m);
+    else groups.push([k, [m]]);
+  }
+
+  const retry = async (id: number) => {
+    const r = await commands.retryMeetingNotes(id);
+    if (r.status === "error") toast.error(r.error);
+  };
+
+  return (
+    <>
+      <Bar back={t("meetings.back")} onBack={onBack}>
+        <span className={`${mono} max-[720px]:hidden`}>
+          {keep ? t("meetings.privacy.kept") : t("meetings.privacy.notKept")}
+        </span>
+      </Bar>
+      <main className="flex-1 overflow-y-auto">
+        <div className="max-w-[860px] mx-auto px-7 max-[720px]:px-5 pt-8 pb-12 flex flex-col gap-8">
+          <section
+            aria-label={t("meetings.new.title")}
+            className="steel-panel px-7 py-6 flex flex-wrap items-center gap-6"
+          >
+            <div className="flex-[1_1_320px] flex flex-col gap-2">
+              <h1 className="text-[24px] font-medium tracking-[-0.015em]">
+                {t("meetings.new.title")}
+              </h1>
+              <p className="text-[14.5px] leading-[1.55] text-mid-gray">
+                {pro ? t("meetings.new.body") : t("meetings.new.bodyFree")}
+              </p>
+              <div className="flex flex-wrap gap-2 pt-1.5">
+                <span className="steel-chip !rounded-full inline-flex items-center gap-1.5 px-2.5 py-1 text-[12.5px]">
+                  <Mic
+                    className="w-3.5 h-3.5 text-logo-primary"
+                    aria-hidden="true"
+                  />
+                  {mic}
+                </span>
+                <span className="steel-chip !rounded-full inline-flex items-center gap-1.5 px-2.5 py-1 text-[12.5px]">
+                  <Volume2
+                    className="w-3.5 h-3.5 text-logo-primary"
+                    aria-hidden="true"
+                  />
+                  {t("meetings.callAudio")}
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onStart}
+              disabled={starting}
+              className="inline-flex items-center gap-2.5 px-5 min-h-[48px] rounded-full border border-[#1b2bd6] text-white text-[15px] font-medium bg-[linear-gradient(180deg,#3d57ff,#2140ff)] shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_10px_22px_-10px_rgba(33,64,255,0.7)] cursor-pointer disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/70 focus-visible:ring-offset-2"
+            >
+              {starting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <span
+                  aria-hidden="true"
+                  className="h-2.5 w-2.5 rounded-full bg-white"
+                />
+              )}
+              {t("meetings.new.start")}
+            </button>
+          </section>
+
+          {groups.map(([day, list]) => (
+            <section
+              key={day}
+              aria-label={dayLabel(day)}
+              className="flex flex-col"
+            >
+              <Label>{dayLabel(day)}</Label>
+              <ul className="pt-2">
+                {list.map((m) => {
+                  const minutes = minutesOf(m);
+                  const todo = openTasks(m.notes);
+                  const summary =
+                    summaryOf(m.notes) ||
+                    (m.status === "processing"
+                      ? t("meetings.writing")
+                      : m.status === "empty"
+                        ? t("meetings.empty")
+                        : m.status === "no_notes" || m.status === "interrupted"
+                          ? t("meetings.status.noNotesLong")
+                          : "");
+                  const canRetry =
+                    pro &&
+                    m.has_transcript &&
+                    (m.status === "no_notes" || m.status === "interrupted");
+                  return (
+                    <li
+                      key={m.id}
+                      className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-1.5 py-[18px] px-1 hairline-t"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => onOpen(m.id)}
+                        className="text-start text-[17px] font-medium tracking-[-0.01em] truncate cursor-pointer hover:text-logo-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 rounded-sm"
+                      >
+                        {m.title.trim() || t("meetings.untitled")}
+                      </button>
+                      <span className={`${mono} self-center`}>
+                        {new Date(m.started_at * 1000).toLocaleTimeString(
+                          i18n.language,
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        )}
+                        {minutes !== null &&
+                          ` · ${t("meetings.minutes", { count: minutes })}`}
+                      </span>
+                      <p className="text-[14px] leading-[1.5] text-mid-gray line-clamp-2">
+                        {summary}
+                      </p>
+                      <span className="self-start">
+                        {canRetry ? (
+                          <ChipButton onClick={() => retry(m.id)}>
+                            {t("meetings.retry")}
+                          </ChipButton>
+                        ) : (
+                          todo > 0 && (
+                            <span className="inline-block px-2.5 py-1 rounded-full bg-accent/10 text-logo-primary font-mono text-[10px] tracking-[0.06em] uppercase whitespace-nowrap">
+                              {t("meetings.todo", { count: todo })}
+                            </span>
+                          )
+                        )}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ))}
+        </div>
+      </main>
+    </>
+  );
+};
 
 /**
  * Meetings: record a call (the user's microphone and the call's audio as two tracks,
- * nothing joins it), see the transcript as it goes, jot notes, and get the notes written
- * when it ends (Duyu Pro). Past meetings below.
+ * nothing joins it), write in a notebook while the transcript runs beside it, and get
+ * the notes written around those lines when it ends (Duyu Pro).
  */
-export const Meetings: React.FC<{
-  onBack: () => void;
-  initialId?: number | null;
-}> = ({ onBack, initialId = null }) => {
-  const { t, i18n } = useTranslation();
+export const Meetings: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+  const { t } = useTranslation();
   const dark = useIsDark();
   const { getSetting, refreshSettings } = useSettings();
-  const { status } = useElchiPro();
   const { active, refresh: refreshActive } = useActiveMeeting();
   const { meetings } = useMeetingList();
-  const [selected, setSelected] = useState<number | null>(initialId);
+  const [selected, setSelected] = useState<number | null>(null);
   const [asking, setAsking] = useState(false);
   const [starting, setStarting] = useState(false);
 
@@ -524,103 +905,19 @@ export const Meetings: React.FC<{
     <div
       className={`h-screen flex flex-col bg-background select-none cursor-default ${dark ? "grain" : ""}`}
     >
-      <header className="steel-bar relative z-10 flex-none h-14 px-7 max-[720px]:px-5 flex items-center gap-4">
-        <GhostButton onClick={onBack} className="!px-1">
-          <ArrowLeft className="inline w-3 h-3 me-1" aria-hidden="true" />
-          {t("meetings.back")}
-        </GhostButton>
-        <h1 className="font-mono text-[11px] tracking-[0.1em] uppercase">
-          {t("meetings.title")}
-        </h1>
-      </header>
-
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-[880px] mx-auto px-7 max-[720px]:px-5 pt-7 pb-10 flex flex-col gap-6">
-          {selected !== null ? (
-            <MeetingView id={selected} onBack={() => setSelected(null)} />
-          ) : (
-            <>
-              {active ? (
-                <LiveMeeting
-                  active={active}
-                  onStopped={(id) => setSelected(id)}
-                />
-              ) : (
-                <section className="steel-panel px-6 py-5 flex flex-wrap items-center gap-4">
-                  <div className="flex-1 min-w-[240px] flex flex-col gap-1">
-                    <h2 className="text-[16px] font-medium">
-                      {t("meetings.new.title")}
-                    </h2>
-                    <p className="text-[13.5px] leading-[1.5] text-mid-gray">
-                      {status?.cloud_active
-                        ? t("meetings.new.body")
-                        : t("meetings.new.bodyFree")}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={onStart}
-                    disabled={starting}
-                    className="chrome-cta inline-flex items-center gap-1.5 px-3.5 py-[9px] text-[13px] leading-none disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/70"
-                  >
-                    {starting && (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    )}
-                    {t("meetings.new.start")}
-                  </button>
-                </section>
-              )}
-
-              {past.length > 0 && (
-                <section className="flex flex-col">
-                  <Label>{t("meetings.past")}</Label>
-                  <ul className="pt-2">
-                    {past.map((m) => (
-                      <li key={m.id}>
-                        <button
-                          type="button"
-                          onClick={() => setSelected(m.id)}
-                          className="w-full text-start grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-4 py-3.5 hairline-t cursor-pointer hover:bg-mid-gray/5 rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
-                        >
-                          <span className="min-w-0 flex flex-col gap-1">
-                            <span className="text-[15px] truncate">
-                              {meetingTitle(m, t)}
-                            </span>
-                            <span className="font-mono text-[10.5px] tracking-[0.04em] uppercase text-[color:var(--text-faint)]">
-                              {new Date(m.started_at * 1000).toLocaleString(
-                                i18n.language,
-                                {
-                                  day: "numeric",
-                                  month: "short",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                },
-                              )}
-                              {m.ended_at &&
-                                ` · ${t("meetings.minutes", {
-                                  count: Math.max(
-                                    1,
-                                    Math.round(
-                                      (m.ended_at - m.started_at) / 60,
-                                    ),
-                                  ),
-                                })}`}
-                            </span>
-                          </span>
-                          <span className="font-mono text-[10px] tracking-[0.06em] uppercase text-[color:var(--text-faint)]">
-                            {statusLabel(m, t)}
-                          </span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              )}
-            </>
-          )}
-        </div>
-      </main>
-
+      {selected !== null ? (
+        <MeetingView id={selected} onBack={() => setSelected(null)} />
+      ) : active ? (
+        <LiveMeeting active={active} onBack={onBack} onStopped={setSelected} />
+      ) : (
+        <MeetingList
+          meetings={past}
+          onBack={onBack}
+          onOpen={setSelected}
+          onStart={onStart}
+          starting={starting}
+        />
+      )}
       {asking && (
         <ConsentDialog onAccept={accept} onClose={() => setAsking(false)} />
       )}

@@ -958,6 +958,28 @@ async deleteMeeting(id: number) : Promise<Result<null, string>> {
 }
 },
 /**
+ * The user's own title for a meeting; the notes keep it rather than titling it themselves.
+ */
+async setMeetingTitle(id: number, title: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_meeting_title", { id, title }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The notes after the user ticked a to-do in them.
+ */
+async setMeetingNotes(id: number, notes: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_meeting_notes", { id, notes }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
  * Writes the notes again (after a failure, or once the user has Duyu Pro), from the
  * transcript a meeting without notes keeps.
  */

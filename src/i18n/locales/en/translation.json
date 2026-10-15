@@ -1101,13 +1101,14 @@
       "processing": "Writing",
       "noNotes": "No notes",
       "interrupted": "Cut short",
-      "empty": "Empty"
+      "empty": "Empty",
+      "noNotesLong": "No notes yet; the transcript is kept."
     },
     "new": {
       "title": "New meeting",
       "body": "Elchi listens through your microphone and your computer's sound; nothing joins the call. When you end it, I write the notes around your own.",
       "bodyFree": "Elchi listens through your microphone and your computer's sound; nothing joins the call. The transcript is free; the notes are written with Duyu Pro.",
-      "start": "Start"
+      "start": "Start meeting"
     },
     "live": {
       "label": "Meeting in progress",
@@ -1116,8 +1117,9 @@
       "cancel": "Discard",
       "cancelConfirm": "Discard it?",
       "micOnly": "Only your microphone is recorded: the others' audio needs macOS 14.6 or later.",
-      "notesPlaceholder": "Jot down what matters to you. I'll write the notes around it.",
-      "waiting": "What's said shows up here within seconds."
+      "notesPlaceholder": "Write what matters to you; I'll fill in the rest from the meeting.",
+      "waiting": "What's said shows up here within seconds.",
+      "rail": "Live transcript"
     },
     "consent": {
       "title": "Before you record",
@@ -1125,6 +1127,24 @@
       "privacy": "By default no audio is kept, and the transcript is deleted once the notes are written. You can change this in Settings > Advanced.",
       "accept": "Understood, start",
       "cancel": "Cancel"
-    }
+    },
+    "defaultMic": "Default microphone",
+    "callAudio": "The call's audio",
+    "privacy": {
+      "notKept": "No audio kept · notes stay",
+      "kept": "Audio and transcript kept"
+    },
+    "todo_one": "{{count}} to do",
+    "todo_other": "{{count}} to do",
+    "titleLabel": "Meeting title",
+    "titlePlaceholder": "Untitled meeting",
+    "legend": {
+      "mine": "What you wrote",
+      "elchi": "What Elchi added from the meeting"
+    },
+    "onlyMine": "Only what I wrote",
+    "showTranscript_one": "Show transcript · {{count}} line",
+    "showTranscript_other": "Show transcript · {{count}} lines",
+    "hideTranscript": "Hide transcript"
   }
 }
