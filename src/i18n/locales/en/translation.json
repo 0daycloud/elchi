@@ -851,9 +851,10 @@
     }
   },
   "overlay": {
-    "transcribing": "Transcribing...",
-    "processing": "Processing...",
-    "loadingModel": "Loading model..."
+    "transcribing": "Transcribing",
+    "processing": "Polishing",
+    "loadingModel": "Loading model",
+    "cancel": "Cancel"
   },
   "secureInput": {
     "blockedWithCulprit_one": "{{name}} may be blocking 1 shortcut",

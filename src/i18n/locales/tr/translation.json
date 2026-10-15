@@ -848,9 +848,10 @@
     }
   },
   "overlay": {
-    "transcribing": "Yazıya dökülüyor...",
-    "processing": "İşleniyor...",
-    "loadingModel": "Model yükleniyor..."
+    "transcribing": "Yazıya dökülüyor",
+    "processing": "Düzenleniyor",
+    "loadingModel": "Model yükleniyor",
+    "cancel": "İptal"
   },
   "whatsNew": {
     "title": "Elchi {{version}} sürümündeki yenilikler"
