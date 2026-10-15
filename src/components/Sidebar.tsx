@@ -12,12 +12,10 @@ import { useChangedSettings } from "./settings/advanced/changedSettings";
 import {
   GeneralSettings,
   AdvancedSettings,
-  HistorySettings,
   DebugSettings,
   AboutSettings,
   PostProcessingSettings,
   ModelsSettings,
-  SummarySettings,
   DictionarySettings,
 } from "./settings";
 
@@ -26,8 +24,7 @@ export type SidebarSection = keyof typeof SECTIONS_CONFIG;
 /**
  * Where a section lives: the four user tabs, the developer area (behind the
  * rail footer link), or nowhere in the rail (About opens from the version
- * line; History and Summary are folding into Home and stay addressable until
- * then).
+ * line).
  */
 type SectionPlace = "main" | "developer" | "hidden";
 
@@ -86,18 +83,6 @@ export const SECTIONS_CONFIG = {
   about: {
     labelKey: "sidebar.about",
     component: AboutSettings,
-    place: "hidden",
-    enabled: () => true,
-  },
-  summary: {
-    labelKey: "sidebar.summary",
-    component: SummarySettings,
-    place: "hidden",
-    enabled: () => true,
-  },
-  history: {
-    labelKey: "sidebar.history",
-    component: HistorySettings,
     place: "hidden",
     enabled: () => true,
   },

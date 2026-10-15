@@ -14,11 +14,9 @@
     "models": "Models",
     "advanced": "Advanced",
     "postProcessing": "Post-processing (LLM)",
-    "history": "History",
     "debug": "Debug",
     "about": "About",
     "label": "Sections",
-    "summary": "Summary",
     "dictionary": "Dictionary",
     "back": "ELCHI",
     "hints": {
@@ -271,7 +269,6 @@
   },
   "settings": {
     "general": {
-      "title": "General",
       "shortcut": {
         "title": "Elchi Shortcuts",
         "description": "Configure keyboard shortcuts to trigger speech-to-text recording",
@@ -335,8 +332,6 @@
       }
     },
     "models": {
-      "title": "Models",
-      "description": "Choose where your speech is turned into text: with Duyu Pro in the cloud, or with Duyu-small on this computer.",
       "deleteConfirm": "Are you sure you want to delete {{modelName}}? You will need to download it again to use it.",
       "deleteActiveConfirm": "{{modelName}} is your active model. Deleting it will stop transcriptions until you select a new model. Are you sure?",
       "deleteTitle": "Delete Model",
@@ -642,22 +637,6 @@
         "createFirst": "Click 'Create New Prompt' above to create your first post-processing prompt."
       }
     },
-    "history": {
-      "title": "History",
-      "openFolder": "Open Recordings Folder",
-      "loading": "Loading history...",
-      "empty": "Nothing transcribed yet. Your dictations will appear here.",
-      "copyToClipboard": "Copy transcription to clipboard",
-      "copyError": "Failed to copy transcription to clipboard.",
-      "save": "Save transcription",
-      "unsave": "Remove from saved",
-      "delete": "Delete entry",
-      "deleteError": "Failed to delete entry. Please try again.",
-      "retranscribe": "Re-transcribe",
-      "retranscribeError": "Failed to re-transcribe. Please try again.",
-      "transcribing": "Transcribing...",
-      "transcriptionFailed": "Transcription failed. You can re-transcribe using the retry icon."
-    },
     "debug": {
       "logDirectory": {
         "title": "Log Directory",
@@ -925,8 +904,6 @@
   },
   "elchiPro": {
     "cta": "Get Elchi Pro",
-    "pricePerMonth": "{{price}} / month",
-    "freeMonth": "First month free, no card needed",
     "upgradeFailed": "Couldn't open the browser. You can continue at speech.patientdesk.ai/elchi.",
     "card": {
       "eyebrow": "Duyu Pro",
@@ -942,36 +919,8 @@
     },
     "badge": {
       "trial_one": "Duyu Pro · {{count}} day",
-      "trial_other": "Duyu Pro · {{count}} days",
-      "pro": "Elchi Pro"
+      "trial_other": "Duyu Pro · {{count}} days"
     }
-  },
-  "summary": {
-    "eyebrow": "This week",
-    "words_one": "{{n}} word",
-    "words_other": "{{n}} words",
-    "saved": "~{{time}} saved",
-    "savedNone": "It adds up as you speak",
-    "hoursMinutes": "{{h}} h {{m}} min",
-    "minutes": "{{m}} min",
-    "today": "Today",
-    "speed": "Your speed",
-    "speedValue": "{{wpm}} words/min",
-    "faster": "{{x}}× faster than typing",
-    "streak": "Streak",
-    "streakDays_one": "{{count}} day",
-    "streakDays_other": "{{count}} days",
-    "streakHint": "At least one dictation a day",
-    "chart": "Last 7 days, words",
-    "totals": "{{words}} words in all · {{dictations}} dictations · ~{{time}} saved",
-    "share": "Share",
-    "copied": "Copied to the clipboard",
-    "shareText": "This week I wrote {{words}} words with Elchi and saved ~{{time}}. Free Turkish dictation: speech.patientdesk.ai/elchi",
-    "emptyTitle": "Waiting for your first dictation",
-    "emptyBody": "Hold the shortcut, speak, let go. What you write adds up here.",
-    "upsellFree": "Fewer corrections with Duyu Pro: more accurate with fast speech, names and numbers.",
-    "upsellTrial_one": "{{count}} day left in your Duyu Pro trial.",
-    "upsellTrial_other": "{{count}} days left in your Duyu Pro trial."
   },
   "dictionary": {
     "title": "Dictionary",
@@ -996,15 +945,7 @@
     "exampleHeard": "Kan",
     "exampleWord": "Kaan"
   },
-  "historyEdit": {
-    "edit": "Fix",
-    "save": "Save",
-    "cancel": "Cancel",
-    "hint": "Fix it; Elchi learns new names.",
-    "saved": "Saved"
-  },
   "home": {
-    "home": "Home",
     "settings": "Settings",
     "engineCloud": "Duyu Pro",
     "engineLocal": "Duyu-small",

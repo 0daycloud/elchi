@@ -14,11 +14,9 @@
     "models": "Modeller",
     "advanced": "Gelişmiş",
     "postProcessing": "Son işlem (LLM)",
-    "history": "Geçmiş",
     "debug": "Hata ayıklama",
     "about": "Hakkında",
     "label": "Bölümler",
-    "summary": "Özet",
     "dictionary": "Sözlük",
     "back": "ELCHI",
     "hints": {
@@ -271,8 +269,6 @@
   },
   "settings": {
     "models": {
-      "title": "Modeller",
-      "description": "Konuşmanızın nerede yazıya döküleceğini seçin: bulutta Duyu Pro ile ya da bu bilgisayarda Duyu-small ile.",
       "deleteConfirm": "{{modelName}} modelini silmek istediğinizden emin misiniz? Yeniden kullanmak için tekrar indirmeniz gerekir.",
       "deleteActiveConfirm": "{{modelName}} şu anda kullandığınız model. Silerseniz yeni bir model seçene kadar dikte çalışmaz. Emin misiniz?",
       "deleteTitle": "Modeli sil",
@@ -317,7 +313,6 @@
       }
     },
     "general": {
-      "title": "Genel",
       "shortcut": {
         "title": "Elchi kısayolları",
         "description": "Dikteyi başlatan klavye kısayollarını ayarlayın",
@@ -642,22 +637,6 @@
         "createFirst": "İlk son işlem isteminizi oluşturmak için yukarıdaki “Yeni istem oluştur” düğmesine tıklayın."
       }
     },
-    "history": {
-      "title": "Geçmiş",
-      "openFolder": "Kayıt klasörünü aç",
-      "loading": "Geçmiş yükleniyor...",
-      "empty": "Henüz bir şey yazıya dökülmedi. Dikte ettikleriniz burada görünecek.",
-      "copyToClipboard": "Metni panoya kopyala",
-      "copyError": "Metin panoya kopyalanamadı.",
-      "save": "Kaydedilenlere ekle",
-      "unsave": "Kaydedilenlerden çıkar",
-      "delete": "Kaydı sil",
-      "deleteError": "Kayıt silinemedi. Lütfen yeniden deneyin.",
-      "retranscribe": "Yeniden yazıya dök",
-      "retranscribeError": "Kayıt yeniden yazıya dökülemedi. Lütfen yeniden deneyin.",
-      "transcribing": "Yazıya dökülüyor...",
-      "transcriptionFailed": "Kayıt yazıya dökülemedi. Yeniden denemek için yeniden deneme simgesini kullanabilirsiniz."
-    },
     "debug": {
       "logDirectory": {
         "title": "Günlük klasörü",
@@ -925,8 +904,6 @@
   },
   "elchiPro": {
     "cta": "Elchi Pro'ya geç",
-    "pricePerMonth": "Aylık {{price}}",
-    "freeMonth": "İlk ay ücretsiz, kart bilgisi gerekmez",
     "upgradeFailed": "Tarayıcı açılamadı. speech.patientdesk.ai/elchi adresinden devam edebilirsiniz.",
     "card": {
       "eyebrow": "Duyu Pro",
@@ -942,36 +919,8 @@
     },
     "badge": {
       "trial_one": "Duyu Pro · {{count}} gün",
-      "trial_other": "Duyu Pro · {{count}} gün",
-      "pro": "Elchi Pro"
+      "trial_other": "Duyu Pro · {{count}} gün"
     }
-  },
-  "summary": {
-    "eyebrow": "Bu hafta",
-    "words_one": "{{n}} kelime",
-    "words_other": "{{n}} kelime",
-    "saved": "~{{time}} kazandın",
-    "savedNone": "Konuştukça burada birikir",
-    "hoursMinutes": "{{h}} sa {{m}} dk",
-    "minutes": "{{m}} dk",
-    "today": "Bugün",
-    "speed": "Hızın",
-    "speedValue": "{{wpm}} kelime/dk",
-    "faster": "klavyeden {{x}} kat hızlı",
-    "streak": "Seri",
-    "streakDays_one": "{{count}} gün",
-    "streakDays_other": "{{count}} gün",
-    "streakHint": "Her gün en az bir dikte",
-    "chart": "Son 7 gün, kelime",
-    "totals": "Toplam {{words}} kelime · {{dictations}} dikte · ~{{time}} kazanıldı",
-    "share": "Paylaş",
-    "copied": "Panoya kopyalandı",
-    "shareText": "Bu hafta Elchi ile {{words}} kelime yazdım ve ~{{time}} kazandım. Ücretsiz Türkçe dikte: speech.patientdesk.ai/elchi",
-    "emptyTitle": "İlk diktenizi bekliyoruz",
-    "emptyBody": "Kısayolu basılı tutun, konuşun, bırakın. Yazdıklarınız burada birikir.",
-    "upsellFree": "Duyu Pro ile daha az düzeltme: hızlı konuşmada, isimlerde ve sayılarda daha isabetli.",
-    "upsellTrial_one": "Duyu Pro denemenizde {{count}} gün kaldı.",
-    "upsellTrial_other": "Duyu Pro denemenizde {{count}} gün kaldı."
   },
   "dictionary": {
     "title": "Sözlük",
@@ -996,15 +945,7 @@
     "exampleHeard": "Kan",
     "exampleWord": "Kaan"
   },
-  "historyEdit": {
-    "edit": "Düzelt",
-    "save": "Kaydet",
-    "cancel": "Vazgeç",
-    "hint": "Düzeltin; Elchi yeni isimleri öğrenir.",
-    "saved": "Kaydedildi"
-  },
   "home": {
-    "home": "Ana sayfa",
     "settings": "Ayarlar",
     "engineCloud": "Duyu Pro",
     "engineLocal": "Duyu-small",
