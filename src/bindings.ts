@@ -624,6 +624,14 @@ async triggerUpdateCheck() : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Called by the settings window once its startup checks are done: when Elchi
+ * started hidden and nothing needed the user (permissions, onboarding), the
+ * still-hidden window is freed until it is opened from the tray (#9).
+ */
+async releaseHiddenMainWindow() : Promise<void> {
+    await TAURI_INVOKE("release_hidden_main_window");
+},
 async showMainWindowCommand() : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("show_main_window_command") };

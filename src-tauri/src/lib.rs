@@ -100,8 +100,69 @@ fn build_console_filter() -> env_filter::Filter {
     builder.build()
 }
 
-fn show_main_window(app: &AppHandle) {
-    if let Some(main_window) = app.get_webview_window("main") {
+/// Creates the settings window, hidden. It is created at startup and again when
+/// it is opened after being closed: closing it frees its webview (#9), which is
+/// most of what Elchi holds in memory while it waits in the tray.
+fn create_main_window(app: &AppHandle) -> tauri::Result<tauri::WebviewWindow> {
+    // Created programmatically so we can set data_directory for portable mode
+    // (redirects WebView2 cache to portable Data dir).
+    let mut win_builder =
+        tauri::WebviewWindowBuilder::new(app, "main", tauri::WebviewUrl::App("/".into()))
+            .title("Elchi")
+            .inner_size(760.0, 640.0)
+            .min_inner_size(680.0, 570.0)
+            .resizable(true)
+            .maximizable(true)
+            .visible(false);
+
+    if let Some(data_dir) = portable::data_dir() {
+        win_builder = win_builder.data_directory(data_dir.join("webview"));
+    }
+
+    let main_window = win_builder.build()?;
+
+    // Disable WebView2 browser accelerators (F5, F6, Ctrl+F, F12, ...).
+    // A settings window has no use for them, and pressing F6 while
+    // recording a shortcut was reported to turn the whole window white
+    // (cjpais/Handy#1940), likely by triggering WebView2 focus cycling.
+    // DevTools stays enabled; only the F12 accelerator is lost.
+    #[cfg(target_os = "windows")]
+    {
+        let _ = main_window.with_webview(|webview| unsafe {
+            use webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2Settings3;
+            use windows::core::Interface;
+
+            let result = webview
+                .controller()
+                .CoreWebView2()
+                .and_then(|core| core.Settings())
+                .and_then(|settings| settings.cast::<ICoreWebView2Settings3>())
+                .and_then(|settings| settings.SetAreBrowserAcceleratorKeysEnabled(false));
+
+            if let Err(error) = result {
+                log::warn!("Failed to disable WebView2 browser accelerators: {error}");
+            }
+        });
+    }
+
+    // Apply the persisted appearance theme to the native title bar before
+    // the window is shown, so it matches the in-app palette without a flash
+    // of the wrong theme. See `apply_window_theme` for what this does per
+    // platform.
+    #[cfg(any(target_os = "windows", target_os = "macos"))]
+    shortcut::apply_window_theme(app, get_settings(app).theme);
+
+    Ok(main_window)
+}
+
+pub(crate) fn show_main_window(app: &AppHandle) {
+    let main_window = match app.get_webview_window("main") {
+        Some(window) => Some(window),
+        None => create_main_window(app)
+            .map_err(|e| log::error!("Failed to create the main window: {e}"))
+            .ok(),
+    };
+    if let Some(main_window) = main_window {
         if let Err(e) = main_window.unminimize() {
             log::error!("Failed to unminimize webview window: {}", e);
         }
@@ -161,6 +222,11 @@ fn apply_startup_activation_policy(app: &mut tauri::App, headless_mode: bool) {
         log::info!("Starting hidden with tray available: launching as Accessory (no Dock icon)");
         app.set_activation_policy(tauri::ActivationPolicy::Accessory);
     }
+}
+
+/// Whether the tray icon is there to reopen the settings window from.
+fn tray_available(app: &AppHandle) -> bool {
+    get_settings(app).show_tray_icon && !app.state::<CliArgs>().no_tray
 }
 
 #[allow(unused_variables)]
@@ -376,6 +442,23 @@ fn initialize_core_logic(app_handle: &AppHandle) {
     utils::create_recording_overlay(app_handle);
     if settings.overlay_idle_line && settings.overlay_style != settings::OverlayStyle::None {
         utils::show_idle_overlay(app_handle);
+    }
+}
+
+/// Called by the settings window once its startup checks are done: when Elchi
+/// started hidden and nothing needed the user (permissions, onboarding), the
+/// still-hidden window is freed until it is opened from the tray (#9).
+#[tauri::command]
+#[specta::specta]
+fn release_hidden_main_window(app: AppHandle) {
+    if !tray_available(&app) {
+        return;
+    }
+    if let Some(window) = app.get_webview_window("main") {
+        if !window.is_visible().unwrap_or(true) {
+            log::info!("Started hidden: freeing the settings window until it is opened");
+            let _ = window.destroy();
+        }
     }
 }
 
@@ -742,6 +825,7 @@ pub fn run(cli_args: CliArgs) {
             secure_input::get_secure_input_status,
             secure_input::run_keyboard_diagnostic,
             trigger_update_check,
+            release_hidden_main_window,
             show_main_window_command,
             commands::cancel_operation,
             commands::is_portable,
@@ -969,57 +1053,9 @@ pub fn run(cli_args: CliArgs) {
                 return Ok(());
             }
 
-            // Create main window programmatically so we can set data_directory
-            // for portable mode (redirects WebView2 cache to portable Data dir)
-            let mut win_builder =
-                tauri::WebviewWindowBuilder::new(app, "main", tauri::WebviewUrl::App("/".into()))
-                    .title("Elchi")
-                    .inner_size(760.0, 640.0)
-                    .min_inner_size(680.0, 570.0)
-                    .resizable(true)
-                    .maximizable(true)
-                    .visible(false);
-
-            if let Some(data_dir) = portable::data_dir() {
-                win_builder = win_builder.data_directory(data_dir.join("webview"));
-            }
-
-            // Only used on Windows, to disable WebView2 browser accelerators.
-            #[cfg_attr(not(target_os = "windows"), allow(unused_variables))]
-            let main_window = win_builder.build()?;
-
-            // Disable WebView2 browser accelerators (F5, F6, Ctrl+F, F12, ...).
-            // A settings window has no use for them, and pressing F6 while
-            // recording a shortcut was reported to turn the whole window white
-            // (cjpais/Handy#1940), likely by triggering WebView2 focus cycling.
-            // DevTools stays enabled; only the F12 accelerator is lost.
-            #[cfg(target_os = "windows")]
-            {
-                let _ = main_window.with_webview(|webview| unsafe {
-                    use webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2Settings3;
-                    use windows::core::Interface;
-
-                    let result = webview
-                        .controller()
-                        .CoreWebView2()
-                        .and_then(|core| core.Settings())
-                        .and_then(|settings| settings.cast::<ICoreWebView2Settings3>())
-                        .and_then(|settings| settings.SetAreBrowserAcceleratorKeysEnabled(false));
-
-                    if let Err(error) = result {
-                        log::warn!("Failed to disable WebView2 browser accelerators: {error}");
-                    }
-                });
-            }
+            create_main_window(app.handle())?;
 
             let mut settings = get_settings(app.handle());
-
-            // Apply the persisted appearance theme to the native title bar before
-            // the window is shown, so it matches the in-app palette without a flash
-            // of the wrong theme. See `apply_window_theme` for what this does per
-            // platform.
-            #[cfg(any(target_os = "windows", target_os = "macos"))]
-            shortcut::apply_window_theme(app.handle(), settings.theme);
 
             // CLI --debug flag overrides debug_mode and log level (runtime-only, not persisted)
             if cli_args.debug {
@@ -1092,15 +1128,20 @@ pub fn run(cli_args: CliArgs) {
         })
         .on_window_event(|window, event| match event {
             tauri::WindowEvent::CloseRequested { api, .. } => {
-                api.prevent_close();
-                let _res = window.hide();
+                // With a tray to reopen it from, closing the settings window
+                // frees its webview (#9); `show_main_window` builds it again.
+                // Without one it is only hidden, as the dock or the next launch
+                // is the way back.
+                if window.label() == "main" && tray_available(window.app_handle()) {
+                    log::info!("Settings window closed: freeing its webview");
+                } else {
+                    api.prevent_close();
+                    let _res = window.hide();
+                }
 
                 #[cfg(target_os = "macos")]
                 {
-                    let settings = get_settings(window.app_handle());
-                    let tray_visible =
-                        settings.show_tray_icon && !window.app_handle().state::<CliArgs>().no_tray;
-                    if tray_visible {
+                    if tray_available(window.app_handle()) {
                         // Tray is available: hide the dock icon, app lives in the tray
                         let res = window
                             .app_handle()
@@ -1130,6 +1171,13 @@ pub fn run(cli_args: CliArgs) {
     // `app` is only used by the macOS arm.
     #[cfg_attr(not(target_os = "macos"), allow(unused_variables))]
     app.run(|app, event| match &event {
+        // The settings window is freed when closed (#9), and Elchi lives on in
+        // the tray: only an explicit quit (which carries an exit code) ends it.
+        tauri::RunEvent::ExitRequested {
+            code: None, api, ..
+        } => {
+            api.prevent_exit();
+        }
         #[cfg(target_os = "macos")]
         tauri::RunEvent::Reopen { .. } => {
             // Fired when the already-running bundle is launched again from

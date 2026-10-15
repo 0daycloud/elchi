@@ -121,12 +121,15 @@ function App() {
       !hasCompletedPostOnboardingInit.current
     ) {
       hasCompletedPostOnboardingInit.current = true;
-      Promise.all([
-        commands.initializeEnigo(),
-        commands.initializeShortcuts(),
-      ]).catch((e) => {
-        console.warn("Failed to initialize:", e);
-      });
+      Promise.all([commands.initializeEnigo(), commands.initializeShortcuts()])
+        .catch((e) => {
+          console.warn("Failed to initialize:", e);
+        })
+        // Started hidden and nothing needs the user: the backend frees this
+        // window until it is opened from the tray.
+        .finally(() => {
+          if (onboardingStep === "done") commands.releaseHiddenMainWindow();
+        });
       refreshAudioDevices();
       refreshOutputDevices();
     }

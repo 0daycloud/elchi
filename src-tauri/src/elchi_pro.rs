@@ -25,7 +25,7 @@ use log::{debug, info, warn};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use specta::Type;
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Emitter};
 
 use crate::settings::{get_settings, write_settings, SecretString};
 
@@ -359,10 +359,7 @@ impl ElchiPro {
         }
         settings.elchi_trial_end_seen = true;
         write_settings(&self.app, settings);
-        if let Some(window) = self.app.get_webview_window("main") {
-            let _ = window.show();
-            let _ = window.set_focus();
-        }
+        crate::show_main_window(&self.app);
         let _ = self.app.emit("elchi-trial-ended", ());
     }
 }

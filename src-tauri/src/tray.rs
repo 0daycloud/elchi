@@ -150,7 +150,11 @@ pub fn get_current_theme(app: &AppHandle) -> AppTheme {
         }
 
         // On other platforms, map system theme to our app theme
-        if let Some(main_window) = app.get_webview_window("main") {
+        // The settings window may be closed (freed); the overlay is always there.
+        let window = app
+            .get_webview_window("main")
+            .or_else(|| app.get_webview_window("recording_overlay"));
+        if let Some(main_window) = window {
             match main_window.theme().unwrap_or(Theme::Dark) {
                 Theme::Light => AppTheme::Light,
                 Theme::Dark => AppTheme::Dark,
