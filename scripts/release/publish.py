@@ -32,7 +32,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SITE_URL = "https://speech.patientdesk.ai"
-REPO = "0daycloud/elchi"
+REPO = "Patientdesk-AI/elchi"
 LARGE_BYTES = 90 * 1024 * 1024
 
 
