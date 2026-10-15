@@ -1,0 +1,46 @@
+/* Sözlük (frame 2c): the word chip's remove knob, a tiny conic-steel
+   circle. Graphite in obsidian, light steel on paper; same three-selector
+   pattern as src/styles/recipes.css. */
+
+:root {
+  --word-knob-bg: conic-gradient(
+    from 200deg,
+    #ffffff,
+    #d6d6de,
+    #f4f4f7,
+    #cbcbd4,
+    #ffffff
+  );
+  --word-knob-border: rgba(0, 0, 0, 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --word-knob-bg: conic-gradient(
+      from 200deg,
+      #3a3c46,
+      #1a1b21,
+      #4a4d5a,
+      #181920,
+      #3a3c46
+    );
+    --word-knob-border: rgba(255, 255, 255, 0.06);
+  }
+}
+
+:root[data-theme="dark"] {
+  --word-knob-bg: conic-gradient(
+    from 200deg,
+    #3a3c46,
+    #1a1b21,
+    #4a4d5a,
+    #181920,
+    #3a3c46
+  );
+  --word-knob-border: rgba(255, 255, 255, 0.06);
+}
+
+.word-knob {
+  background: var(--word-knob-bg);
+  border: 1px solid var(--word-knob-border);
+}

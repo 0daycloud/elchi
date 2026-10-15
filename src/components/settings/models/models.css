@@ -1,0 +1,33 @@
+/* Modeller page: the Duyu Pro zone's glow. Paper (light) lifts the blue
+   zone off the page with a soft blue shadow (4b); obsidian (dark) keeps it
+   flush (1c). Same three-selector pattern as src/styles/recipes.css. */
+
+:root {
+  --pro-zone-glow: 0 24px 48px rgba(33, 64, 255, 0.25);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --pro-zone-glow: 0 0 0 transparent;
+  }
+}
+
+:root[data-theme="dark"] {
+  --pro-zone-glow: 0 0 0 transparent;
+}
+
+.pro-zone {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    var(--pro-zone-glow);
+}
+
+/* The "Duyu Pro'yu kullan" tile: frosted dark blue over the pixel field. */
+.pro-zone-tile {
+  background: rgba(10, 20, 120, 0.35);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}

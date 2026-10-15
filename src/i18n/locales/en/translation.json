@@ -278,8 +278,42 @@
       "deleteTitle": "Delete Model",
       "onDevice": {
         "title": "On this computer",
-        "description": "Duyu-small works without the internet. When Duyu Pro can't be reached, Elchi carries on with it.",
-        "fallback": "Fallback"
+        "fallback": "Fallback",
+        "hint": "Works offline",
+        "hintFallback": "Works offline · Fallback"
+      },
+      "pro": {
+        "eyebrow": "Duyu Pro · Cloud",
+        "trialDays_one": "Trial · {{count}} day left",
+        "trialDays_other": "Trial · {{count}} days left",
+        "trialEnded": "Trial ended",
+        "proPlan": "ELCHI PRO",
+        "headline": "Our most accurate model. Fewer mistakes with fast speech, names and numbers.",
+        "freeNote": "Elchi now runs on this computer with Duyu-small.",
+        "cta": "Get Pro",
+        "price": "{{price}} / month",
+        "freeMonths_one": "First month free",
+        "freeMonths_other": "First {{count}} months free",
+        "active": "ELCHI PRO is on",
+        "activeUntil": "ELCHI PRO is on · until {{date}}",
+        "useCloudOff": "When off: Duyu-small"
+      },
+      "local": {
+        "downloaded": "Downloaded",
+        "notDownloaded": "Not downloaded",
+        "accuracy": "Accuracy",
+        "speed": "Speed",
+        "size": "Size",
+        "sizeMb": "{{size}} MB",
+        "sizeGb": "{{size}} GB",
+        "languages_one": "{{count}} language",
+        "languages_other": "{{count}} languages",
+        "use": "Use",
+        "delete": "Delete",
+        "download": "Download",
+        "downloading": "Downloading · {{percentage}}%",
+        "downloadingLabel": "Downloading {{modelName}}",
+        "progressMb": "{{done}} / {{total}} MB"
       }
     },
     "sound": {
@@ -800,14 +834,6 @@
     "upgradeFailed": "Couldn't open the browser. You can continue at speech.patientdesk.ai/elchi.",
     "card": {
       "eyebrow": "Duyu Pro",
-      "title": "Our full model: Duyu Pro",
-      "detail": "Duyu Pro is the larger model behind Duyu-small. It makes fewer mistakes with fast speech, names and numbers.",
-      "trialTitle_one": "Duyu Pro trial: {{count}} day left",
-      "trialTitle_other": "Duyu Pro trial: {{count}} days left",
-      "proTitle": "Elchi Pro is on",
-      "proDetail": "Your recordings are transcribed by Duyu Pro. Your subscription runs until {{date}}.",
-      "freeTitle": "Your Duyu Pro trial has ended",
-      "freeDetail": "Elchi now runs on this computer with Duyu-small: free and unlimited. To go back to Duyu Pro, get Elchi Pro.",
       "useCloud": "Use Duyu Pro",
       "useCloudDescription": "When on, recordings are transcribed by Duyu Pro on PatientDesk AI's servers; when off, by Duyu-small on this computer."
     },
@@ -859,17 +885,20 @@
     "addPlaceholder": "Add a word, e.g. PatientDesk",
     "add": "Add",
     "learned": "learned",
-    "heardAs": "heard as: {{forms}}",
     "remove": "Remove {{word}}",
-    "empty": "No words yet. Your first correction starts it.",
     "learnToggle": "Learn from corrections",
-    "learnToggleDescription": "When on, Elchi reads the corrections you make to text it pasted and adds new names to the dictionary. What it reads never leaves your computer.",
+    "learnToggleDescription": "Reads the corrections you make to pasted text and adds new names. The text never leaves your computer.",
     "needsFormatting": "The dictionary is used by smart formatting and Duyu Pro. Smart formatting is off.",
     "learnedToast": "Added to your dictionary: {{words}}",
     "count_one": "{{count}} word",
     "count_other": "{{count}} words",
     "phrasesTitle": "Corrected phrases",
-    "phrasesHint": "Groups of words Elchi misheard and you corrected. If the same mistake comes back, formatting fixes it."
+    "phrasesHint": "Groups of words Elchi misheard and you corrected. If the same mistake comes back, formatting fixes it.",
+    "heardLabel": "Heard",
+    "emptyHint": "No words yet",
+    "example": "Example",
+    "exampleHeard": "Kan",
+    "exampleWord": "Kaan"
   },
   "historyEdit": {
     "edit": "Fix",

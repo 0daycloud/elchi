@@ -2,15 +2,16 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ask } from "@tauri-apps/plugin-dialog";
 import type { ModelCardStatus } from "@/components/onboarding";
-import { ModelCard } from "@/components/onboarding";
 import { useModelStore } from "@/stores/modelStore";
 import type { ModelInfo } from "@/bindings";
 import { ElchiProCard } from "./ElchiProCard";
+import { LocalModelCard } from "./LocalModelCard";
 import { useElchiPro } from "@/hooks/useElchiPro";
 
 /**
  * Elchi has two models: Duyu Pro in the cloud (the trial and Elchi Pro) and
- * Duyu-small on this computer, which is always there as the fallback.
+ * Duyu-small on this computer, which is always there as the fallback. The
+ * page title and summary come from the settings shell; this is the body.
  */
 export const ModelsSettings: React.FC = () => {
   const { t } = useTranslation();
@@ -55,16 +56,6 @@ export const ModelsSettings: React.FC = () => {
       return "active";
     }
     return "available";
-  };
-
-  const getDownloadProgress = (modelId: string): number | undefined => {
-    const progress = downloadProgress[modelId];
-    return progress?.percentage;
-  };
-
-  const getDownloadSpeed = (modelId: string): number | undefined => {
-    const stats = downloadStats[modelId];
-    return stats?.speed;
   };
 
   const handleModelSelect = async (modelId: string) => {
@@ -124,56 +115,43 @@ export const ModelsSettings: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="max-w-3xl w-full mx-auto">
-        <div className="flex items-center justify-center py-16">
-          <div className="w-8 h-8 border-2 border-logo-primary border-t-transparent rounded-full animate-spin" />
-        </div>
+      <div className="flex items-center justify-center py-16">
+        <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full motion-safe:animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl w-full mx-auto space-y-4">
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold mb-2">
-          {t("settings.models.title")}
-        </h1>
-        <p className="text-sm text-text/60">
-          {t("settings.models.description")}
-        </p>
-      </div>
-
+    <div className="flex w-full flex-col gap-[22px]">
       <ElchiProCard />
 
-      <section aria-labelledby="local-models-title" className="space-y-3">
-        <div>
-          <h2
-            id="local-models-title"
-            className="text-sm font-medium text-text/70"
-          >
+      <section aria-labelledby="local-models-title" className="space-y-2.5">
+        <div className="flex items-baseline justify-between gap-4 px-0.5">
+          <h2 id="local-models-title" className="label-mono tracking-[0.12em]">
             {t("settings.models.onDevice.title")}
           </h2>
-          <p className="text-xs text-text/70">
-            {t("settings.models.onDevice.description")}
-          </p>
+          <span className="label-mono tracking-[0.12em] truncate">
+            {cloudActive
+              ? t("settings.models.onDevice.hintFallback")
+              : t("settings.models.onDevice.hint")}
+          </span>
         </div>
-        {localModels.map((model: ModelInfo) => (
-          <ModelCard
-            key={model.id}
-            model={model}
-            status={getModelStatus(model.id)}
-            onSelect={handleModelSelect}
-            onDownload={handleModelDownload}
-            onDelete={handleModelDelete}
-            onCancel={handleModelCancel}
-            downloadProgress={getDownloadProgress(model.id)}
-            downloadSpeed={getDownloadSpeed(model.id)}
-            showRecommended={false}
-            activeLabel={
-              cloudActive ? t("settings.models.onDevice.fallback") : undefined
-            }
-          />
-        ))}
+        <div className="flex flex-col gap-2.5">
+          {localModels.map((model: ModelInfo) => (
+            <LocalModelCard
+              key={model.id}
+              model={model}
+              status={getModelStatus(model.id)}
+              cloudActive={cloudActive}
+              progress={downloadProgress[model.id]}
+              speed={downloadStats[model.id]?.speed}
+              onSelect={handleModelSelect}
+              onDownload={handleModelDownload}
+              onDelete={handleModelDelete}
+              onCancel={handleModelCancel}
+            />
+          ))}
+        </div>
       </section>
     </div>
   );

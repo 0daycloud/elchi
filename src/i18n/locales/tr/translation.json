@@ -222,8 +222,42 @@
       "deleteTitle": "Modeli sil",
       "onDevice": {
         "title": "Bu bilgisayarda",
-        "description": "Duyu-small internet bağlantısı olmadan çalışır. Duyu Pro'ya ulaşılamadığında Elchi, Duyu-small ile devam eder.",
-        "fallback": "Yedek"
+        "fallback": "Yedek",
+        "hint": "İnternetsiz çalışır",
+        "hintFallback": "İnternetsiz çalışır · Yedek"
+      },
+      "pro": {
+        "eyebrow": "Duyu Pro · Bulut",
+        "trialDays_one": "Deneme {{count}} gün",
+        "trialDays_other": "Deneme {{count}} gün",
+        "trialEnded": "Deneme bitti",
+        "proPlan": "ELCHI PRO",
+        "headline": "En isabetli modelimiz. Hızlı konuşmada, isimlerde ve sayılarda daha az hata.",
+        "freeNote": "Elchi şimdi bu bilgisayarda Duyu-small ile çalışıyor.",
+        "cta": "Pro'ya geç",
+        "price": "{{price}} / ay",
+        "freeMonths_one": "İlk ay ücretsiz",
+        "freeMonths_other": "İlk {{count}} ay ücretsiz",
+        "active": "ELCHI PRO etkin",
+        "activeUntil": "ELCHI PRO etkin · {{date}} tarihine kadar",
+        "useCloudOff": "Kapalıyken Duyu-small"
+      },
+      "local": {
+        "downloaded": "İndirildi",
+        "notDownloaded": "İndirilmedi",
+        "accuracy": "Doğruluk",
+        "speed": "Hız",
+        "size": "Boyut",
+        "sizeMb": "{{size}} MB",
+        "sizeGb": "{{size}} GB",
+        "languages_one": "{{count}} dil",
+        "languages_other": "{{count}} dil",
+        "use": "Kullan",
+        "delete": "Sil",
+        "download": "İndir",
+        "downloading": "İndiriliyor · %{{percentage}}",
+        "downloadingLabel": "{{modelName}} indiriliyor",
+        "progressMb": "{{done}} / {{total}} MB"
       }
     },
     "general": {
@@ -800,14 +834,6 @@
     "upgradeFailed": "Tarayıcı açılamadı. speech.patientdesk.ai/elchi adresinden devam edebilirsiniz.",
     "card": {
       "eyebrow": "Duyu Pro",
-      "title": "Tam modelimiz: Duyu Pro",
-      "detail": "Duyu Pro, Duyu-small'un daha büyük sürümüdür. Hızlı konuşmada, isimlerde ve sayılarda daha az hata yapar.",
-      "trialTitle_one": "Duyu Pro denemesi: {{count}} gün kaldı",
-      "trialTitle_other": "Duyu Pro denemesi: {{count}} gün kaldı",
-      "proTitle": "Elchi Pro etkin",
-      "proDetail": "Kayıtlarınız Duyu Pro ile yazıya dökülüyor. Aboneliğiniz {{date}} tarihine kadar geçerli.",
-      "freeTitle": "Duyu Pro denemeniz sona erdi",
-      "freeDetail": "Elchi artık bu bilgisayarda Duyu-small ile çalışıyor: ücretsiz ve sınırsız. Duyu Pro'yu yeniden kullanmak için Elchi Pro'ya geçin.",
       "useCloud": "Duyu Pro'yu kullan",
       "useCloudDescription": "Açıkken kayıtlarınız PatientDesk AI sunucularında Duyu Pro ile, kapalıyken bu bilgisayarda Duyu-small ile yazıya dökülür."
     },
@@ -859,17 +885,20 @@
     "addPlaceholder": "Kelime ekleyin, ör. PatientDesk",
     "add": "Ekle",
     "learned": "öğrenildi",
-    "heardAs": "duyulan: {{forms}}",
     "remove": "{{word}} kelimesini kaldır",
-    "empty": "Henüz kelime yok. İlk düzeltmenizde burası dolmaya başlar.",
     "learnToggle": "Düzeltmelerden öğren",
-    "learnToggleDescription": "Açıkken Elchi, yapıştırdığı metinde yaptığınız düzeltmeleri okur ve yeni isimleri sözlüğe ekler. Okunan metin bilgisayarınızdan çıkmaz.",
+    "learnToggleDescription": "Yapıştırılan metinde yaptığınız düzeltmeleri okur, yeni isimleri ekler. Metin bilgisayardan çıkmaz.",
     "needsFormatting": "Sözlük, akıllı biçimlendirme ve Duyu Pro ile kullanılır. Akıllı biçimlendirme şu an kapalı.",
     "learnedToast": "Sözlüğe eklendi: {{words}}",
     "count_one": "{{count}} kelime",
     "count_other": "{{count}} kelime",
     "phrasesTitle": "Düzeltilen ifadeler",
-    "phrasesHint": "Elchi'nin yanlış duyduğu ve senin düzelttiğin kelime grupları. Aynı hata tekrar olursa biçimlendirme düzeltir."
+    "phrasesHint": "Elchi'nin yanlış duyduğu ve senin düzelttiğin kelime grupları. Aynı hata tekrar olursa biçimlendirme düzeltir.",
+    "heardLabel": "Duyulan",
+    "emptyHint": "Henüz kelime yok",
+    "example": "Örnek",
+    "exampleHeard": "Kan",
+    "exampleWord": "Kaan"
   },
   "historyEdit": {
     "edit": "Düzelt",
