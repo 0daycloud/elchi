@@ -3,9 +3,10 @@
 //! live transcript beside it; clicking it brings Elchi's window to the meeting. It never
 //! takes focus, sits above full-screen apps, and is left out of screen sharing.
 //!
-//! Like the recording overlay, the panel is created once and then only shown and hidden:
-//! destroying an NSPanel that tauri-nspanel made crashed Elchi (an abort on the main thread
-//! as the meeting ended).
+//! Like the recording overlay, the panel is created once, hidden, when Elchi starts, and
+//! then only shown and hidden: made at the meeting's start, its page had not drawn yet and
+//! the pill stayed invisible until Elchi's window was brought up; and destroying an NSPanel
+//! that tauri-nspanel made crashed Elchi (an abort on the main thread as a meeting ended).
 //!
 //! The panel cannot reliably see the mouse itself (WebKit tracks hover only in the key
 //! window, and a non-activating panel never is one), so a thread watches the cursor and
@@ -61,12 +62,21 @@ fn place(app: &AppHandle, size: (f64, f64)) {
     let _ = window.set_position(tauri::LogicalPosition::new(x, y));
 }
 
+/// Makes the pill, hidden, so its page is loaded by the first meeting. At startup, on the
+/// main thread.
+pub fn init(app: &AppHandle) {
+    #[cfg(target_os = "macos")]
+    create(app, false);
+    #[cfg(not(target_os = "macos"))]
+    let _ = app;
+}
+
 /// Shows the pill for the meeting that just started.
 pub fn show(app: &AppHandle) {
     #[cfg(target_os = "macos")]
     {
         let handle = app.clone();
-        let _ = app.run_on_main_thread(move || create(&handle));
+        let _ = app.run_on_main_thread(move || create(&handle, true));
         watch(app.clone());
     }
     #[cfg(not(target_os = "macos"))]
@@ -74,9 +84,12 @@ pub fn show(app: &AppHandle) {
 }
 
 #[cfg(target_os = "macos")]
-fn create(app: &AppHandle) {
+fn create(app: &AppHandle, visible: bool) {
     use tauri_nspanel::{CollectionBehavior, PanelBuilder, PanelLevel, StyleMask};
     if let Some(window) = app.get_webview_window(LABEL) {
+        if !visible {
+            return;
+        }
         // Made for an earlier meeting: back on screen, closed, out of screen sharing.
         place(app, COLLAPSED);
         let _ = window.show();
@@ -115,7 +128,11 @@ fn create(app: &AppHandle) {
         .build()
     {
         Ok(panel) => {
-            panel.show();
+            if visible {
+                panel.show();
+            } else {
+                panel.hide();
+            }
             if let Some(window) = app.get_webview_window(LABEL) {
                 super::hide_from_capture(&window, true);
             }

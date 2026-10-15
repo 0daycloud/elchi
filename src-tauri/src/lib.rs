@@ -459,6 +459,8 @@ fn initialize_core_logic(app_handle: &AppHandle) {
 
     // Create the recording overlay window (hidden by default)
     utils::create_recording_overlay(app_handle);
+    // The meeting pill likewise: made hidden now, so it shows at once when a meeting starts.
+    meeting::pill::init(app_handle);
     if settings.overlay_idle_line && settings.overlay_style != settings::OverlayStyle::None {
         utils::show_idle_overlay(app_handle);
     }
