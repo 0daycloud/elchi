@@ -32,9 +32,11 @@ Elchi downloads Duyu-small (56 MB, Turkish + English, CPU) on first run.
   2. **ROG key** (`XF86Launch1`) on ASUS laptops.
   3. **Ctrl + Space** otherwise, Elchi's own default shortcut. It is also
      fcitx5's input-method toggle; input-method users should pick another key.
+
   Omarchy leaves `Pause`, `Menu` and `SUPER + ALT + V` free too. Hold mode
   binds press and release, so hold-to-talk is two toggles; if a release is
   missed (modifier let go first), press once more.
+
 - The chosen key is written into Elchi's settings as `external_shortcut`, so
   Settings > General shows it in place of the in-app shortcut (which cannot
   capture keys on Wayland). Elchi is restarted for that.
@@ -50,14 +52,14 @@ elchi-omarchy-setup --key "SUPER + ALT + V" --mode toggle
 
 ## How it fits Omarchy
 
-| Piece | How |
-|---|---|
-| Hotkey | Hyprland bind → `elchi --toggle-transcription` (in-app global shortcuts are X11-only) |
-| Typing | `wtype` (Elchi picks it on Wayland); `wl-copy` for clipboard pastes |
-| Overlay | Elchi's recording pill via GTK layer shell, on the monitor under the cursor |
-| Tray | `omarchy.tray` shows Elchi's icon |
-| Autostart | Elchi's own XDG autostart entry; uwsm runs `xdg-desktop-autostart.target` |
-| Updates | pacman. `/usr/lib/environment.d/50-elchi.conf` sets `HANDY_DISABLE_UPDATER=1` |
+| Piece     | How                                                                                   |
+| --------- | ------------------------------------------------------------------------------------- |
+| Hotkey    | Hyprland bind → `elchi --toggle-transcription` (in-app global shortcuts are X11-only) |
+| Typing    | `wtype` (Elchi picks it on Wayland); `wl-copy` for clipboard pastes                   |
+| Overlay   | Elchi's recording pill via GTK layer shell, on the monitor under the cursor           |
+| Tray      | `omarchy.tray` shows Elchi's icon                                                     |
+| Autostart | Elchi's own XDG autostart entry; uwsm runs `xdg-desktop-autostart.target`             |
+| Updates   | pacman. `/usr/lib/environment.d/50-elchi.conf` sets `HANDY_DISABLE_UPDATER=1`         |
 
 ## Releasing a new version (maintainer)
 
