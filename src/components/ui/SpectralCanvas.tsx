@@ -12,6 +12,7 @@ import React, { useEffect, useRef } from "react";
  *            it fades in from the left so text can sit on flat blue.
  *
  * Texture is deterministic for a given seed and size; it redraws on resize.
+ * An animated field drifts smoothly from that still (see `animateField`).
  */
 export type SpectralMode = "spec" | "field" | "pro";
 
@@ -20,7 +21,7 @@ interface SpectralCanvasProps {
   seed?: number;
   /** spec only: 0..1 loudness samples spread across the width. */
   energy?: number[];
-  /** Re-seed every `animateMs` for a slow living shimmer (field only). */
+  /** field only: let the texture drift, one step every `animateMs`. */
   animateMs?: number;
   className?: string;
   style?: React.CSSProperties;
@@ -174,47 +175,78 @@ const drawSpec = (
   for (let x = s * 12; x < W; x += s * 12) g.fillRect(x, H - 34 - 4, 1, 4);
 };
 
-const drawField = (
-  g: CanvasRenderingContext2D,
-  c: HTMLCanvasElement,
-  dpr: number,
-  W: number,
-  H: number,
-  seed: number,
-) => {
-  const s = 3;
-  const cols = Math.ceil(W / s);
-  const rows = Math.ceil(H / s);
-  const pal = [
-    "#06060A",
-    "#0A1465",
-    "#1327B8",
-    "#2140FF",
-    "#5C76FF",
-    "#9DB0FF",
-    "#E4E9FF",
-  ];
-  g.fillStyle = pal[0];
-  g.fillRect(0, 0, W, H);
+const FIELD_CELL = 3;
+const FIELD_PAL = [
+  "#06060A",
+  "#0A1465",
+  "#1327B8",
+  "#2140FF",
+  "#5C76FF",
+  "#9DB0FF",
+  "#E4E9FF",
+];
+const FIELD_RGB = FIELD_PAL.map((hex) => [
+  parseInt(hex.slice(1, 3), 16),
+  parseInt(hex.slice(3, 5), 16),
+  parseInt(hex.slice(5, 7), 16),
+]);
+
+/**
+ * Field brightness per cell at drift time `t`. The noise slides and the two
+ * glows wander as `t` grows, slowly enough that frames one step apart look
+ * alike and can be blended. `t = 0` is the original still.
+ */
+const fieldFrame = (cols: number, rows: number, seed: number, t: number) => {
+  const v = new Float32Array(cols * rows);
+  const g1x = 0.72 + 0.06 * Math.sin(t * 0.11);
+  const g1y = 0.3 + 0.05 * Math.sin(t * 0.07);
+  const g2x = 0.22 + 0.05 * Math.sin(t * 0.09);
+  const g2y = 0.78 + 0.04 * Math.sin(t * 0.13);
   for (let y = 0; y < rows; y++)
     for (let x = 0; x < cols; x++) {
       const nx = x / cols;
       const ny = y / rows;
-      const base = N.fbm(x * 0.012, y * 0.006, seed);
-      const streak = 0.45 + 0.55 * N.vn(x * 0.6, y * 0.01, seed + 9);
-      const vstreak = 0.6 + 0.4 * N.vn(x * 0.02, y * 0.5, seed + 3);
-      const b1 = Math.exp(
-        -((nx - 0.72) ** 2 * 1.2 + (ny - 0.3) ** 2 * 0.8) * 6,
-      );
-      const b2 = Math.exp(-((nx - 0.22) ** 2 * 1.4 + (ny - 0.78) ** 2) * 8);
-      const i = (base * 0.5 + b1 * 0.8 + b2 * 0.45) * streak * vstreak;
-      const lvl = Math.min(6, Math.floor(N.cl(i) * 6.999));
-      if (lvl > 0) {
-        g.fillStyle = pal[lvl];
-        g.fillRect(x * s, y * s, s, s);
-      }
+      const base = N.fbm(x * 0.012 + t * 0.04, y * 0.006, seed);
+      const streak = 0.45 + 0.55 * N.vn(x * 0.6, y * 0.01 - t * 0.05, seed + 9);
+      const vstreak = 0.6 + 0.4 * N.vn(x * 0.02 + t * 0.03, y * 0.5, seed + 3);
+      const b1 = Math.exp(-((nx - g1x) ** 2 * 1.2 + (ny - g1y) ** 2 * 0.8) * 6);
+      const b2 = Math.exp(-((nx - g2x) ** 2 * 1.4 + (ny - g2y) ** 2) * 8);
+      v[y * cols + x] = (base * 0.5 + b1 * 0.8 + b2 * 0.45) * streak * vstreak;
     }
-  bands(g, c, dpr, W, H, s, pal[0], [
+  return v;
+};
+
+/** Paint the field blended `f` of the way from frame `a` to frame `b`. */
+const renderField = (
+  surf: Surface,
+  c: HTMLCanvasElement,
+  cells: HTMLCanvasElement,
+  a: Float32Array,
+  b: Float32Array,
+  f: number,
+) => {
+  const { g, dpr, W, H } = surf;
+  const cols = Math.ceil(W / FIELD_CELL);
+  const rows = Math.ceil(H / FIELD_CELL);
+  if (cells.width !== cols || cells.height !== rows) {
+    cells.width = cols;
+    cells.height = rows;
+  }
+  const cg = cells.getContext("2d");
+  if (!cg) return;
+  const img = cg.createImageData(cols, rows);
+  for (let i = 0; i < cols * rows; i++) {
+    const v = a[i] + (b[i] - a[i]) * f;
+    const [r, gr, bl] = FIELD_RGB[Math.min(6, Math.floor(N.cl(v) * 6.999))];
+    img.data[i * 4] = r;
+    img.data[i * 4 + 1] = gr;
+    img.data[i * 4 + 2] = bl;
+    img.data[i * 4 + 3] = 255;
+  }
+  cg.putImageData(img, 0, 0);
+  g.imageSmoothingEnabled = false;
+  g.drawImage(cells, 0, 0, cols * FIELD_CELL, rows * FIELD_CELL);
+  bands(g, c, dpr, W, H, FIELD_CELL, FIELD_PAL[0], [
     [0.12, 2, 6, 0.05],
     [0.14, 1, -10, 0],
     [0.47, 3, 14, 0.08],
@@ -222,13 +254,78 @@ const drawField = (
     [0.78, 2, -12, 0.05],
     [0.8, 1, 8, 0],
   ]);
-  grid(g, W, H, s * 16, 0.06);
+  grid(g, W, H, FIELD_CELL * 16, 0.06);
   g.strokeStyle = "rgba(255,255,255,.22)";
   g.lineWidth = 1;
   g.beginPath();
   g.moveTo(0, Math.round(H * 0.5) + 0.5);
   g.lineTo(W, Math.round(H * 0.5) + 0.5);
   g.stroke();
+};
+
+const drawField = (surf: Surface, c: HTMLCanvasElement, seed: number) => {
+  const v = fieldFrame(
+    Math.ceil(surf.W / FIELD_CELL),
+    Math.ceil(surf.H / FIELD_CELL),
+    seed,
+    0,
+  );
+  renderField(surf, c, document.createElement("canvas"), v, v, 0);
+};
+
+/**
+ * Keep the field drifting: frames are computed `stepMs` apart along the
+ * drift and blended in between, so cells ease from level to level instead
+ * of the whole texture re-rolling. Returns a cleanup.
+ */
+const animateField = (c: HTMLCanvasElement, seed: number, stepMs: number) => {
+  const cells = document.createElement("canvas");
+  let surf: Surface | null = null;
+  let k = 0;
+  let a = new Float32Array(0);
+  let b = a;
+  let start = performance.now();
+  let last = 0;
+  const frameAt = (t: number) =>
+    surf
+      ? fieldFrame(
+          Math.ceil(surf.W / FIELD_CELL),
+          Math.ceil(surf.H / FIELD_CELL),
+          seed,
+          t,
+        )
+      : new Float32Array(0);
+  const resize = () => {
+    surf = setup(c);
+    a = frameAt(k);
+    b = frameAt(k + 1);
+    last = 0;
+  };
+  const tick = (now: number) => {
+    raf = requestAnimationFrame(tick);
+    // ~30 fps is plenty for a drift this slow.
+    if (!surf || now - last < 33) return;
+    last = now;
+    let f = (now - start) / stepMs;
+    if (f >= 1) {
+      k += 1;
+      // After a long pause (hidden window) restart from here, don't catch up.
+      const stale = f >= 2;
+      start = stale ? now : start + stepMs;
+      a = stale ? frameAt(k) : b;
+      b = frameAt(k + 1);
+      f = (now - start) / stepMs;
+    }
+    renderField(surf, c, cells, a, b, f);
+  };
+  resize();
+  const ro = new ResizeObserver(resize);
+  ro.observe(c);
+  let raf = requestAnimationFrame(tick);
+  return () => {
+    ro.disconnect();
+    cancelAnimationFrame(raf);
+  };
 };
 
 const drawPro = (
@@ -288,24 +385,39 @@ const drawPro = (
   g.fillRect(0, 0, W, H);
 };
 
+type Surface = {
+  g: CanvasRenderingContext2D;
+  dpr: number;
+  W: number;
+  H: number;
+};
+
+/** Size the canvas backing store to its box; null while it has no size. */
+const setup = (c: HTMLCanvasElement): Surface | null => {
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const W = c.clientWidth;
+  const H = c.clientHeight;
+  if (!W || !H) return null;
+  c.width = W * dpr;
+  c.height = H * dpr;
+  const g = c.getContext("2d");
+  if (!g) return null;
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { g, dpr, W, H };
+};
+
 const paint = (
   c: HTMLCanvasElement,
   mode: SpectralMode,
   seed: number,
   energy?: number[],
 ) => {
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
-  const W = c.clientWidth;
-  const H = c.clientHeight;
-  if (!W || !H) return;
-  c.width = W * dpr;
-  c.height = H * dpr;
-  const g = c.getContext("2d");
-  if (!g) return;
-  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const surf = setup(c);
+  if (!surf) return;
+  const { g, dpr, W, H } = surf;
   if (mode === "spec") drawSpec(g, W, H, seed, energy);
   else if (mode === "pro") drawPro(g, c, dpr, W, H, seed);
-  else drawField(g, c, dpr, W, H, seed);
+  else drawField(surf, c, seed);
 };
 
 export const SpectralCanvas: React.FC<SpectralCanvasProps> = ({
@@ -323,26 +435,18 @@ export const SpectralCanvas: React.FC<SpectralCanvasProps> = ({
   useEffect(() => {
     const c = ref.current;
     if (!c) return;
-    const values = energyKey ? energyKey.split(",").map(Number) : undefined;
-    let tick = 0;
-    const draw = () => paint(c, mode, seed + tick * 0.001, values);
-    draw();
-    const ro = new ResizeObserver(draw);
-    ro.observe(c);
     const reduceMotion = window.matchMedia?.(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    const timer =
-      animateMs && !reduceMotion
-        ? window.setInterval(() => {
-            tick += 1;
-            draw();
-          }, animateMs)
-        : undefined;
-    return () => {
-      ro.disconnect();
-      if (timer) window.clearInterval(timer);
-    };
+    if (mode === "field" && animateMs && !reduceMotion) {
+      return animateField(c, seed, animateMs);
+    }
+    const values = energyKey ? energyKey.split(",").map(Number) : undefined;
+    const draw = () => paint(c, mode, seed, values);
+    draw();
+    const ro = new ResizeObserver(draw);
+    ro.observe(c);
+    return () => ro.disconnect();
   }, [mode, seed, energyKey, animateMs]);
 
   return (

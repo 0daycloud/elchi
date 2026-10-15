@@ -39,7 +39,7 @@ export const OnboardingShell: React.FC<OnboardingShellProps> = ({
       <SpectralCanvas
         mode="field"
         seed={seed}
-        animateMs={400}
+        animateMs={1000}
         className="absolute inset-0 w-full h-full"
       />
       {/* Darken the top for the logo and the bottom for the headline. */}
