@@ -547,6 +547,41 @@ impl Drop for RescanGuard {
     }
 }
 
+/// Model ids with a [`ModelManager::download_model`] call in flight. Two
+/// concurrent downloads of one model share the same `.partial` / `.downloading`
+/// paths and corrupt each other, so a second call for an id already in the set
+/// is a no-op.
+#[derive(Clone, Default)]
+struct DownloadSlots(Arc<Mutex<HashSet<String>>>);
+
+impl DownloadSlots {
+    /// Claim the slot for `model_id`. Returns a guard that releases it on drop,
+    /// or `None` if a download of that model is already running.
+    fn try_claim(&self, model_id: &str) -> Option<DownloadSlot> {
+        if self.0.lock().unwrap().insert(model_id.to_string()) {
+            Some(DownloadSlot {
+                slots: self.0.clone(),
+                model_id: model_id.to_string(),
+            })
+        } else {
+            None
+        }
+    }
+}
+
+/// RAII guard for a claimed [`DownloadSlots`] entry, released on every exit
+/// path of the download (success, error, cancel).
+struct DownloadSlot {
+    slots: Arc<Mutex<HashSet<String>>>,
+    model_id: String,
+}
+
+impl Drop for DownloadSlot {
+    fn drop(&mut self) {
+        self.slots.lock().unwrap().remove(&self.model_id);
+    }
+}
+
 /// RAII guard that cleans up download state (`is_downloading` flag and cancel flag)
 /// when dropped, unless explicitly disarmed. This ensures consistent cleanup on
 /// every error path without requiring manual cleanup at each `?` or `return Err`.
@@ -581,6 +616,8 @@ pub struct ModelManager {
     /// Single-flight guard for [`Self::rescan_local_models`] so concurrent
     /// refresh requests coalesce instead of scanning the disk in parallel.
     is_rescanning: Arc<AtomicBool>,
+    /// Single-flight guard for [`Self::download_model`], per model id.
+    download_slots: DownloadSlots,
 }
 
 impl ModelManager {
@@ -1282,6 +1319,7 @@ impl ModelManager {
             cancel_flags: Arc::new(Mutex::new(HashMap::new())),
             extracting_models: Arc::new(Mutex::new(HashSet::new())),
             is_rescanning: Arc::new(AtomicBool::new(false)),
+            download_slots: DownloadSlots::default(),
         };
 
         // Migrate any bundled models to user directory
@@ -2447,6 +2485,14 @@ impl ModelManager {
     }
 
     pub async fn download_model(&self, model_id: &str) -> Result<()> {
+        let _slot = match self.download_slots.try_claim(model_id) {
+            Some(slot) => slot,
+            None => {
+                info!("Download of {} already in progress; skipping", model_id);
+                return Ok(());
+            }
+        };
+
         let model_info = {
             let models = self.available_models.lock().unwrap();
             models.get(model_id).cloned()
@@ -3396,5 +3442,53 @@ mod tests {
             !models.contains_key("someone/llama-7b/llama-q8.gguf"),
             "non-ASR gguf must be ignored"
         );
+    }
+
+    #[test]
+    fn test_download_slots_single_flight_per_model() {
+        let slots = DownloadSlots::default();
+
+        let first = slots.try_claim("duyu-small");
+        assert!(first.is_some());
+        assert!(
+            slots.try_claim("duyu-small").is_none(),
+            "a second download of the same model must be refused"
+        );
+        assert!(
+            slots.try_claim("other-model").is_some(),
+            "other models are unaffected"
+        );
+
+        drop(first);
+        assert!(
+            slots.try_claim("duyu-small").is_some(),
+            "the slot is released when the download ends"
+        );
+    }
+
+    #[test]
+    fn test_download_slots_concurrent_claims_admit_one() {
+        let slots = DownloadSlots::default();
+        let barrier = Arc::new(std::sync::Barrier::new(16));
+        let handles: Vec<_> = (0..16)
+            .map(|_| {
+                let slots = slots.clone();
+                let barrier = barrier.clone();
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    // Hold the slot until every thread has tried.
+                    let slot = slots.try_claim("duyu-small");
+                    let claimed = slot.is_some();
+                    barrier.wait();
+                    claimed
+                })
+            })
+            .collect();
+        let winners = handles
+            .into_iter()
+            .map(|h| h.join().unwrap())
+            .filter(|&claimed| claimed)
+            .count();
+        assert_eq!(winners, 1);
     }
 }

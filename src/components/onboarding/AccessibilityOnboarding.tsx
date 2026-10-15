@@ -61,10 +61,20 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
       ? permissions.microphone === "granted"
       : true;
 
+  // The parent passes a fresh onComplete each render. Reading it through a ref
+  // keeps the mount check below from re-running on every parent render, and
+  // completedRef makes completion one-shot: each extra call used to start
+  // another finishOnboarding (and another background model download).
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+  const completedRef = useRef(false);
+
   const completeOnboarding = useCallback(async () => {
+    if (completedRef.current) return;
+    completedRef.current = true;
     await Promise.all([refreshAudioDevices(), refreshOutputDevices()]);
-    timeoutRef.current = setTimeout(() => onComplete(), 300);
-  }, [onComplete, refreshAudioDevices, refreshOutputDevices]);
+    timeoutRef.current = setTimeout(() => onCompleteRef.current(), 300);
+  }, [refreshAudioDevices, refreshOutputDevices]);
 
   const hasWindowsMicrophoneAccess = useCallback(async (): Promise<boolean> => {
     const microphoneStatus =
@@ -101,7 +111,10 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
 
     // Skip immediately on unsupported platforms
     if (nextPlatform === "other") {
-      onComplete();
+      if (!completedRef.current) {
+        completedRef.current = true;
+        onCompleteRef.current();
+      }
       return;
     }
 
@@ -169,7 +182,7 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
     };
 
     checkInitial();
-  }, [completeOnboarding, hasWindowsMicrophoneAccess, onComplete, preview, t]);
+  }, [completeOnboarding, hasWindowsMicrophoneAccess, preview, t]);
 
   // Polling for permissions after user clicks a button
   const startPolling = useCallback(() => {
