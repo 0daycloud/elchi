@@ -155,7 +155,14 @@ fn create_main_window(app: &AppHandle) -> tauri::Result<tauri::WebviewWindow> {
     Ok(main_window)
 }
 
+/// Whether the settings window that exists now has been shown. Startup frees
+/// it only if not (#9): asking the window whether it is visible proved wrong
+/// while the user was in System Settings granting a permission, and freed the
+/// window they were looking at.
+static MAIN_WINDOW_SHOWN: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
 pub(crate) fn show_main_window(app: &AppHandle) {
+    MAIN_WINDOW_SHOWN.store(true, std::sync::atomic::Ordering::SeqCst);
     let main_window = match app.get_webview_window("main") {
         Some(window) => Some(window),
         None => create_main_window(app)
@@ -451,7 +458,7 @@ fn initialize_core_logic(app_handle: &AppHandle) {
 #[tauri::command]
 #[specta::specta]
 fn release_hidden_main_window(app: AppHandle) {
-    if !tray_available(&app) {
+    if !tray_available(&app) || MAIN_WINDOW_SHOWN.load(std::sync::atomic::Ordering::SeqCst) {
         return;
     }
     if let Some(window) = app.get_webview_window("main") {
@@ -1135,6 +1142,7 @@ pub fn run(cli_args: CliArgs) {
                 // is the way back.
                 if window.label() == "main" && tray_available(window.app_handle()) {
                     log::info!("Settings window closed: freeing its webview");
+                    MAIN_WINDOW_SHOWN.store(false, std::sync::atomic::Ordering::SeqCst);
                 } else {
                     api.prevent_close();
                     let _res = window.hide();
