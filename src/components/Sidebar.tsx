@@ -297,7 +297,7 @@ const PageSummary: React.FC<{ section: SidebarSection }> = ({ section }) => {
   const { t } = useTranslation();
   const pro = useElchiPro().status;
   const { version } = useUpdater();
-  const { changed, resetAll } = useChangedSettings();
+  const { changed, resettable, resetAll } = useChangedSettings();
   const dictionary = useDictionaryCounts(section === "dictionary");
   const localReady = useModelStore((s) =>
     s.models.some((m) => m.id === s.currentModel && m.is_downloaded),
@@ -325,14 +325,16 @@ const PageSummary: React.FC<{ section: SidebarSection }> = ({ section }) => {
       return (
         <>
           {t("sidebar.pageSummary.changed", { count: changed.size })}
-          {" · "}
-          <button
-            type="button"
-            onClick={() => void resetAll()}
-            className="text-logo-primary uppercase tracking-[0.06em] hover:brightness-125 cursor-pointer rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
-          >
-            {t("sidebar.pageSummary.reset")}
-          </button>
+          {resettable.size > 0 && " · "}
+          {resettable.size > 0 && (
+            <button
+              type="button"
+              onClick={() => void resetAll()}
+              className="text-logo-primary uppercase tracking-[0.06em] hover:brightness-125 cursor-pointer rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+            >
+              {t("sidebar.pageSummary.reset")}
+            </button>
+          )}
         </>
       );
     case "about":

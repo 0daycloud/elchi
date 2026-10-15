@@ -20,9 +20,21 @@ export const ADVANCED_TRACKED_KEYS = [
 type TrackedKey = (typeof ADVANCED_TRACKED_KEYS)[number];
 
 /**
+ * Settings the bulk reset leaves alone: setting them runs history cleanup,
+ * which deletes unsaved transcripts and their recordings (the history limit
+ * default is 5). They still get the changed mark; the user changes them on
+ * their own rows, where the choice is explicit.
+ */
+const KEEPS_DATA: ReadonlySet<TrackedKey> = new Set([
+  "history_limit",
+  "recording_retention_period",
+]);
+
+/**
  * Which of `keys` differ from `get_default_settings` (platform-specific
- * defaults come from Rust), plus a reset for all of them. Empty until the
- * defaults have loaded, so nothing is ever marked changed on a guess.
+ * defaults come from Rust), and a reset for those that can be reset without
+ * deleting anything (`resettable`). Empty until the defaults have loaded, so
+ * nothing is ever marked changed on a guess.
  */
 export const useChangedSettings = (
   keys: readonly TrackedKey[] = ADVANCED_TRACKED_KEYS,
@@ -43,9 +55,14 @@ export const useChangedSettings = (
     );
   }, [settings, defaults, keys]);
 
-  const resetAll = useCallback(async () => {
-    for (const k of changed) await resetSetting(k);
-  }, [changed, resetSetting]);
+  const resettable = useMemo(
+    () => new Set([...changed].filter((k) => !KEEPS_DATA.has(k))),
+    [changed],
+  );
 
-  return { changed, resetAll };
+  const resetAll = useCallback(async () => {
+    for (const k of resettable) await resetSetting(k);
+  }, [resettable, resetSetting]);
+
+  return { changed, resettable, resetAll };
 };
