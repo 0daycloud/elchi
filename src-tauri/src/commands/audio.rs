@@ -135,6 +135,41 @@ pub fn get_windows_microphone_permission_status() -> WindowsMicrophonePermission
     }
 }
 
+/// Clears Elchi's own entries in macOS's privacy settings (Accessibility,
+/// Microphone), so asking again adds fresh ones. An entry left by an earlier,
+/// differently signed build shows as on in System Settings while macOS still
+/// refuses it, and nothing the user toggles there helps.
+#[tauri::command]
+#[specta::specta]
+pub fn reset_macos_permissions(
+    app: tauri::AppHandle,
+    accessibility: bool,
+    microphone: bool,
+) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        let id = app.config().identifier.clone();
+        let services = [("Accessibility", accessibility), ("Microphone", microphone)];
+        for (service, wanted) in services {
+            if !wanted {
+                continue;
+            }
+            let out = std::process::Command::new("/usr/bin/tccutil")
+                .args(["reset", service, &id])
+                .output()
+                .map_err(|e| format!("tccutil: {e}"))?;
+            if !out.status.success() {
+                let err = String::from_utf8_lossy(&out.stderr);
+                return Err(format!("tccutil reset {service}: {}", err.trim()));
+            }
+            log::info!("Reset the macOS {service} permission for {id}");
+        }
+    }
+    #[cfg(not(target_os = "macos"))]
+    let _ = (app, accessibility, microphone);
+    Ok(())
+}
+
 #[tauri::command]
 #[specta::specta]
 pub fn open_microphone_privacy_settings() -> Result<(), String> {

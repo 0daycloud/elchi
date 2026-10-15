@@ -145,7 +145,16 @@
       "openSettings": "Open Settings",
       "note": "System Settings will open",
       "noteWindows": "Windows Settings will open",
-      "progress": "{{granted}} of {{total}} permissions granted"
+      "progress": "{{granted}} of {{total}} permissions granted",
+      "stuck": {
+        "title": "Not coming through?",
+        "body": "If Elchi already looks switched on in System Settings, macOS may be holding an old entry from an earlier version. Reset the permissions here, then allow them again. If it still waits, restart Elchi.",
+        "bodyRestart": "If the permission is on in Settings but not confirmed here, restart Elchi.",
+        "reset": "Reset permissions",
+        "restart": "Restart Elchi",
+        "resetDone": "Permissions reset. Allow them again.",
+        "resetFailed": "Couldn't reset the permissions. Restart Elchi and try again."
+      }
     },
     "tour": {
       "progress": "Step {{step}} of {{total}}",

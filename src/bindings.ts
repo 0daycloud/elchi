@@ -870,6 +870,20 @@ async openMicrophonePrivacySettings() : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Clears Elchi's own entries in macOS's privacy settings (Accessibility,
+ * Microphone), so asking again adds fresh ones. An entry left by an earlier,
+ * differently signed build shows as on in System Settings while macOS still
+ * refuses it, and nothing the user toggles there helps.
+ */
+async resetMacosPermissions(accessibility: boolean, microphone: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("reset_macos_permissions", { accessibility, microphone }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async getAvailableMicrophones() : Promise<Result<AudioDevice[], string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("get_available_microphones") };

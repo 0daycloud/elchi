@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { platform } from "@tauri-apps/plugin-os";
+import { relaunch } from "@tauri-apps/plugin-process";
 import {
   checkAccessibilityPermission,
   requestAccessibilityPermission,
@@ -11,6 +12,7 @@ import { toast } from "sonner";
 import { commands } from "@/bindings";
 import { useSettingsStore } from "@/stores/settingsStore";
 import {
+  GhostButton,
   OnboardingShell,
   PrimaryButton,
   ProgressDashes,
@@ -51,6 +53,10 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const errorCountRef = useRef<number>(0);
   const MAX_POLLING_ERRORS = 3;
+  // A permission still unconfirmed this long after asking gets the way out
+  // below (reset the stale entry, or restart) instead of a spinner forever.
+  const STUCK_AFTER_MS = 6000;
+  const [stuck, setStuck] = useState(false);
 
   const isMacOS = permissionPlatform === "macos";
   const isWindows = permissionPlatform === "windows";
@@ -307,6 +313,41 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
     }
   };
 
+  const waiting =
+    permissions.accessibility === "waiting" ||
+    permissions.microphone === "waiting";
+  useEffect(() => {
+    if (!waiting) {
+      setStuck(false);
+      return;
+    }
+    const timer = setTimeout(() => setStuck(true), STUCK_AFTER_MS);
+    return () => clearTimeout(timer);
+  }, [waiting]);
+
+  // macOS can keep an entry from an earlier, differently signed Elchi: it looks
+  // switched on in System Settings but is refused. Clearing it makes the next
+  // "Allow" add a fresh one.
+  const handleReset = async () => {
+    const accessibility = permissions.accessibility !== "granted";
+    const microphone = permissions.microphone !== "granted";
+    const result = await commands.resetMacosPermissions(
+      isMacOS && accessibility,
+      isMacOS && microphone,
+    );
+    if (result.status === "error") {
+      console.error("Failed to reset permissions:", result.error);
+      toast.error(t("onboarding.permissions.stuck.resetFailed"));
+      return;
+    }
+    setPermissions((prev) => ({
+      accessibility: prev.accessibility === "granted" ? "granted" : "needed",
+      microphone: prev.microphone === "granted" ? "granted" : "needed",
+    }));
+    setStuck(false);
+    toast.success(t("onboarding.permissions.stuck.resetDone"));
+  };
+
   const isChecking =
     permissionPlatform === null ||
     (isMacOS &&
@@ -364,6 +405,31 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
       }
     >
       <div className="flex flex-col gap-3.5">
+        {stuck && !allGranted && (
+          <section
+            role="status"
+            className="steel-panel flex flex-col gap-2.5 px-[22px] py-4"
+          >
+            <h2 className="text-[14px] font-medium leading-tight">
+              {t("onboarding.permissions.stuck.title")}
+            </h2>
+            <p className="text-[12.5px] leading-normal text-mid-gray">
+              {isMacOS
+                ? t("onboarding.permissions.stuck.body")
+                : t("onboarding.permissions.stuck.bodyRestart")}
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              {isMacOS && (
+                <PrimaryButton onClick={handleReset} arrow={false}>
+                  {t("onboarding.permissions.stuck.reset")}
+                </PrimaryButton>
+              )}
+              <GhostButton onClick={() => relaunch()}>
+                {t("onboarding.permissions.stuck.restart")}
+              </GhostButton>
+            </div>
+          </section>
+        )}
         {showMicrophonePermission && (
           <PermissionCard
             icon={Mic}

@@ -145,7 +145,16 @@
       "openSettings": "Ayarları aç",
       "note": "Sistem ayarları açılacak",
       "noteWindows": "Windows ayarları açılacak",
-      "progress": "{{granted}} / {{total}} izin verildi"
+      "progress": "{{granted}} / {{total}} izin verildi",
+      "stuck": {
+        "title": "İzin gelmiyor mu?",
+        "body": "Elchi Sistem Ayarları'nda zaten açık görünüyorsa, macOS önceki bir sürümden kalan eski bir kaydı tutuyor olabilir. Buradan izinleri sıfırlayın, sonra yeniden izin verin. Hâlâ bekliyorsa Elchi'yi yeniden başlatın.",
+        "bodyRestart": "İzin Ayarlar'da açık ama burada onaylanmıyorsa Elchi'yi yeniden başlatın.",
+        "reset": "İzinleri sıfırla",
+        "restart": "Elchi'yi yeniden başlat",
+        "resetDone": "İzinler sıfırlandı. Şimdi yeniden izin verin.",
+        "resetFailed": "İzinler sıfırlanamadı. Elchi'yi yeniden başlatıp tekrar deneyin."
+      }
     },
     "tour": {
       "progress": "Adım {{step}} / {{total}}",
