@@ -540,6 +540,13 @@ pub struct AppSettings {
     /// Dock brings Elchi back. Off, Elchi lives only in the menu bar then.
     #[serde(default = "default_show_in_dock")]
     pub show_in_dock: bool,
+    /// Meetings (src/meeting): keep each meeting's audio and full transcript. Off, both are
+    /// deleted once the notes are written; only the notes stay.
+    #[serde(default)]
+    pub meeting_keep_recording: bool,
+    /// The user has read that the people in a meeting must be told it is being recorded.
+    #[serde(default)]
+    pub meeting_consent_ack: bool,
     #[serde(default = "default_paste_delay_ms")]
     pub paste_delay_ms: u64,
     #[serde(default = "default_paste_delay_after_ms")]
@@ -1078,6 +1085,8 @@ pub fn get_default_settings() -> AppSettings {
         keyboard_implementation: KeyboardImplementation::default(),
         show_tray_icon: default_show_tray_icon(),
         show_in_dock: default_show_in_dock(),
+        meeting_keep_recording: false,
+        meeting_consent_ack: false,
         paste_delay_ms: default_paste_delay_ms(),
         paste_delay_after_ms: default_paste_delay_after_ms(),
         reliable_paste: false,

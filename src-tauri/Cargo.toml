@@ -46,6 +46,10 @@ serde_json = "1"
 rdev = { git = "https://github.com/rustdesk-org/rdev" }
 anyhow = "1.0.95"
 hound = "3.5.1"
+# Meeting recording (src/meeting): the call's audio (a Core Audio tap on macOS) beside the mic,
+# both resampled to 16 kHz. The same versions handy-recorder uses.
+cpal = "0.18"
+rubato = "5.0"
 log = "0.4.25"
 env_filter = "0.1.0"
 tokio = "1.43.0"

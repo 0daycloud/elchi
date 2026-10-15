@@ -44,6 +44,29 @@ static MIGRATIONS: &[M] = &[
     M::up("ALTER TABLE transcription_history ADD COLUMN app_name TEXT;"),
     // The text as pasted, kept when the user corrects a dictation (the feed shows the change).
     M::up("ALTER TABLE transcription_history ADD COLUMN edited_from TEXT;"),
+    // Meetings (crate::meeting): one row per meeting, its transcript as speaker segments.
+    M::up(
+        "CREATE TABLE IF NOT EXISTS meetings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            started_at INTEGER NOT NULL,
+            ended_at INTEGER,
+            title TEXT NOT NULL DEFAULT '',
+            user_notes TEXT NOT NULL DEFAULT '',
+            notes TEXT,
+            status TEXT NOT NULL DEFAULT 'recording',
+            kept BOOLEAN NOT NULL DEFAULT 0
+        );
+        CREATE TABLE IF NOT EXISTS meeting_segments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            meeting_id INTEGER NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+            speaker TEXT NOT NULL,
+            start_ms INTEGER NOT NULL,
+            end_ms INTEGER NOT NULL,
+            text TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS meeting_segments_by_meeting
+            ON meeting_segments (meeting_id, start_ms);",
+    ),
 ];
 
 #[derive(Clone, Debug, Serialize, Deserialize, Type)]
@@ -242,6 +265,13 @@ impl HistoryManager {
 
     fn get_connection(&self) -> Result<Connection> {
         Ok(Connection::open(&self.db_path)?)
+    }
+
+    /// The history database, for the meetings kept beside the dictations (crate::meeting).
+    pub(crate) fn connection(&self) -> Result<Connection> {
+        let conn = self.get_connection()?;
+        conn.execute_batch("PRAGMA foreign_keys = ON;")?;
+        Ok(conn)
     }
 
     fn map_history_entry(row: &rusqlite::Row<'_>) -> rusqlite::Result<HistoryEntry> {

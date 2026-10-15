@@ -18,6 +18,7 @@ mod helpers;
 mod input;
 mod llm_client;
 mod managers;
+mod meeting;
 mod memory;
 mod overlay;
 mod paste_tx;
@@ -151,6 +152,10 @@ fn create_main_window(app: &AppHandle) -> tauri::Result<tauri::WebviewWindow> {
     // platform.
     #[cfg(any(target_os = "windows", target_os = "macos"))]
     shortcut::apply_window_theme(app, get_settings(app).theme);
+
+    if meeting::is_recording() {
+        meeting::hide_from_capture(&main_window, true);
+    }
 
     Ok(main_window)
 }
@@ -302,6 +307,7 @@ fn initialize_core_logic(app_handle: &AppHandle) {
 
     // Duyu Pro plan (trial / subscription), checked in the background.
     frontmost::init(app_handle);
+    meeting::init(app_handle);
     let elchi_pro = elchi_pro::ElchiPro::new(app_handle);
     elchi_pro.start();
     app_handle.manage(elchi_pro);
@@ -871,6 +877,18 @@ pub fn run(cli_args: CliArgs) {
             commands::audio::get_windows_microphone_permission_status,
             commands::audio::open_microphone_privacy_settings,
             commands::audio::reset_macos_permissions,
+            meeting::start_meeting,
+            meeting::stop_meeting,
+            meeting::cancel_meeting,
+            meeting::get_active_meeting,
+            meeting::list_meetings,
+            meeting::get_meeting,
+            meeting::set_meeting_user_notes,
+            meeting::delete_meeting,
+            meeting::retry_meeting_notes,
+            meeting::meeting_audio_path,
+            meeting::acknowledge_meeting_consent,
+            meeting::change_meeting_keep_recording_setting,
             commands::audio::get_available_microphones,
             commands::audio::set_selected_microphone,
             commands::audio::get_selected_microphone,

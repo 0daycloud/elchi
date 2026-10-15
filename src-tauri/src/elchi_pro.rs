@@ -33,6 +33,9 @@ pub const SITE_URL: &str = "https://speech.patientdesk.ai";
 pub const API_URL: &str = "https://voice.patientdesk.ai/v1/audio/transcriptions";
 pub const MODEL: &str = "duyu-1";
 pub const FORMAT_URL: &str = "https://voice.patientdesk.ai/v1/elchi/format";
+pub const NOTES_URL: &str = "https://voice.patientdesk.ai/v1/elchi/notes";
+/// Writing a long meeting's notes takes a few model calls on the server.
+const NOTES_TIMEOUT: Duration = Duration::from_secs(150);
 const TRANSCRIBE_TIMEOUT: Duration = Duration::from_secs(30);
 /// The server gives the formatter four seconds and then answers with the text
 /// as sent; this covers that and the network, and no more.
@@ -481,6 +484,59 @@ pub async fn format(
     );
     out.filter(|r| r.formatted && !r.text.trim().is_empty())
         .map(|r| r.text)
+}
+
+#[derive(Serialize)]
+pub struct NotesSegment<'a> {
+    pub speaker: &'a str,
+    pub text: &'a str,
+}
+
+#[derive(Serialize)]
+struct NotesRequest<'a> {
+    segments: &'a [NotesSegment<'a>],
+    user_notes: &'a str,
+    language: &'a str,
+}
+
+#[derive(Deserialize)]
+pub struct MeetingNotes {
+    pub title: String,
+    pub notes: String,
+}
+
+/// A meeting's notes from its transcript and the user's own notes (Duyu Pro only).
+pub async fn meeting_notes(
+    token: &str,
+    segments: &[NotesSegment<'_>],
+    user_notes: &str,
+    language: &str,
+) -> Result<MeetingNotes, CloudError> {
+    let resp = reqwest::Client::builder()
+        .timeout(NOTES_TIMEOUT)
+        .build()
+        .map_err(|e| CloudError::Other(e.into()))?
+        .post(NOTES_URL)
+        .bearer_auth(token)
+        .json(&NotesRequest {
+            segments,
+            user_notes,
+            language,
+        })
+        .send()
+        .await
+        .map_err(|e| CloudError::Other(anyhow!("meeting notes unreachable: {e}")))?;
+    match resp.status().as_u16() {
+        200 => resp
+            .json::<MeetingNotes>()
+            .await
+            .map_err(|e| CloudError::Other(anyhow!("meeting notes: bad response: {e}"))),
+        401 => Err(CloudError::Unauthorized),
+        402 | 403 => Err(CloudError::NotEntitled),
+        status => Err(CloudError::Other(anyhow!(
+            "meeting notes returned {status}"
+        ))),
+    }
 }
 
 /// Transcribes 16 kHz mono audio with Duyu Pro. `language` is a hint

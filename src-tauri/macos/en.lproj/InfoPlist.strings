@@ -1,2 +1,4 @@
 /* Microphone permission prompt */
 "NSMicrophoneUsageDescription" = "Elchi uses the microphone to turn your speech into text.";
+/* System audio permission prompt (meeting notes) */
+"NSAudioCaptureUsageDescription" = "Elchi records the other people on a call to write your meeting notes.";
