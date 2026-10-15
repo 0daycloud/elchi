@@ -1119,7 +1119,7 @@
     "consent": {
       "title": "Before you record",
       "body": "Tell the people in the call that you're recording it. In Turkey and many other countries, recording a conversation without its participants' consent is a crime.",
-      "privacy": "By default no audio is kept, and the transcript is deleted once the notes are written. You can change this in Settings > Advanced.",
+      "privacy": "No audio is kept, and the transcript is deleted once the notes are written (change this in Settings › Advanced). To write the notes, the meeting's transcript, not its audio, is sent to ScaleDown through OpenRouter.",
       "accept": "Understood, start",
       "cancel": "Cancel"
     },
