@@ -164,7 +164,9 @@ export const DictationRow: React.FC<{
   const formatted =
     hasText && wordsOf(pasted) !== wordsOf(entry.transcription_text);
   const changes = entry.edited_from ? wordChanges(entry.edited_from, text) : [];
-  const busy = editing || word !== null;
+  // Re-transcribing rewrites the text when it lands, so no edit, word, second
+  // retry or delete may start meanwhile: the actions hide until it is done.
+  const busy = editing || word !== null || retrying;
 
   const startEdit = () => {
     setDraft(text);
@@ -207,6 +209,7 @@ export const DictationRow: React.FC<{
   };
 
   const retry = async () => {
+    if (retrying) return;
     setRetrying(true);
     const r = await commands.retryHistoryEntryTranscription(entry.id);
     setRetrying(false);
@@ -328,26 +331,30 @@ export const DictationRow: React.FC<{
           </p>
         )}
 
-        {hasText && !editing && (
+        {/* The recording plays even when transcription failed, so the user can
+            hear whether it caught any speech before retrying. */}
+        {!editing && (
           <div className="relative min-h-[14px] font-mono text-[10.5px] tracking-[0.04em] uppercase text-text/35">
-            <span>
-              {t("home.words", { count: words, n })}
-              {formatted && <> · {t("home.formatted")}</>}
-              {formatted && (
-                <>
-                  {" · "}
-                  <button
-                    type="button"
-                    onClick={() => setShowHeard((v) => !v)}
-                    aria-expanded={showHeard}
-                    className="uppercase hover:text-logo-primary cursor-pointer focus:outline-none focus-visible:text-logo-primary focus-visible:underline"
-                  >
-                    {showHeard ? t("home.hideHeard") : t("home.showHeard")}
-                  </button>
-                </>
-              )}
-              {entry.saved && <> · {t("home.row.kept")}</>}
-            </span>
+            {hasText && (
+              <span>
+                {t("home.words", { count: words, n })}
+                {formatted && <> · {t("home.formatted")}</>}
+                {formatted && (
+                  <>
+                    {" · "}
+                    <button
+                      type="button"
+                      onClick={() => setShowHeard((v) => !v)}
+                      aria-expanded={showHeard}
+                      className="uppercase hover:text-logo-primary cursor-pointer focus:outline-none focus-visible:text-logo-primary focus-visible:underline"
+                    >
+                      {showHeard ? t("home.hideHeard") : t("home.showHeard")}
+                    </button>
+                  </>
+                )}
+                {entry.saved && <> · {t("home.row.kept")}</>}
+              </span>
+            )}
             <div
               className={`absolute end-0 top-1/2 -translate-y-1/2 normal-case ${reveal}`}
             >
