@@ -1,6 +1,6 @@
 pkgbase = elchi-bin
 	pkgdesc = On-device Turkish + English speech-to-text dictation (Duyu-small, CPU)
-	pkgver = 1.0.2
+	pkgver = 1.0.3
 	pkgrel = 1
 	url = https://github.com/0daycloud/elchi
 	install = elchi-bin.install
@@ -31,12 +31,12 @@ pkgbase = elchi-bin
 	optdepends = dotool: typing fallback with keyboard-layout support
 	provides = elchi
 	conflicts = elchi
-	noextract = Elchi_1.0.2_amd64.deb
+	noextract = Elchi_1.0.3_amd64.deb
 	options = !debug
-	source = Elchi_1.0.2_amd64.deb::https://speech.patientdesk.ai/downloads/elchi/1.0.2/Elchi_1.0.2_amd64.deb
-	source = LICENSE-1.0.2::https://raw.githubusercontent.com/0daycloud/elchi/v1.0.2/LICENSE
+	source = Elchi_1.0.3_amd64.deb::https://speech.patientdesk.ai/downloads/elchi/1.0.3/Elchi_1.0.3_amd64.deb
+	source = LICENSE-1.0.3::https://raw.githubusercontent.com/0daycloud/elchi/v1.0.3/LICENSE
 	source = elchi-omarchy-setup
-	sha256sums = c6e943f83a097db3f236871c0ea5a2f5631e4db73d5118c20e48e34d8ffc0b3c
+	sha256sums = 5276f454ee39502bfbd062947c76ed0bf9af414d8ec01f2e1c143fa7bbb000c6
 	sha256sums = f455d16cc41bd3880a4a1b66bc8247b2cc62d7e6ba186aedbfc7ee2c64f35c7a
 	sha256sums = 36b402826688da3eee914c4da7507c1f4cf8bbc68ebeaeeda3ed469b258189f3
 
