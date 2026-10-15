@@ -203,11 +203,7 @@ const WelcomeTour: React.FC<WelcomeTourProps> = ({ onDone }) => {
           {panel.body}
         </p>
         <div className="absolute -right-20 -bottom-20 motion-safe:animate-[spin_60s_linear_infinite]">
-          <ElchiStar
-            size={280}
-            color="var(--color-star)"
-            eye="var(--color-header)"
-          />
+          <ElchiStar size={280} color="var(--color-star)" />
         </div>
       </aside>
 

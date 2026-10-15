@@ -157,7 +157,7 @@ const ElchiAvatar: React.FC = () => (
     aria-hidden="true"
     className="flex-none size-9 rounded-full bg-logo-primary/10 flex items-center justify-center"
   >
-    <ElchiStar size={22} ring="var(--color-background)" />
+    <ElchiStar size={18} />
   </span>
 );
 

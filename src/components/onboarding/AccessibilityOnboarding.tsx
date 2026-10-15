@@ -334,11 +334,7 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
           {t("onboarding.permissions.description")}
         </p>
         <div className="absolute -right-20 -bottom-20">
-          <ElchiStar
-            size={280}
-            color="var(--color-star)"
-            eye="var(--color-header)"
-          />
+          <ElchiStar size={280} color="var(--color-star)" />
         </div>
       </aside>
 

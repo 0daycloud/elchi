@@ -346,13 +346,17 @@ function App() {
       theme="system"
       toastOptions={{
         unstyled: true,
+        // Steel toasts from the design's "system states" frame (2d).
         classNames: {
           toast:
-            "bg-background border border-mid-gray/20 rounded-lg shadow-lg px-4 py-3 flex items-center gap-3 text-sm",
-          title: "font-medium",
-          description: "text-mid-gray",
+            "steel-panel !rounded-[10px] w-[356px] px-3.5 py-3 flex items-center gap-3 text-[13px] text-text",
+          title: "font-normal",
+          description:
+            "font-mono text-[10.5px] tracking-[0.04em] text-mid-gray",
           actionButton:
-            "px-2 py-1 text-xs font-medium rounded-lg border bg-mid-gray/10 border-mid-gray/20 hover:bg-background-ui/30 hover:border-logo-primary cursor-pointer whitespace-nowrap",
+            "steel-chip px-2.5 py-1 font-mono text-[10px] tracking-[0.06em] uppercase cursor-pointer whitespace-nowrap",
+          icon: "shrink-0",
+          error: "!border-[rgba(255,138,138,0.35)]",
         },
       }}
     />

@@ -5,30 +5,33 @@ import ElchiStar from "./ElchiStar";
 const PRODUCT_NAME = "Elchi";
 
 interface ElchiLogoProps {
-  /** Wordmark cap size in px; the star scales with it. */
+  /** Wordmark size in px; the star scales with it. */
   size?: number;
-  /** Ink for the star and the letters (defaults to the accent). */
+  /** Ink for the letters (defaults to the text color). */
   color?: string;
+  /** Star variant: blue on neutral grounds, light on blue/field grounds. */
+  tone?: "blue" | "light";
   className?: string;
 }
 
-/** Elchi wordmark: the eight-point star beside "Elchi" in Karla. */
+/** Elchi wordmark: the star mark beside "Elchi" in Geist. */
 const ElchiLogo: React.FC<ElchiLogoProps> = ({
-  size = 28,
-  color = "var(--color-logo-primary)",
+  size = 15,
+  color = "var(--color-text)",
+  tone = "blue",
   className = "",
 }) => (
   <div
     className={`inline-flex items-center select-none ${className}`}
-    style={{ gap: size * 0.32 }}
+    style={{ gap: size * 0.66 }}
     role="img"
     aria-label={PRODUCT_NAME}
   >
-    <ElchiStar size={size * 1.15} color={color} />
+    <ElchiStar size={size * 1.2} tone={tone} />
     <span
       aria-hidden="true"
-      className="font-display font-bold leading-none"
-      style={{ fontSize: size, letterSpacing: "-0.02em", color }}
+      className="font-sans font-medium leading-none"
+      style={{ fontSize: size, letterSpacing: "-0.01em", color }}
     >
       {PRODUCT_NAME}
     </span>
