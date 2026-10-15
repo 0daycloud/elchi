@@ -84,12 +84,16 @@ body {
   background-color: var(--color-background);
 }
 
-h1,
-h2,
-h3 {
-  font-family: var(--font-display);
-  font-weight: 400;
-  letter-spacing: -0.02em;
+/* In the base layer so utilities and recipes (e.g. `.label-mono` on an h2)
+   still win. */
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
 }
 
 /* Native controls (range thumbs, checkboxes) take the accent ink. */
