@@ -547,6 +547,143 @@ impl Drop for RescanGuard {
     }
 }
 
+/// Model ids with a [`ModelManager::download_model`] call in flight. Two
+/// concurrent downloads of one model share the same `.partial` / `.downloading`
+/// paths and corrupt each other, so a second call for an id already in the set
+/// is a no-op, unless that download was cancelled and is still unwinding (see
+/// [`DownloadSlots::claim`]).
+#[derive(Clone, Default)]
+struct DownloadSlots {
+    state: Arc<Mutex<SlotState>>,
+    /// Woken whenever a slot is released or a download is cancelled.
+    changed: Arc<tokio::sync::Notify>,
+}
+
+#[derive(Default)]
+struct SlotState {
+    /// Model id -> whether its download was cancelled and is still unwinding.
+    held: HashMap<String, bool>,
+    /// Model id -> number of cancels so far, so a request waiting for a slot
+    /// can tell that the user cancelled after it started waiting.
+    cancels: HashMap<String, u64>,
+}
+
+/// Who holds a model's slot when it cannot be claimed.
+enum SlotHolder {
+    Running,
+    Cancelling,
+}
+
+/// The outcome of [`DownloadSlots::claim`].
+enum Claim {
+    /// The slot is ours; it is released when the guard drops.
+    Acquired(DownloadSlot),
+    /// A live download of the model is already running.
+    Duplicate,
+    /// The user cancelled while this request waited for the slot.
+    Cancelled,
+}
+
+/// How long a new download waits for a cancelled one of the same model to
+/// release its slot. Unwinding normally takes milliseconds.
+const CANCEL_UNWIND_WAIT: Duration = Duration::from_secs(10);
+
+impl DownloadSlots {
+    /// Claim the slot for `model_id`, or say who holds it.
+    fn try_claim_or_holder(&self, model_id: &str) -> std::result::Result<DownloadSlot, SlotHolder> {
+        let mut state = self.state.lock().unwrap();
+        match state.held.get(model_id) {
+            None => {
+                state.held.insert(model_id.to_string(), false);
+                Ok(DownloadSlot {
+                    slots: self.clone(),
+                    model_id: model_id.to_string(),
+                })
+            }
+            Some(false) => Err(SlotHolder::Running),
+            Some(true) => Err(SlotHolder::Cancelling),
+        }
+    }
+
+    /// Claim the slot for `model_id`. Returns a guard that releases it on drop,
+    /// or `None` if a download of that model is already running.
+    #[cfg(test)]
+    fn try_claim(&self, model_id: &str) -> Option<DownloadSlot> {
+        self.try_claim_or_holder(model_id).ok()
+    }
+
+    fn cancel_count(&self, model_id: &str) -> u64 {
+        let state = self.state.lock().unwrap();
+        state.cancels.get(model_id).copied().unwrap_or(0)
+    }
+
+    /// Record a cancel of `model_id`: the download holding its slot (if any)
+    /// is now unwinding, and requests waiting for the slot give up.
+    fn mark_cancelled(&self, model_id: &str) {
+        {
+            let mut state = self.state.lock().unwrap();
+            if let Some(cancelled) = state.held.get_mut(model_id) {
+                *cancelled = true;
+            }
+            *state.cancels.entry(model_id.to_string()).or_default() += 1;
+        }
+        self.changed.notify_waiters();
+    }
+
+    /// Whether the download holding `model_id`'s slot has been cancelled.
+    fn is_cancelled(&self, model_id: &str) -> bool {
+        let state = self.state.lock().unwrap();
+        state.held.get(model_id).copied().unwrap_or(false)
+    }
+
+    /// Claim the slot for a new download of `model_id`.
+    ///
+    /// A live download of the model already running makes this call a
+    /// [`Claim::Duplicate`]. If that download was cancelled, wait up to `wait`
+    /// for it to unwind and release the slot, so Resume right after Cancel
+    /// starts a fresh download instead of reporting success for nothing. A
+    /// Cancel while waiting ends the wait with [`Claim::Cancelled`]. Errors if
+    /// the cancelled download is still holding the slot after `wait`.
+    async fn claim(&self, model_id: &str, wait: Duration) -> Result<Claim> {
+        let deadline = tokio::time::Instant::now() + wait;
+        let cancels_at_start = self.cancel_count(model_id);
+        loop {
+            let changed = self.changed.notified();
+            tokio::pin!(changed);
+            // Register before checking, so a change in between is not missed.
+            changed.as_mut().enable();
+            if self.cancel_count(model_id) != cancels_at_start {
+                return Ok(Claim::Cancelled);
+            }
+            match self.try_claim_or_holder(model_id) {
+                Ok(slot) => return Ok(Claim::Acquired(slot)),
+                Err(SlotHolder::Running) => return Ok(Claim::Duplicate),
+                Err(SlotHolder::Cancelling) => {}
+            }
+            if tokio::time::timeout_at(deadline, changed).await.is_err() {
+                return Err(anyhow::anyhow!(
+                    "The cancelled download of {} is still stopping; try again in a moment",
+                    model_id
+                ));
+            }
+        }
+    }
+}
+
+/// RAII guard for a claimed [`DownloadSlots`] entry, released on every exit
+/// path of the download (success, error, cancel).
+struct DownloadSlot {
+    slots: DownloadSlots,
+    model_id: String,
+}
+
+impl Drop for DownloadSlot {
+    fn drop(&mut self) {
+        self.slots.state.lock().unwrap().held.remove(&self.model_id);
+        self.slots.changed.notify_waiters();
+    }
+}
+
 /// RAII guard that cleans up download state (`is_downloading` flag and cancel flag)
 /// when dropped, unless explicitly disarmed. This ensures consistent cleanup on
 /// every error path without requiring manual cleanup at each `?` or `return Err`.
@@ -581,6 +718,8 @@ pub struct ModelManager {
     /// Single-flight guard for [`Self::rescan_local_models`] so concurrent
     /// refresh requests coalesce instead of scanning the disk in parallel.
     is_rescanning: Arc<AtomicBool>,
+    /// Single-flight guard for [`Self::download_model`], per model id.
+    download_slots: DownloadSlots,
 }
 
 impl ModelManager {
@@ -1282,6 +1421,7 @@ impl ModelManager {
             cancel_flags: Arc::new(Mutex::new(HashMap::new())),
             extracting_models: Arc::new(Mutex::new(HashSet::new())),
             is_rescanning: Arc::new(AtomicBool::new(false)),
+            download_slots: DownloadSlots::default(),
         };
 
         // Migrate any bundled models to user directory
@@ -2068,11 +2208,7 @@ impl ModelManager {
 
         // Register a cancellation token so `cancel_download` can abort this
         // transfer promptly. The guard removes it on every exit path.
-        let cancel_token = CancellationToken::new();
-        {
-            let mut flags = self.cancel_flags.lock().unwrap();
-            flags.insert(model_id.clone(), cancel_token.clone());
-        }
+        let cancel_token = self.register_cancel_token(&model_id);
 
         let mut cleanup = DownloadCleanup {
             available_models: &self.available_models,
@@ -2367,11 +2503,7 @@ impl ModelManager {
                 model.is_downloading = true;
             }
         }
-        let cancel_token = CancellationToken::new();
-        self.cancel_flags
-            .lock()
-            .unwrap()
-            .insert(model_id.clone(), cancel_token.clone());
+        let cancel_token = self.register_cancel_token(&model_id);
         let mut cleanup = DownloadCleanup {
             available_models: &self.available_models,
             cancel_flags: &self.cancel_flags,
@@ -2446,7 +2578,38 @@ impl ModelManager {
         Ok(())
     }
 
+    /// Register the cancellation token `cancel_download` triggers for this
+    /// download. A Cancel that landed after the download claimed its slot but
+    /// before the token existed had nothing to trigger, so honour it here.
+    fn register_cancel_token(&self, model_id: &str) -> CancellationToken {
+        let token = CancellationToken::new();
+        self.cancel_flags
+            .lock()
+            .unwrap()
+            .insert(model_id.to_string(), token.clone());
+        if self.download_slots.is_cancelled(model_id) {
+            token.cancel();
+        }
+        token
+    }
+
     pub async fn download_model(&self, model_id: &str) -> Result<()> {
+        let _slot = match self
+            .download_slots
+            .claim(model_id, CANCEL_UNWIND_WAIT)
+            .await?
+        {
+            Claim::Acquired(slot) => slot,
+            Claim::Duplicate => {
+                info!("Download of {} already in progress; skipping", model_id);
+                return Ok(());
+            }
+            Claim::Cancelled => {
+                info!("Download of {} cancelled while waiting to start", model_id);
+                return Ok(());
+            }
+        };
+
         let model_info = {
             let models = self.available_models.lock().unwrap();
             models.get(model_id).cloned()
@@ -2499,11 +2662,7 @@ impl ModelManager {
         }
 
         // Create cancellation token for this download
-        let cancel_token = CancellationToken::new();
-        {
-            let mut flags = self.cancel_flags.lock().unwrap();
-            flags.insert(model_id.to_string(), cancel_token.clone());
-        }
+        let cancel_token = self.register_cancel_token(model_id);
 
         // Guard ensures is_downloading and cancel_flags are cleaned up on every
         // error path. Disarmed only on success (which sets is_downloaded = true).
@@ -2898,6 +3057,13 @@ impl ModelManager {
 
     pub fn cancel_download(&self, model_id: &str) -> Result<()> {
         debug!("ModelManager: cancel_download called for: {}", model_id);
+
+        // Mark first, then trigger the token: a download that claimed its slot
+        // but has not registered its token yet sees the mark when it does
+        // (`register_cancel_token`). The download keeps its slot until it
+        // unwinds; a Resume clicked in that window waits for it, and requests
+        // already waiting give up.
+        self.download_slots.mark_cancelled(model_id);
 
         // Trigger the cancellation token to stop the download. The HF path
         // aborts its in-flight chunk tasks and unwinds promptly; the URL path
@@ -3396,5 +3562,160 @@ mod tests {
             !models.contains_key("someone/llama-7b/llama-q8.gguf"),
             "non-ASR gguf must be ignored"
         );
+    }
+
+    #[test]
+    fn test_download_slots_single_flight_per_model() {
+        let slots = DownloadSlots::default();
+
+        let first = slots.try_claim("duyu-small");
+        assert!(first.is_some());
+        assert!(
+            slots.try_claim("duyu-small").is_none(),
+            "a second download of the same model must be refused"
+        );
+        assert!(
+            slots.try_claim("other-model").is_some(),
+            "other models are unaffected"
+        );
+
+        drop(first);
+        assert!(
+            slots.try_claim("duyu-small").is_some(),
+            "the slot is released when the download ends"
+        );
+    }
+
+    #[test]
+    fn test_download_slots_concurrent_claims_admit_one() {
+        let slots = DownloadSlots::default();
+        let barrier = Arc::new(std::sync::Barrier::new(16));
+        let handles: Vec<_> = (0..16)
+            .map(|_| {
+                let slots = slots.clone();
+                let barrier = barrier.clone();
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    // Hold the slot until every thread has tried.
+                    let slot = slots.try_claim("duyu-small");
+                    let claimed = slot.is_some();
+                    barrier.wait();
+                    claimed
+                })
+            })
+            .collect();
+        let winners = handles
+            .into_iter()
+            .map(|h| h.join().unwrap())
+            .filter(|&claimed| claimed)
+            .count();
+        assert_eq!(winners, 1);
+    }
+
+    #[tokio::test]
+    async fn test_download_slots_resume_after_cancel_waits_for_unwind() {
+        let slots = DownloadSlots::default();
+        let cancelled = slots.try_claim("duyu-small").unwrap();
+        slots.mark_cancelled("duyu-small");
+
+        // Resume while the cancelled download is still unwinding.
+        let resume = tokio::spawn({
+            let slots = slots.clone();
+            async move {
+                matches!(
+                    slots.claim("duyu-small", Duration::from_secs(5)).await,
+                    Ok(Claim::Acquired(_))
+                )
+            }
+        });
+        tokio::time::sleep(Duration::from_millis(50)).await;
+        assert!(
+            !resume.is_finished(),
+            "resume must wait for the cancelled download, not report success"
+        );
+
+        drop(cancelled);
+        assert!(
+            resume.await.unwrap(),
+            "resume claims the slot once the cancelled download unwinds"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_download_slots_resume_gives_up_on_a_stuck_cancel() {
+        let slots = DownloadSlots::default();
+        let _stuck = slots.try_claim("duyu-small").unwrap();
+        slots.mark_cancelled("duyu-small");
+
+        assert!(
+            slots
+                .claim("duyu-small", Duration::from_millis(50))
+                .await
+                .is_err(),
+            "an explicit error lets the frontend clear its progress"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_download_slots_duplicate_of_a_live_download_is_a_no_op() {
+        let slots = DownloadSlots::default();
+        let _running = slots.try_claim("duyu-small").unwrap();
+
+        let duplicate = slots
+            .claim("duyu-small", Duration::from_secs(5))
+            .await
+            .unwrap();
+        assert!(
+            matches!(duplicate, Claim::Duplicate),
+            "no wait and no second download"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_download_slots_cancel_stops_a_waiting_resume() {
+        let slots = DownloadSlots::default();
+        let unwinding = slots.try_claim("duyu-small").unwrap();
+        slots.mark_cancelled("duyu-small");
+
+        // Cancel -> Resume (waiting for the old download) -> Cancel again.
+        let resume = tokio::spawn({
+            let slots = slots.clone();
+            async move { slots.claim("duyu-small", Duration::from_secs(5)).await }
+        });
+        tokio::time::sleep(Duration::from_millis(50)).await;
+        assert!(!resume.is_finished(), "resume is waiting");
+        slots.mark_cancelled("duyu-small");
+        drop(unwinding);
+
+        assert!(
+            matches!(resume.await.unwrap(), Ok(Claim::Cancelled)),
+            "the second Cancel must stop the queued Resume"
+        );
+        assert!(
+            slots.try_claim("duyu-small").is_some(),
+            "no replacement download holds the slot"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_download_slots_earlier_cancels_do_not_block_a_new_download() {
+        let slots = DownloadSlots::default();
+        slots.mark_cancelled("duyu-small");
+        assert!(matches!(
+            slots.claim("duyu-small", Duration::from_secs(5)).await,
+            Ok(Claim::Acquired(_))
+        ));
+    }
+
+    #[test]
+    fn test_download_slots_cancel_before_token_is_remembered() {
+        // A Cancel between claiming the slot and registering the token must
+        // reach the download through the slot (see register_cancel_token).
+        let slots = DownloadSlots::default();
+        let _slot = slots.try_claim("duyu-small").unwrap();
+        assert!(!slots.is_cancelled("duyu-small"));
+        slots.mark_cancelled("duyu-small");
+        assert!(slots.is_cancelled("duyu-small"));
+        assert!(!slots.is_cancelled("other-model"));
     }
 }
