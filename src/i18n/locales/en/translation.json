@@ -22,9 +22,6 @@
     "dictionary": "Dictionary"
   },
   "onboarding": {
-    "subtitle": "To get started, choose a model that runs on this computer",
-    "existingModelsTitle": "Downloaded Models",
-    "downloadModelsTitle": "Available to Download",
     "showAllModels": "Show all {{total}} models",
     "showFewerModels": "Show fewer models",
     "recommended": "Recommended",
@@ -107,24 +104,30 @@
       "selectModel": "Failed to select model"
     },
     "permissions": {
-      "title": "Before we start",
-      "description": "Elchi needs your permission to hear you and to type the text where your cursor is.",
+      "description": "So Elchi can hear you and type the text where your cursor is.",
       "microphone": {
-        "title": "Microphone Access",
-        "description": "Required to hear your voice for transcription."
+        "title": "Microphone",
+        "description": "To turn what you say into text."
       },
       "accessibility": {
-        "title": "Accessibility Access",
-        "description": "Required to type transcribed text into your applications."
+        "title": "Accessibility",
+        "description": "To type the text into the apps you use."
       },
-      "grant": "Grant Permission",
+      "grant": "Allow",
       "granted": "Granted",
-      "waiting": "Waiting...",
+      "waiting": "Waiting",
       "allGranted": "All set.",
       "errors": {
         "checkFailed": "Failed to check permissions. Please try again.",
         "requestFailed": "Failed to request permission. Please try again."
-      }
+      },
+      "title_one": "One permission first.",
+      "title_other": "Two permissions first.",
+      "descriptionMicrophone": "So Elchi can hear you.",
+      "openSettings": "Open Settings",
+      "note": "System Settings will open",
+      "noteWindows": "Windows Settings will open",
+      "progress": "{{granted}} of {{total}} permissions granted"
     },
     "tour": {
       "progress": "Step {{step}} of {{total}}",
@@ -134,22 +137,34 @@
       "start": "Start using Elchi",
       "welcome": {
         "title": "Speak, and Elchi writes.",
-        "lede": "Elchi turns what you say into text and drops it where your cursor is: an e-mail, a document, a chat window. It is often faster than typing.",
+        "lede": "The text lands where your cursor is: an e-mail, a document, a chat. Often faster than typing.",
         "anywhere": {
           "title": "In every app",
           "body": "E-mail, Slack, Word, the browser… Wherever the cursor is, the text goes."
         },
         "languages": {
           "title": "Turkish and English in one sentence",
-          "body": "Mixed sentences like “Meeting'i cumaya aldık” come out right, with capitals and punctuation."
+          "body": "Mixed sentences like “Meeting'i cumaya aldık” come out right."
         },
         "pro": {
           "title": "Duyu Pro for the first 7 days",
-          "body": "You start with Duyu Pro, our most accurate model. After that, Elchi keeps working for free on this computer with Duyu-small."
+          "body": "You start with our most accurate model, then carry on for free with Duyu-small."
+        },
+        "trial": {
+          "title_one": "{{count}} day of Duyu Pro",
+          "title_other": "{{count}} days of Duyu Pro"
+        },
+        "proActive": {
+          "title": "Duyu Pro is on",
+          "body": "You dictate with Duyu Pro, our most accurate model."
+        },
+        "free": {
+          "title": "Free with Duyu-small",
+          "body": "Elchi runs free on this computer with Duyu-small; move to Pro whenever you like."
         }
       },
       "how": {
-        "title": "How to use it",
+        "title": "One shortcut.",
         "step1": "Click where you want to write: an e-mail, a document or a chat box.",
         "step2Hold": "Hold the shortcut and speak.",
         "step3Hold": "Let go. The text appears at your cursor within seconds.",
@@ -157,19 +172,43 @@
         "step3Toggle": "Press it again when you're done. The text appears at your cursor.",
         "demo": "Yarın saat onda toplantımız var; sunumu Friday'e kadar bitiriyoruz.",
         "longer": "For longer dictation, press the shortcut once, speak, and press it again when you're done.",
-        "lede": "One shortcut. In Mail, Slack or Word, it writes wherever your cursor is."
+        "lede": "In Mail, Slack or Word: it writes wherever your cursor is."
       },
       "try": {
-        "title": "Give it a try",
-        "instructionHold": "Hold the shortcut, read the sentence below, then let go:",
-        "instructionToggle": "Press the shortcut once, read the sentence below, then press it again:",
+        "title": "Give it a try.",
+        "instructionHold": "Hold the shortcut, read the sentence, let go.",
+        "instructionToggle": "Press the shortcut, read the sentence, press it again.",
         "phrase": "Merhaba Elchi, yarınki meeting'i saat üçe alalım ve notları herkesle paylaşalım.",
         "boxLabel": "Your text will land here",
-        "placeholder": "The cursor is in this box; what you say will be typed here.",
+        "placeholder": "The cursor is here; what you say will be typed here.",
         "successTitle": "That's it.",
         "successBody": "What you said was written out in seconds.",
-        "anywhere": "You can now dictate with the same shortcut in any app."
+        "anywhere": "You can now dictate with the same shortcut in any app.",
+        "listening": "Listening {{time}}",
+        "working": "Writing…",
+        "done": "Written"
       }
+    },
+    "layout": {
+      "setupPermissions": "Setup · Permissions",
+      "tourStep": "Tour · {{step}} / {{total}}"
+    },
+    "modelPicker": {
+      "eyebrow": "The model that runs on this computer",
+      "title": "Choose a model.",
+      "languages": "{{count}} languages",
+      "translation": "Translation",
+      "streaming": "Live",
+      "downloading": "{{percentage}}%",
+      "speed": "{{speed}} MB/s",
+      "cancel": "Cancel",
+      "verifying": "Verifying",
+      "extracting": "Extracting",
+      "switching": "Switching",
+      "select": "Select",
+      "download": "Download",
+      "downloaded": "Downloaded",
+      "custom": "Custom"
     }
   },
   "modelSelector": {

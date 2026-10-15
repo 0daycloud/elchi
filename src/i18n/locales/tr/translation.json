@@ -22,9 +22,6 @@
     "dictionary": "Sözlük"
   },
   "onboarding": {
-    "subtitle": "Başlamak için bu bilgisayarda çalışacak bir model seçin",
-    "existingModelsTitle": "İndirilen modeller",
-    "downloadModelsTitle": "İndirilebilir modeller",
     "showAllModels": "{{total}} modelin tümünü göster",
     "showFewerModels": "Daha az model göster",
     "recommended": "Önerilen",
@@ -107,24 +104,30 @@
       "selectModel": "Model seçilemedi."
     },
     "permissions": {
-      "title": "Başlamadan önce",
-      "description": "Elchi'nin sizi duyabilmesi ve metni imlecin olduğu yere yazabilmesi için izninize ihtiyacı var.",
+      "description": "Elchi'nin sizi duyabilmesi ve metni imlecin olduğu yere yazabilmesi için.",
       "microphone": {
-        "title": "Mikrofon izni",
-        "description": "Konuşmanızı yazıya dökebilmek için gereklidir."
+        "title": "Mikrofon",
+        "description": "Konuşmanızı yazıya dökebilmek için."
       },
       "accessibility": {
-        "title": "Erişilebilirlik izni",
-        "description": "Yazıya dökülen metni kullandığınız uygulamalara yazabilmek için gereklidir."
+        "title": "Erişilebilirlik",
+        "description": "Metni kullandığınız uygulamalara yazabilmek için."
       },
       "grant": "İzin ver",
       "granted": "Verildi",
-      "waiting": "Bekleniyor...",
+      "waiting": "Bekleniyor",
       "allGranted": "Her şey hazır.",
       "errors": {
         "checkFailed": "İzinler denetlenemedi. Lütfen yeniden deneyin.",
         "requestFailed": "İzin istenemedi. Lütfen yeniden deneyin."
-      }
+      },
+      "title_one": "Başlamadan önce bir izin.",
+      "title_other": "Başlamadan önce iki izin.",
+      "descriptionMicrophone": "Elchi'nin sizi duyabilmesi için.",
+      "openSettings": "Ayarları aç",
+      "note": "Sistem ayarları açılacak",
+      "noteWindows": "Windows ayarları açılacak",
+      "progress": "{{granted}} / {{total}} izin verildi"
     },
     "tour": {
       "progress": "Adım {{step}} / {{total}}",
@@ -134,22 +137,34 @@
       "start": "Elchi'yi kullanmaya başla",
       "welcome": {
         "title": "Konuşun, Elchi yazsın.",
-        "lede": "Elchi söylediklerinizi yazıya döker ve metni imlecin olduğu yere bırakır: e-postaya, belgeye, sohbet penceresine. Çoğu zaman klavyeden daha hızlıdır.",
+        "lede": "Metin imlecin olduğu yere gelir — e-posta, belge, sohbet. Çoğu zaman klavyeden hızlı.",
         "anywhere": {
           "title": "Her uygulamada",
           "body": "E-posta, Slack, Word, tarayıcı… İmleç neredeyse metin oraya gelir."
         },
         "languages": {
           "title": "Türkçe ve İngilizce, aynı cümlede",
-          "body": "“Meeting'i cumaya aldık” gibi karışık cümleler de doğru yazılır; büyük harf ve noktalama kendiliğinden gelir."
+          "body": "“Meeting'i cumaya aldık” gibi karışık cümleler doğru yazılır."
         },
         "pro": {
           "title": "İlk 7 gün Duyu Pro",
-          "body": "En isabetli modelimiz Duyu Pro ile başlarsınız. Sonra Elchi, Duyu-small ile bu bilgisayarda ücretsiz çalışmaya devam eder."
+          "body": "En isabetli modelimizle başlarsınız; sonra Duyu-small ile ücretsiz devam."
+        },
+        "trial": {
+          "title_one": "{{count}} gün Duyu Pro",
+          "title_other": "{{count}} gün Duyu Pro"
+        },
+        "proActive": {
+          "title": "Duyu Pro açık",
+          "body": "En isabetli modelimiz Duyu Pro ile yazarsınız."
+        },
+        "free": {
+          "title": "Duyu-small ile ücretsiz",
+          "body": "Elchi bu bilgisayarda Duyu-small ile ücretsiz çalışır; isterseniz Pro'ya geçersiniz."
         }
       },
       "how": {
-        "title": "Nasıl kullanılır",
+        "title": "Tek kısayol.",
         "step1": "Yazmak istediğiniz yere tıklayın: bir e-posta, belge ya da sohbet kutusu.",
         "step2Hold": "Kısayolu basılı tutun ve konuşun.",
         "step3Hold": "Bırakın. Metin birkaç saniye içinde imlecin olduğu yere gelir.",
@@ -157,19 +172,43 @@
         "step3Toggle": "Bitince tekrar basın. Metin imlecin olduğu yere gelir.",
         "demo": "Yarın saat onda toplantımız var; sunumu Friday'e kadar bitiriyoruz.",
         "longer": "Uzun konuşmalarda kısayola bir kez basın, konuşun, bitince tekrar basın.",
-        "lede": "Tek bir kısayol. Mail'de, Slack'te, Word'de; imleç neredeyse oraya yazar."
+        "lede": "Mail'de, Slack'te, Word'de; imleç neredeyse oraya yazar."
       },
       "try": {
-        "title": "Bir deneyin",
-        "instructionHold": "Kısayolu basılı tutup aşağıdaki cümleyi okuyun, sonra bırakın:",
-        "instructionToggle": "Kısayola bir kez basın, aşağıdaki cümleyi okuyun, sonra tekrar basın:",
+        "title": "Bir deneyin.",
+        "instructionHold": "Kısayolu basılı tutun, cümleyi okuyun, bırakın.",
+        "instructionToggle": "Kısayola basın, cümleyi okuyun, yeniden basın.",
         "phrase": "Merhaba Elchi, yarınki meeting'i saat üçe alalım ve notları herkesle paylaşalım.",
         "boxLabel": "Metin buraya gelecek",
-        "placeholder": "İmleç bu kutuda; konuşmanız buraya yazılacak.",
-        "successTitle": "Harika, işte bu kadar.",
+        "placeholder": "İmleç burada; konuşmanız buraya yazılacak.",
+        "successTitle": "İşte bu kadar.",
         "successBody": "Söyledikleriniz birkaç saniyede yazıya döküldü.",
-        "anywhere": "Artık aynı kısayolla her uygulamada dikte edebilirsiniz."
+        "anywhere": "Artık aynı kısayolla her uygulamada dikte edebilirsiniz.",
+        "listening": "Dinliyor {{time}}",
+        "working": "Yazıyor…",
+        "done": "Yazıldı"
       }
+    },
+    "layout": {
+      "setupPermissions": "Kurulum · İzinler",
+      "tourStep": "Tur · {{step}} / {{total}}"
+    },
+    "modelPicker": {
+      "eyebrow": "Bu bilgisayarda çalışacak model",
+      "title": "Bir model seçin.",
+      "languages": "{{count}} dil",
+      "translation": "Çeviri",
+      "streaming": "Canlı",
+      "downloading": "%{{percentage}}",
+      "speed": "{{speed}} MB/sn",
+      "cancel": "İptal",
+      "verifying": "Doğrulanıyor",
+      "extracting": "Ayıklanıyor",
+      "switching": "Geçiliyor",
+      "select": "Seç",
+      "download": "İndir ve seç",
+      "downloaded": "İndirildi",
+      "custom": "Özel"
     }
   },
   "modelSelector": {
