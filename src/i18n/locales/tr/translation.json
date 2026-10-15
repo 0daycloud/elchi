@@ -13,13 +13,33 @@
     "general": "Genel",
     "models": "Modeller",
     "advanced": "Gelişmiş",
-    "postProcessing": "Son işlem",
+    "postProcessing": "Son işlem (LLM)",
     "history": "Geçmiş",
     "debug": "Hata ayıklama",
     "about": "Hakkında",
     "label": "Bölümler",
     "summary": "Özet",
-    "dictionary": "Sözlük"
+    "dictionary": "Sözlük",
+    "back": "ELCHI",
+    "hints": {
+      "general": "G",
+      "models": "M",
+      "dictionary": "S"
+    },
+    "developer": "Geliştirici",
+    "developerLink": "Geliştirici →",
+    "developerHide": "Gizle",
+    "pageSummary": {
+      "general": "Kısayol · Ses · Çıktı · Görünüm",
+      "modelsCloud": "Bulut · Duyu Pro aktif",
+      "modelsLocal": "Bu bilgisayarda · Duyu-small",
+      "phrases_one": "{{count}} ifade",
+      "phrases_other": "{{count}} ifade",
+      "changed_one": "Değiştirilen {{count}} ayar",
+      "changed_other": "Değiştirilen {{count}} ayar",
+      "reset": "Sıfırla",
+      "modelsWhere": "Konuşmanız nerede yazıya dökülür"
+    }
   },
   "onboarding": {
     "showAllModels": "{{total}} modelin tümünü göster",
@@ -250,9 +270,6 @@
     }
   },
   "settings": {
-    "modelSettings": {
-      "title": "{{model}} ayarları"
-    },
     "models": {
       "title": "Modeller",
       "description": "Konuşmanızın nerede yazıya döküleceğini seçin: bulutta Duyu Pro ile ya da bu bilgisayarda Duyu-small ile.",
@@ -315,7 +332,7 @@
             "description": "Sesinizi kaydedip yazıya döken klavye kısayolu."
           },
           "cancel": {
-            "name": "İptal kısayolu",
+            "name": "İptal",
             "description": "Süren kaydı iptal eden klavye kısayolu."
           },
           "transcribe_with_post_process": {
@@ -327,18 +344,21 @@
           "restore": "Önceki kısayol geri yüklenemedi",
           "set": "Kısayol ayarlanamadı: {{error}}",
           "reset": "Kısayol sıfırlanamadı"
-        }
+        },
+        "reset": "Varsayılan kısayola dön"
       },
       "language": {
         "title": "Dil",
         "description": "Konuşma tanıma dilini seçin. Otomatik seçenekte dil kendiliğinden algılanır; belirli bir dil seçmek o dilde doğruluğu artırabilir.",
         "searchPlaceholder": "Dil ara...",
         "noResults": "Dil bulunamadı",
-        "auto": "Otomatik"
+        "auto": "Otomatik",
+        "modelTitle": "{{model}} dili",
+        "reset": "Varsayılan dile dön"
       },
       "shortcutActivation": {
-        "title": "Kısayol davranışı",
-        "description": "Dikte kısayolunun kaydı nasıl başlatıp durduracağını seçin.",
+        "title": "Davranış",
+        "description": "Basılı tut ya da bir kez bas",
         "options": {
           "holdOrToggle": "Otomatik",
           "pushToTalk": "Basılı tut",
@@ -353,6 +373,11 @@
       "smartFormatting": {
         "title": "Akıllı biçimlendirme",
         "description": "Söyledikleriniz yapıştırılmadan önce düzenlenir: dolgu sözcükler ve düzeltmeler ayıklanır, listeler ve paragraflar kurulur. Metin bunun için kendi sunucularımızda işlenir; üçüncü bir tarafa gitmez, saklanmaz."
+      },
+      "groups": {
+        "shortcut": "Kısayol",
+        "output": "Çıktı",
+        "appearance": "Görünüm"
       }
     },
     "sound": {
@@ -361,7 +386,8 @@
         "title": "Mikrofon",
         "description": "Kullanmak istediğiniz mikrofonu seçin",
         "placeholder": "Mikrofon seçin...",
-        "loading": "Yükleniyor..."
+        "loading": "Yükleniyor...",
+        "reset": "Varsayılan mikrofona dön"
       },
       "channel": {
         "title": "Giriş kanalı",
@@ -377,7 +403,8 @@
         "title": "Çıkış aygıtı",
         "description": "Geri bildirim seslerinin çalınacağı aygıtı seçin",
         "placeholder": "Çıkış aygıtı seçin...",
-        "loading": "Yükleniyor..."
+        "loading": "Yükleniyor...",
+        "reset": "Varsayılan çıkışa dön"
       },
       "volume": {
         "title": "Ses düzeyi",
@@ -390,7 +417,10 @@
         "output": "Çıktı",
         "transcription": "Yazıya dökme",
         "history": "Geçmiş",
-        "experimental": "Deneysel"
+        "experimental": "Deneysel",
+        "indicator": "Gösterge",
+        "historyHint": "Bu bilgisayarda saklanır",
+        "system": "Sistem"
       },
       "experimentalToggle": {
         "label": "Deneysel özellikler",
@@ -537,6 +567,16 @@
           "simplified": "Basitleştirilmiş",
           "traditional": "Geleneksel"
         }
+      },
+      "recordingsFolder": {
+        "title": "Kayıt klasörü",
+        "description": "Ses kayıtlarının saklandığı klasörü açar."
+      },
+      "rare": {
+        "summary_one": "Nadiren değiştirilen {{count}} ayar daha — yapıştırma, pano, ses algılama, Çince yazı…",
+        "summary_other": "Nadiren değiştirilen {{count}} ayar daha — yapıştırma, pano, ses algılama, Çince yazı…",
+        "show": "Göster",
+        "hide": "Gizle"
       }
     },
     "postProcessing": {
@@ -619,7 +659,6 @@
       "transcriptionFailed": "Kayıt yazıya dökülemedi. Yeniden denemek için yeniden deneme simgesini kullanabilirsiniz."
     },
     "debug": {
-      "title": "Hata ayıklama",
       "logDirectory": {
         "title": "Günlük klasörü",
         "description": "Günlük dosyalarının bulunduğu konum"
@@ -751,6 +790,12 @@
         "modelsButton": "Model seçimi",
         "exitButton": "Önizlemeden çık",
         "tourButton": "Tanıtım turu"
+      },
+      "groups": {
+        "previews": "Önizlemeler",
+        "input": "Klavye ve yapıştırma",
+        "audio": "Ses",
+        "logs": "Günlükler"
       }
     },
     "about": {
@@ -780,12 +825,14 @@
       "whatsNewUpdates": {
         "label": "Yenilikleri göster",
         "description": "Elchi güncellendikten sonra sürüm notlarını gösterir"
+      },
+      "updates": {
+        "title": "Güncellemeler"
       }
     }
   },
   "footer": {
     "checkingUpdates": "Güncellemeler denetleniyor...",
-    "updateAvailableShort": "Güncelleme var",
     "upToDate": "Güncel",
     "updateCheckingDisabled": "Güncelleme denetimi kapalı",
     "downloading": "İndiriliyor... %{{progress}}",
@@ -796,7 +843,15 @@
     "portableUpdateMessage": "Taşınabilir sürüm kendiliğinden güncellenemez. Aşağıdan sisteminize uygun yükleyiciyi indirip çalıştırın ve aynı klasöre kurun. Data/ klasörünüz (ayarlar, modeller, kayıtlar) olduğu gibi kalır.",
     "portableUpdateButton": "Yükleyiciyi indir",
     "portableUpdateBrowseMessage": "Taşınabilir sürüm kendiliğinden güncellenemez. Sisteminize uygun son sürümü speech.patientdesk.ai/elchi adresinden indirip aynı klasöre kurun. Data/ klasörünüz (ayarlar, modeller, kayıtlar) olduğu gibi kalır.",
-    "portableUpdateBrowseButton": "İndirme sayfasını aç"
+    "portableUpdateBrowseButton": "İndirme sayfasını aç",
+    "rail": {
+      "upToDate": "<v>v{{version}}</v> · Güncel",
+      "checking": "<v>v{{version}}</v> · Denetleniyor",
+      "updateAvailable": "Güncelleme var · <v>v{{version}}</v> →",
+      "installing": "Güncelleniyor · %{{progress}}"
+    },
+    "updateAvailableVersion": "Güncelleme var · <v>v{{version}}</v>",
+    "installAndRestart": "Kur ve yeniden başlat"
   },
   "common": {
     "loading": "Yükleniyor...",
@@ -865,7 +920,8 @@
     "recorderBlockedNoCulprit": "macOS kısayol değişikliklerini geçici olarak engelliyor",
     "learnMore": "Nasıl düzeltilir?",
     "recorderBlocked": "Şu anda kısayol kaydedilemiyor: macOS'in Güvenli Klavye Girişi özelliği tuş olaylarını engelliyor. Önce Güvenli Klavye Girişi uyarısını giderin.",
-    "dismiss": "Kapat"
+    "dismiss": "Kapat",
+    "label": "Güvenli klavye girişi açık"
   },
   "elchiPro": {
     "cta": "Elchi Pro'ya geç",

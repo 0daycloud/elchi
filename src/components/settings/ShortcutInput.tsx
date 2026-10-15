@@ -4,6 +4,8 @@ import { useSettings } from "../../hooks/useSettings";
 import { SettingContainer } from "../ui/SettingContainer";
 import { GlobalShortcutInput } from "./GlobalShortcutInput";
 import { HandyKeysShortcutInput } from "./HandyKeysShortcutInput";
+import { ShortcutKeys } from "./ShortcutKeys";
+import { useOsType } from "../../hooks/useOsType";
 
 interface ShortcutInputProps {
   descriptionMode?: "inline" | "tooltip";
@@ -24,6 +26,7 @@ export const ShortcutInput: React.FC<ShortcutInputProps> = (props) => {
   const { getSetting } = useSettings();
   const keyboardImplementation = getSetting("keyboard_implementation");
   const externalShortcut = getSetting("external_shortcut");
+  const osType = useOsType();
 
   // The desktop owns the dictation key (Hyprland binds written by
   // elchi-omarchy-setup): show that key read-only instead of the in-app
@@ -37,9 +40,7 @@ export const ShortcutInput: React.FC<ShortcutInputProps> = (props) => {
         grouped={props.grouped}
         layout="horizontal"
       >
-        <div className="px-2 py-1 text-sm font-semibold bg-mid-gray/10 border border-mid-gray/80 rounded-md">
-          {externalShortcut}
-        </div>
+        <ShortcutKeys binding={externalShortcut} osType={osType} />
       </SettingContainer>
     );
   }

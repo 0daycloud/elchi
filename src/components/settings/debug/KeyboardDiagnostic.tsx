@@ -71,36 +71,37 @@ export const KeyboardDiagnostic: React.FC = () => {
   };
 
   return (
-    <div className="p-4 space-y-2">
+    <div className="px-[18px] py-3.5 space-y-2">
       <div className="flex justify-between items-center gap-2">
         <div>
-          <p className="text-sm font-medium">
+          <p className="text-[13.5px]">
             {t("settings.debug.keyboardDiagnostic.title")}
           </p>
-          <p className="text-xs text-mid-gray">
+          <p className="text-[11.5px] text-mid-gray">
             {t("settings.debug.keyboardDiagnostic.description")}
           </p>
         </div>
         <button
+          type="button"
           onClick={runDiagnostic}
           disabled={running}
-          className="px-2 py-1 text-sm font-semibold bg-mid-gray/10 border border-mid-gray/80 hover:bg-logo-primary/10 rounded cursor-pointer hover:border-logo-primary disabled:opacity-50 disabled:cursor-default whitespace-nowrap"
+          className="steel-chip shrink-0 whitespace-nowrap px-2.5 py-1 font-mono text-[10.5px] tracking-[0.06em] uppercase cursor-pointer hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {t("settings.debug.keyboardDiagnostic.run")}
         </button>
       </div>
       {running && (
-        <p className="text-sm animate-pulse">
+        <p className="font-mono text-[10.5px] tracking-[0.06em] uppercase text-mid-gray animate-pulse">
           {t("settings.debug.keyboardDiagnostic.running")}
         </p>
       )}
       {error !== null && (
-        <p className="text-sm text-red-500">
+        <p className="text-[12px] text-error">
           {t("settings.debug.keyboardDiagnostic.failed", { error })}
         </p>
       )}
       {report !== null && (
-        <div className="text-sm font-mono space-y-1">
+        <div className="font-mono text-[11px] tracking-[0.02em] space-y-1 text-text/80">
           <p>
             {t("settings.debug.keyboardDiagnostic.secureInputLabel")}:{" "}
             {secureInputLine(report)}

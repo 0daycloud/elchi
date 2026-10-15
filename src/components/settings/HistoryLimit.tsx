@@ -33,7 +33,7 @@ export const HistoryLimit: React.FC<HistoryLimitProps> = ({
       grouped={grouped}
       layout="horizontal"
     >
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center gap-2">
         <Input
           type="number"
           min="0"
@@ -41,9 +41,10 @@ export const HistoryLimit: React.FC<HistoryLimitProps> = ({
           value={historyLimit}
           onChange={handleChange}
           disabled={isUpdating("history_limit")}
-          className="w-20"
+          variant="compact"
+          className="w-[72px] font-mono text-[11px] text-end tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         />
-        <span className="text-sm text-text">
+        <span className="font-mono text-[10.5px] tracking-[0.06em] uppercase text-mid-gray">
           {t("settings.debug.historyLimit.entries")}
         </span>
       </div>

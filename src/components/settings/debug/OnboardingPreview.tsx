@@ -24,25 +24,26 @@ export const OnboardingPreview: React.FC<OnboardingPreviewProps> = ({
       description={t("settings.debug.onboardingPreview.description")}
       descriptionMode={descriptionMode}
       grouped={grouped}
+      layout="stacked"
     >
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <Button
           variant="secondary"
-          size="md"
+          size="sm"
           onClick={() => onPreview("accessibility")}
         >
           {t("settings.debug.onboardingPreview.permissionsButton")}
         </Button>
         <Button
           variant="secondary"
-          size="md"
+          size="sm"
           onClick={() => onPreview("model")}
         >
           {t("settings.debug.onboardingPreview.modelsButton")}
         </Button>
         <Button
           variant="secondary"
-          size="md"
+          size="sm"
           onClick={() => onPreview("welcome")}
         >
           {t("settings.debug.onboardingPreview.tourButton")}

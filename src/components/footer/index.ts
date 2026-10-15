@@ -1,1 +1,1 @@
-export { default } from "./Footer";
+export { default, RailFooter } from "./RailFooter";

@@ -63,7 +63,7 @@ export const LogDirectory: React.FC<LogDirectoryProps> = ({
           <div className="h-8 bg-mid-gray/10 rounded" />
         </div>
       ) : error ? (
-        <div className="p-3 bg-red-50 border border-red-200 rounded text-xs text-red-600">
+        <div className="text-[12px] text-error">
           {t("errors.loadDirectory", { error })}
         </div>
       ) : (

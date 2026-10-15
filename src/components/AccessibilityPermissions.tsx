@@ -9,12 +9,6 @@ import {
 // Define permission state type
 type PermissionState = "request" | "verify" | "granted";
 
-// Define button configuration type
-interface ButtonConfig {
-  text: string;
-  className: string;
-}
-
 const AccessibilityPermissions: React.FC = () => {
   const { t } = useTranslation();
   const [hasAccessibility, setHasAccessibility] = useState<boolean>(false);
@@ -67,38 +61,27 @@ const AccessibilityPermissions: React.FC = () => {
     return null;
   }
 
-  // Configure button text and style based on state
-  const buttonConfig: Record<PermissionState, ButtonConfig | null> = {
-    request: {
-      text: t("accessibility.openSettings"),
-      className:
-        "px-2 py-1 text-sm font-semibold bg-mid-gray/10 border  border-mid-gray/80 hover:bg-logo-primary/10 rounded cursor-pointer hover:border-logo-primary",
-    },
-    verify: {
-      text: t("accessibility.openSettings"),
-      className:
-        "bg-mid-gray/10 hover:bg-mid-gray/20 text-text font-medium py-1 px-3 rounded-md text-sm flex items-center justify-center cursor-pointer",
-    },
-    granted: null,
-  };
-
-  const config = buttonConfig[permissionState] as ButtonConfig;
-
   return (
-    <div className="p-4 w-full rounded-lg border border-mid-gray">
-      <div className="flex justify-between items-center gap-2">
-        <div className="">
-          <p className="text-sm font-medium">
-            {t("accessibility.permissionsDescription")}
-          </p>
-        </div>
-        <button
-          onClick={handleButtonClick}
-          className={`min-h-10 ${config.className}`}
-        >
-          {config.text}
-        </button>
-      </div>
+    <div
+      role="alert"
+      className="steel-panel !rounded-[10px] !shadow-[var(--steel-chip-shadow)] grid grid-cols-[22px_1fr_auto] items-center gap-3 px-3.5 py-3"
+    >
+      <span
+        aria-hidden="true"
+        className="gem-error w-[22px] h-[22px] grid place-items-center font-mono text-[11px] font-medium"
+      >
+        !
+      </span>
+      <p className="text-[13px] leading-snug">
+        {t("accessibility.permissionsDescription")}
+      </p>
+      <button
+        type="button"
+        onClick={handleButtonClick}
+        className="steel-chip px-2.5 py-[5px] font-mono text-[10px] tracking-[0.06em] uppercase whitespace-nowrap cursor-pointer hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+      >
+        {t("accessibility.openSettings")}
+      </button>
     </div>
   );
 };

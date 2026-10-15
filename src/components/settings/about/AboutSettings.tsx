@@ -1,68 +1,61 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
-import { getVersion } from "@tauri-apps/api/app";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { SettingsGroup } from "../../ui/SettingsGroup";
 import { SettingContainer } from "../../ui/SettingContainer";
 import { Button } from "../../ui/Button";
-import { AppDataDirectory } from "../AppDataDirectory";
-import { AppLanguageSelector } from "../AppLanguageSelector";
 import { ShowWhatsNewOnUpdate } from "../ShowWhatsNewOnUpdate";
-import { ThemeSelector } from "../ThemeSelector";
 import { LogDirectory } from "../debug";
+import UpdateChecker, { useUpdater } from "../../update-checker";
+import { SELF_UPDATE_AVAILABLE } from "../../../lib/constants/updater";
 
+/**
+ * Hakkında: opened from the version line in the rail. The version and the
+ * update controls, release notes, logs, and the projects Elchi builds on.
+ */
 export const AboutSettings: React.FC = () => {
   const { t } = useTranslation();
-  const [version, setVersion] = useState("");
-
-  useEffect(() => {
-    const fetchVersion = async () => {
-      try {
-        const appVersion = await getVersion();
-        setVersion(appVersion);
-      } catch (error) {
-        console.error("Failed to get app version:", error);
-        setVersion("0.1.2");
-      }
-    };
-
-    fetchVersion();
-  }, []);
+  const { version } = useUpdater();
 
   return (
-    <div className="max-w-3xl w-full mx-auto space-y-6">
+    <div className="flex flex-col gap-[22px]">
       <SettingsGroup title={t("settings.about.title")}>
-        <AppLanguageSelector descriptionMode="tooltip" grouped={true} />
-        <ThemeSelector descriptionMode="tooltip" grouped={true} />
         <SettingContainer
           title={t("settings.about.version.title")}
           description={t("settings.about.version.description")}
-          grouped={true}
+          grouped
         >
-          {/* eslint-disable-next-line i18next/no-literal-string */}
-          <span className="text-sm font-mono">v{version}</span>
+          <span className="font-mono text-[11px] tracking-[0.04em] text-text/70">
+            {version ? `v${version}` : ""}
+          </span>
         </SettingContainer>
-
-        <ShowWhatsNewOnUpdate descriptionMode="tooltip" grouped={true} />
-
-        <AppDataDirectory descriptionMode="tooltip" grouped={true} />
-        <LogDirectory grouped={true} />
+        {SELF_UPDATE_AVAILABLE && (
+          <div className="px-[18px] py-3 flex flex-wrap items-center justify-between gap-3">
+            <h3 className="text-[13.5px] font-normal">
+              {t("settings.about.updates.title")}
+            </h3>
+            <UpdateChecker />
+          </div>
+        )}
+        <ShowWhatsNewOnUpdate descriptionMode="tooltip" grouped />
+        <LogDirectory grouped />
       </SettingsGroup>
 
       <SettingsGroup title={t("settings.about.acknowledgments.title")}>
         <SettingContainer
           title={t("settings.about.acknowledgments.handy.title")}
           description={t("settings.about.acknowledgments.handy.description")}
-          grouped={true}
+          grouped
           layout="stacked"
+          descriptionMode="inline"
         >
           <div className="flex flex-col items-start gap-3">
-            <div className="text-sm text-mid-gray">
+            <p className="text-[12px] leading-relaxed text-mid-gray">
               {t("settings.about.acknowledgments.handy.details")}
-            </div>
+            </p>
             <Button
               variant="secondary"
-              size="md"
+              size="sm"
               onClick={() =>
                 openUrl("https://github.com/cjpais/Handy").catch((error) =>
                   console.error("Failed to open Handy repository:", error),
@@ -76,12 +69,13 @@ export const AboutSettings: React.FC = () => {
         <SettingContainer
           title={t("settings.about.acknowledgments.ggml.title")}
           description={t("settings.about.acknowledgments.ggml.description")}
-          grouped={true}
+          grouped
           layout="stacked"
+          descriptionMode="inline"
         >
-          <div className="text-sm text-mid-gray">
+          <p className="text-[12px] leading-relaxed text-mid-gray">
             {t("settings.about.acknowledgments.ggml.details")}
-          </div>
+          </p>
         </SettingContainer>
       </SettingsGroup>
     </div>

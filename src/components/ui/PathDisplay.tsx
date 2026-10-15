@@ -17,7 +17,7 @@ export const PathDisplay: React.FC<PathDisplayProps> = ({
 
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 min-w-0 px-2 py-2 bg-mid-gray/10 border border-mid-gray/80 rounded-lg text-xs font-mono break-all select-text cursor-text">
+      <div className="well flex-1 min-w-0 px-2.5 py-1.5 font-mono text-[11px] text-text/80 break-all select-text cursor-text">
         {path}
       </div>
       <Button
@@ -25,7 +25,6 @@ export const PathDisplay: React.FC<PathDisplayProps> = ({
         variant="secondary"
         size="sm"
         disabled={disabled}
-        className="px-3 py-2"
       >
         {t("common.open")}
       </Button>

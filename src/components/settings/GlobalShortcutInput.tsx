@@ -6,6 +6,7 @@ import {
   normalizeKey,
 } from "../../lib/utils/keyboard";
 import { ResetButton } from "../ui/ResetButton";
+import { ShortcutButton } from "./ShortcutKeys";
 import { SettingContainer } from "../ui/SettingContainer";
 import { useSettings } from "../../hooks/useSettings";
 import { useOsType } from "../../hooks/useOsType";
@@ -34,7 +35,7 @@ export const GlobalShortcutInput: React.FC<GlobalShortcutInputProps> = ({
     null,
   );
   const [originalBinding, setOriginalBinding] = useState<string>("");
-  const shortcutRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
+  const shortcutRefs = useRef<Map<string, HTMLElement | null>>(new Map());
   const osType = useOsType();
 
   const bindings = getSetting("bindings") || {};
@@ -161,10 +162,16 @@ export const GlobalShortcutInput: React.FC<GlobalShortcutInputProps> = ({
 
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
-    window.addEventListener("click", handleClickOutside);
+    // Attach after the click that started recording has finished bubbling,
+    // or that same click would read as "outside" and cancel at once.
+    const clickTimer = window.setTimeout(
+      () => window.addEventListener("click", handleClickOutside),
+      0,
+    );
 
     return () => {
       cleanup = true;
+      window.clearTimeout(clickTimer);
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
       window.removeEventListener("click", handleClickOutside);
@@ -204,7 +211,7 @@ export const GlobalShortcutInput: React.FC<GlobalShortcutInputProps> = ({
   };
 
   // Store references to shortcut elements
-  const setShortcutRef = (id: string, ref: HTMLDivElement | null) => {
+  const setShortcutRef = (id: string, ref: HTMLElement | null) => {
     shortcutRefs.current.set(id, ref);
   };
 
@@ -275,26 +282,23 @@ export const GlobalShortcutInput: React.FC<GlobalShortcutInputProps> = ({
       disabled={disabled}
       layout="horizontal"
     >
-      <div className="flex items-center space-x-1">
-        {editingShortcutId === shortcutId ? (
-          <div
-            ref={(ref) => setShortcutRef(shortcutId, ref)}
-            className="px-2 py-1 text-sm font-semibold border border-logo-primary bg-logo-primary/30 rounded-md"
-          >
-            {formatCurrentKeys()}
-          </div>
-        ) : (
-          <div
-            className="px-2 py-1 text-sm font-semibold bg-mid-gray/10 border border-mid-gray/80 hover:bg-logo-primary/10 rounded-md cursor-pointer hover:border-logo-primary"
-            onClick={() => startRecording(shortcutId)}
-          >
-            {formatKeyCombination(binding.current_binding, osType)}
-          </div>
-        )}
-        <ResetButton
-          onClick={() => resetBinding(shortcutId)}
-          disabled={isUpdating(`binding_${shortcutId}`)}
+      <div className="flex items-center gap-1.5">
+        <ShortcutButton
+          binding={binding.current_binding}
+          osType={osType}
+          recording={editingShortcutId === shortcutId}
+          recordingLabel={formatCurrentKeys()}
+          recorderRef={(ref) => setShortcutRef(shortcutId, ref)}
+          onStart={() => startRecording(shortcutId)}
+          label={translatedName}
         />
+        {binding.current_binding !== binding.default_binding && (
+          <ResetButton
+            onClick={() => resetBinding(shortcutId)}
+            disabled={isUpdating(`binding_${shortcutId}`)}
+            ariaLabel={t("settings.general.shortcut.reset")}
+          />
+        )}
       </div>
     </SettingContainer>
   );

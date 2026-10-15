@@ -13,13 +13,33 @@
     "general": "General",
     "models": "Models",
     "advanced": "Advanced",
-    "postProcessing": "Post Process",
+    "postProcessing": "Post-processing (LLM)",
     "history": "History",
     "debug": "Debug",
     "about": "About",
     "label": "Sections",
     "summary": "Summary",
-    "dictionary": "Dictionary"
+    "dictionary": "Dictionary",
+    "back": "ELCHI",
+    "hints": {
+      "general": "G",
+      "models": "M",
+      "dictionary": "D"
+    },
+    "developer": "Developer",
+    "developerLink": "Developer →",
+    "developerHide": "Hide",
+    "pageSummary": {
+      "general": "Shortcut · Sound · Output · Look",
+      "modelsCloud": "Cloud · Duyu Pro active",
+      "modelsLocal": "On this computer · Duyu-small",
+      "phrases_one": "{{count}} phrase",
+      "phrases_other": "{{count}} phrases",
+      "changed_one": "{{count}} setting changed",
+      "changed_other": "{{count}} settings changed",
+      "reset": "Reset",
+      "modelsWhere": "Where your speech becomes text"
+    }
   },
   "onboarding": {
     "showAllModels": "Show all {{total}} models",
@@ -250,9 +270,6 @@
     }
   },
   "settings": {
-    "modelSettings": {
-      "title": "{{model}} Settings"
-    },
     "general": {
       "title": "General",
       "shortcut": {
@@ -269,7 +286,7 @@
             "description": "The keyboard shortcut to record and transcribe your voice."
           },
           "cancel": {
-            "name": "Cancel Shortcut",
+            "name": "Cancel",
             "description": "The keyboard shortcut to cancel the current recording."
           },
           "transcribe_with_post_process": {
@@ -281,18 +298,21 @@
           "restore": "Failed to restore original shortcut",
           "set": "Failed to set shortcut: {{error}}",
           "reset": "Failed to reset shortcut to original value"
-        }
+        },
+        "reset": "Restore the default shortcut"
       },
       "language": {
         "title": "Language",
         "description": "Select the language for speech recognition. Auto will automatically determine the language, while selecting a specific language can improve accuracy for that language.",
         "searchPlaceholder": "Search languages...",
         "noResults": "No languages found",
-        "auto": "Auto"
+        "auto": "Auto",
+        "modelTitle": "{{model}} language",
+        "reset": "Restore the default language"
       },
       "shortcutActivation": {
-        "title": "Shortcut Behavior",
-        "description": "Choose how the transcribe shortcut starts and stops recording.",
+        "title": "Behavior",
+        "description": "Hold it, or press once",
         "options": {
           "holdOrToggle": "Auto",
           "pushToTalk": "Hold",
@@ -307,6 +327,11 @@
       "smartFormatting": {
         "title": "Smart formatting",
         "description": "Your dictation is tidied before it is pasted: fillers and self-corrections removed, lists and paragraphs laid out. The text is processed on our own servers, never by a third party, and is not stored."
+      },
+      "groups": {
+        "shortcut": "Shortcut",
+        "output": "Output",
+        "appearance": "Look"
       }
     },
     "models": {
@@ -361,7 +386,8 @@
         "title": "Microphone",
         "description": "Select your preferred microphone device",
         "placeholder": "Select microphone...",
-        "loading": "Loading..."
+        "loading": "Loading...",
+        "reset": "Use the default microphone"
       },
       "channel": {
         "title": "Input Channel",
@@ -377,7 +403,8 @@
         "title": "Output Device",
         "description": "Select your preferred audio output device for feedback sounds",
         "placeholder": "Select output device...",
-        "loading": "Loading..."
+        "loading": "Loading...",
+        "reset": "Use the default output"
       },
       "volume": {
         "title": "Volume",
@@ -390,7 +417,10 @@
         "output": "Output",
         "transcription": "Transcription",
         "history": "History",
-        "experimental": "Experimental"
+        "experimental": "Experimental",
+        "indicator": "Indicator",
+        "historyHint": "Kept on this computer",
+        "system": "System"
       },
       "experimentalToggle": {
         "label": "Experimental Features",
@@ -537,6 +567,16 @@
           "simplified": "Simplified",
           "traditional": "Traditional"
         }
+      },
+      "recordingsFolder": {
+        "title": "Recordings folder",
+        "description": "Opens the folder where audio recordings are kept."
+      },
+      "rare": {
+        "summary_one": "{{count}} more rarely changed setting — pasting, clipboard, voice detection, Chinese script…",
+        "summary_other": "{{count}} more rarely changed settings — pasting, clipboard, voice detection, Chinese script…",
+        "show": "Show",
+        "hide": "Hide"
       }
     },
     "postProcessing": {
@@ -619,7 +659,6 @@
       "transcriptionFailed": "Transcription failed. You can re-transcribe using the retry icon."
     },
     "debug": {
-      "title": "Debug",
       "logDirectory": {
         "title": "Log Directory",
         "description": "Location where log files are stored"
@@ -751,6 +790,12 @@
         "verdictOk": "Key events are reaching Elchi normally.",
         "verdictNoEvents": "No events captured — did you press any keys during the test?",
         "failed": "Diagnostic failed: {{error}}"
+      },
+      "groups": {
+        "previews": "Previews",
+        "input": "Keyboard and pasting",
+        "audio": "Audio",
+        "logs": "Logs"
       }
     },
     "about": {
@@ -780,12 +825,14 @@
           "description": "High-performance inference engine for running machine learning models on device",
           "details": "Duyu-small runs on this computer through ONNX Runtime. Thanks to Microsoft and the ONNX Runtime contributors."
         }
+      },
+      "updates": {
+        "title": "Updates"
       }
     }
   },
   "footer": {
     "checkingUpdates": "Checking for updates...",
-    "updateAvailableShort": "Update available",
     "upToDate": "Up to date",
     "updateCheckingDisabled": "Update Checking Disabled",
     "downloading": "Downloading... {{progress}}%",
@@ -796,7 +843,15 @@
     "portableUpdateMessage": "Portable installs cannot be updated automatically. Download the installer for your system below, run it, and install to the same folder — your Data/ folder (settings, models, recordings) is kept in place.",
     "portableUpdateButton": "Download installer",
     "portableUpdateBrowseMessage": "Portable installs cannot be updated automatically. Download the latest version for your system from speech.patientdesk.ai/elchi and install it to the same folder — your Data/ folder (settings, models, recordings) is kept in place.",
-    "portableUpdateBrowseButton": "Open Download Page"
+    "portableUpdateBrowseButton": "Open Download Page",
+    "rail": {
+      "upToDate": "<v>v{{version}}</v> · Up to date",
+      "checking": "<v>v{{version}}</v> · Checking",
+      "updateAvailable": "Update available · <v>v{{version}}</v> →",
+      "installing": "Updating · {{progress}}%"
+    },
+    "updateAvailableVersion": "Update available · <v>v{{version}}</v>",
+    "installAndRestart": "Install and restart"
   },
   "whatsNew": {
     "title": "New in Elchi {{version}}"
@@ -865,7 +920,8 @@
     "recorderBlockedNoCulprit": "macOS is temporarily blocking shortcut changes",
     "learnMore": "How to fix",
     "recorderBlocked": "Can't record shortcuts right now — macOS Secure Input is blocking key events. Resolve the Secure Input warning first.",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "label": "Secure keyboard entry is on"
   },
   "elchiPro": {
     "cta": "Get Elchi Pro",

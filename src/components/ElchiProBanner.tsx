@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 import { useElchiPro } from "@/hooks/useElchiPro";
+import { SpectralCanvas } from "./ui/SpectralCanvas";
 
 /**
- * The upgrade offer above every settings page once the Duyu Pro trial has
- * ended (during the trial the header's plan badge counts it down).
+ * The trial-ended banner above the settings pages (design frame 2d): one
+ * total-blue card with the Pro pixel texture fading in from the right.
  * Dismissing hides it until the app is opened again.
  */
 export const ElchiProBanner: React.FC = () => {
@@ -29,21 +30,34 @@ export const ElchiProBanner: React.FC = () => {
     <div
       role="region"
       aria-label={t("elchiPro.card.eyebrow")}
-      className="w-full max-w-3xl rounded-2xl bg-surface-warm px-4 py-3 flex flex-wrap items-center gap-3"
+      className="blue-zone relative overflow-hidden rounded-[10px] grid grid-cols-[1fr_auto_auto] items-center gap-3 ps-4 pe-2.5 py-3.5"
     >
-      <p className="flex-1 min-w-[16rem] text-sm">
-        <span className="font-semibold">{t("elchiPro.banner.ended")}</span>{" "}
-        {t("elchiPro.banner.endedDetail")}
+      <SpectralCanvas
+        mode="pro"
+        seed={7}
+        className="absolute inset-y-px end-px w-[200px] h-[calc(100%-2px)] rounded-e-[9px] pointer-events-none"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-y-px end-px w-[200px] pointer-events-none bg-[linear-gradient(90deg,#2140ff_0,rgba(33,64,255,0)_50%)] rtl:-scale-x-100"
+      />
+      <div className="relative flex flex-col gap-[3px] min-w-0">
+        <span className="text-[13px] font-medium">
+          {t("elchiPro.banner.ended")}
+        </span>
+        <span className="text-[11.5px] text-white/80">
+          {t("elchiPro.banner.endedDetail")}
+        </span>
         {error && (
-          <span role="alert" className="block text-error">
+          <span role="alert" className="text-[11.5px] text-white">
             {t("elchiPro.upgradeFailed")}
           </span>
         )}
-      </p>
+      </div>
       <button
         type="button"
         onClick={onUpgrade}
-        className="rounded-xl bg-coral px-4 py-2 text-sm font-semibold text-on-coral hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/50"
+        className="chrome-cta relative px-3 py-2 text-[12px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
       >
         {t("elchiPro.cta")}
       </button>
@@ -51,9 +65,9 @@ export const ElchiProBanner: React.FC = () => {
         type="button"
         onClick={() => setDismissed(true)}
         aria-label={t("elchiPro.banner.dismiss")}
-        className="p-1 rounded-md text-mid-gray hover:text-text hover:bg-mid-gray/10"
+        className="relative p-1 rounded-md text-white/70 hover:text-white hover:bg-white/10 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
       >
-        <X className="w-4 h-4" aria-hidden="true" />
+        <X className="w-3.5 h-3.5" aria-hidden="true" />
       </button>
     </div>
   );

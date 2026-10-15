@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { ExternalLink, TriangleAlert, X } from "lucide-react";
+import { ExternalLink, X } from "lucide-react";
 import { commands, type SecureInputStatus } from "@/bindings";
 
 // Detailed remediation steps live in the docs rather than in the banner.
@@ -90,32 +90,41 @@ const SecureInputWarning: React.FC = () => {
         : t("secureInput.recorderBlockedNoCulprit");
 
   return (
-    <div className="w-full rounded-lg border border-warning/40 bg-warning/10 px-3 py-2.5">
-      <div className="flex items-center gap-3">
-        <TriangleAlert className="h-5 w-5 shrink-0 text-warning" />
-        <p className="min-w-0 flex-1 text-sm font-medium leading-5">
-          {message}
+    <div
+      role="status"
+      className="steel-panel !rounded-[10px] !shadow-[var(--steel-chip-shadow)] grid grid-cols-[22px_1fr_auto] items-center gap-3 px-3.5 py-3"
+    >
+      <span
+        aria-hidden="true"
+        className="w-[22px] h-[22px] rounded-full grid place-items-center bg-[linear-gradient(180deg,#ffd27a,#b7791f)] shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] text-[#2b1a00] font-mono text-[11px] font-medium"
+      >
+        !
+      </span>
+      <div className="flex flex-col gap-0.5 min-w-0">
+        <p className="text-[13px] leading-snug">{message}</p>
+        <p className="font-mono text-[10px] tracking-[0.06em] uppercase text-mid-gray">
+          {t("secureInput.label")}
         </p>
-        <div className="flex shrink-0 items-center gap-1">
-          {SECURE_INPUT_HELP_URL && (
-            <button
-              onClick={() => openUrl(SECURE_INPUT_HELP_URL)}
-              className="cursor-pointer whitespace-nowrap rounded px-2 py-1.5 text-sm font-medium text-text hover:text-warning focus:outline-none focus:ring-1 focus:ring-warning"
-            >
-              <span className="flex items-center gap-1 border-b border-current leading-4">
-                {t("secureInput.learnMore")}
-                <ExternalLink className="h-3.5 w-3.5" />
-              </span>
-            </button>
-          )}
+      </div>
+      <div className="flex shrink-0 items-center gap-1">
+        {SECURE_INPUT_HELP_URL && (
           <button
-            onClick={() => setDismissed(true)}
-            aria-label={t("secureInput.dismiss")}
-            className="cursor-pointer rounded p-1.5 text-mid-gray hover:bg-warning/15 hover:text-warning focus:outline-none focus:ring-1 focus:ring-warning"
+            type="button"
+            onClick={() => openUrl(SECURE_INPUT_HELP_URL)}
+            className="steel-chip inline-flex items-center gap-1 px-2.5 py-[5px] font-mono text-[10px] tracking-[0.06em] uppercase whitespace-nowrap cursor-pointer hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
           >
-            <X className="h-4 w-4" />
+            {t("secureInput.learnMore")}
+            <ExternalLink className="h-3 w-3" aria-hidden="true" />
           </button>
-        </div>
+        )}
+        <button
+          type="button"
+          onClick={() => setDismissed(true)}
+          aria-label={t("secureInput.dismiss")}
+          className="cursor-pointer rounded-md p-1.5 text-mid-gray hover:bg-text/[0.06] hover:text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+        >
+          <X className="h-3.5 w-3.5" aria-hidden="true" />
+        </button>
       </div>
     </div>
   );
