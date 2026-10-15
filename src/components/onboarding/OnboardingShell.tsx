@@ -52,7 +52,7 @@ export const OnboardingShell: React.FC<OnboardingShellProps> = ({
         }}
       />
       <div className="relative h-full flex flex-col justify-between px-7 pt-7 pb-[26px]">
-        <ElchiLogo size={14} tone="light" color="#ffffff" />
+        <ElchiLogo size={14} color="#ffffff" />
         <div className="flex flex-col gap-3.5">
           <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/70">
             {stepLabel}

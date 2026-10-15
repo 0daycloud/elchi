@@ -1,4 +1,5 @@
 import React from "react";
+import ElchiMark from "../icons/ElchiMark";
 
 /** Hues of the apps people dictate into most, so each keeps its familiar
  *  colour; `null` is a neutral (graphite) tile. Any other app gets a hue from
@@ -61,9 +62,6 @@ const tileShadow = (dark: boolean) =>
     ? "inset 0 1px 0 rgba(255,255,255,.18), inset 0 -1px 0 rgba(0,0,0,.5)"
     : "inset 0 1px 0 rgba(255,255,255,.3), 0 1px 2px rgba(0,0,0,.2)";
 
-/** Elchi's mark in its tile; a glyph, not text to translate. */
-const SPARK = "✦";
-
 const TILE = "flex-none size-9 rounded-[9px] grid place-items-center";
 
 /** The 36px tile beside a dictation: the app's own icon when the OS gives
@@ -95,13 +93,13 @@ export const AppTile: React.FC<{
   );
 };
 
-/** Elchi's own tile: the ✦ on a blue tint. */
+/** Elchi's own tile: the E mark on a blue tint. */
 export const ElchiTile: React.FC<{ dark: boolean }> = ({ dark }) => (
   <span
     aria-hidden="true"
-    className={`${TILE} bg-accent/15 border border-text/10 text-logo-primary text-[13px]`}
+    className={`${TILE} bg-accent/15 border border-text/10 text-logo-primary`}
     style={{ boxShadow: tileShadow(dark) }}
   >
-    {SPARK}
+    <ElchiMark size={13} />
   </span>
 );
