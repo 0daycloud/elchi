@@ -25,6 +25,8 @@ const RESAMPLER_CHUNK: usize = 1024;
 pub struct Track {
     pub samples: Vec<f32>,
     pub level: f32,
+    /// Samples ever received: the capture thread watches it to tell a stalled stream.
+    pub received: u64,
 }
 
 pub type Shared = Arc<Mutex<Track>>;
@@ -69,20 +71,71 @@ impl Capture {
                     }
                 };
                 // The call's audio is a bonus: without it the meeting is the user's side only.
-                let call_stream = if system_audio_supported() {
-                    host.default_output_device()
-                        .ok_or_else(|| "no output device".to_string())
-                        .and_then(|d| open(&d, false, them2))
+                let supported = system_audio_supported();
+                let mut call = if supported {
+                    open_call(&host, &them2)
                         .map_err(|e| warn!("Meeting: the call's audio is not recorded: {e}"))
                         .ok()
                 } else {
                     None
                 };
-                let _ = ready_tx.send(Ok(call_stream.is_some()));
+                let _ = ready_tx.send(Ok(call.is_some()));
+                let mut ticks = 0u32;
+                let mut last_received = 0u64;
+                let mut stalled_for = 0u32;
+                // Reopened for a stall at most every 30 s, in case a tap sends nothing at
+                // all while nothing plays.
+                let mut since_stall_reopen = u32::MAX;
                 while !stop2.load(Ordering::SeqCst) {
                     std::thread::sleep(Duration::from_millis(100));
+                    ticks += 1;
+                    if !supported || ticks % 10 != 0 {
+                        continue;
+                    }
+                    since_stall_reopen = since_stall_reopen.saturating_add(1);
+                    // Once a second: the call's audio follows the output device (AirPods
+                    // connecting, a call switching them to headset mode, another speaker
+                    // chosen) and is reopened when it stops arriving: the tap belongs to
+                    // the device it was opened on, and goes silent when that one changes.
+                    let received = them2.lock().map(|t| t.received).unwrap_or(0);
+                    stalled_for = if received == last_received {
+                        stalled_for + 1
+                    } else {
+                        0
+                    };
+                    last_received = received;
+                    let now = host.default_output_device().and_then(|d| device_id(&d));
+                    let moved = call
+                        .as_ref()
+                        .is_some_and(|c| now.is_some() && now != c.device);
+                    let reason = if call.is_none() {
+                        (stalled_for % 3 == 0).then_some("not open")
+                    } else if moved {
+                        Some("the output device changed")
+                    } else if stalled_for >= 3 && since_stall_reopen >= 30 {
+                        since_stall_reopen = 0;
+                        Some("it stopped arriving")
+                    } else {
+                        None
+                    };
+                    if let Some(reason) = reason {
+                        drop(call.take());
+                        match open_call(&host, &them2) {
+                            Ok(c) => {
+                                info!(
+                                    "Meeting: the call's audio reopened ({reason}) on {:?}",
+                                    c.device
+                                );
+                                call = Some(c);
+                                stalled_for = 0;
+                            }
+                            Err(e) => warn!(
+                                "Meeting: the call's audio could not be reopened ({reason}): {e}"
+                            ),
+                        }
+                    }
                 }
-                drop(call_stream);
+                drop(call);
                 drop(mic_stream);
             })
             .map_err(|e| e.to_string())?;
@@ -128,6 +181,26 @@ fn system_audio_supported() -> bool {
     {
         false
     }
+}
+
+/// The call's audio, from whichever output device is the default now.
+struct Call {
+    _stream: cpal::Stream,
+    device: Option<String>,
+}
+
+fn device_id(device: &cpal::Device) -> Option<String> {
+    device.id().ok().map(|id| id.to_string())
+}
+
+fn open_call(host: &cpal::Host, track: &Shared) -> Result<Call, String> {
+    let device = host
+        .default_output_device()
+        .ok_or_else(|| "no output device".to_string())?;
+    Ok(Call {
+        device: device_id(&device),
+        _stream: open(&device, false, track.clone())?,
+    })
 }
 
 fn open(device: &cpal::Device, input: bool, track: Shared) -> Result<cpal::Stream, String> {
@@ -236,6 +309,7 @@ impl Sink {
         let rms = (ready.iter().map(|s| s * s).sum::<f32>() / ready.len() as f32).sqrt();
         if let Ok(mut t) = self.track.lock() {
             t.samples.extend_from_slice(&ready);
+            t.received += ready.len() as u64;
             t.level = t.level * 0.6 + rms * 0.4;
         }
     }
