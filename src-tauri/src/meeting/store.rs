@@ -125,6 +125,23 @@ pub fn set_user_notes(conn: &Connection, id: i64, text: &str) -> rusqlite::Resul
     Ok(())
 }
 
+pub fn set_title(conn: &Connection, id: i64, title: &str) -> rusqlite::Result<()> {
+    conn.execute(
+        "UPDATE meetings SET title = ?2 WHERE id = ?1",
+        params![id, title],
+    )?;
+    Ok(())
+}
+
+/// The notes as the user changed them (a to-do ticked), keeping the status.
+pub fn update_notes(conn: &Connection, id: i64, notes: &str) -> rusqlite::Result<()> {
+    conn.execute(
+        "UPDATE meetings SET notes = ?2 WHERE id = ?1",
+        params![id, notes],
+    )?;
+    Ok(())
+}
+
 pub fn set_status(conn: &Connection, id: i64, status: &str) -> rusqlite::Result<()> {
     conn.execute(
         "UPDATE meetings SET status = ?2 WHERE id = ?1",

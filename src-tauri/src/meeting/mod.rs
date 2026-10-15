@@ -261,6 +261,20 @@ pub fn set_meeting_user_notes(app: AppHandle, id: i64, text: String) -> Result<(
     store::set_user_notes(&db(&app)?, id, &text).map_err(|e| e.to_string())
 }
 
+/// The user's own title for a meeting; the notes keep it rather than titling it themselves.
+#[tauri::command]
+#[specta::specta]
+pub fn set_meeting_title(app: AppHandle, id: i64, title: String) -> Result<(), String> {
+    store::set_title(&db(&app)?, id, title.trim()).map_err(|e| e.to_string())
+}
+
+/// The notes after the user ticked a to-do in them.
+#[tauri::command]
+#[specta::specta]
+pub fn set_meeting_notes(app: AppHandle, id: i64, notes: String) -> Result<(), String> {
+    store::update_notes(&db(&app)?, id, &notes).map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 #[specta::specta]
 pub async fn delete_meeting(app: AppHandle, id: i64) -> Result<(), String> {
@@ -437,6 +451,34 @@ fn transcribe_piece(app: &AppHandle, id: i64, me: &[f32], them: &[f32], start: i
     }
 }
 
+/// The language a meeting was held in (Turkish or English), from what was said and
+/// written: the notes are in it, whatever language Elchi's own screens are in. None when
+/// there is too little to tell.
+fn language_of(texts: &[&str]) -> Option<&'static str> {
+    const TR: &[&str] = &[
+        "ve", "bir", "bu", "da", "de", "için", "ile", "ama", "çok", "ne", "mi", "var", "yok",
+        "gibi", "daha", "şey", "olarak", "ben", "sen", "biz",
+    ];
+    const EN: &[&str] = &[
+        "the", "and", "is", "to", "of", "we", "you", "that", "it", "for", "with", "this", "are",
+        "was", "be", "have", "not", "on",
+    ];
+    let (mut tr, mut en) = (0usize, 0usize);
+    for text in texts {
+        tr += text.chars().filter(|c| "çğıöşüÇĞİÖŞÜ".contains(*c)).count();
+        for word in text.split(|c: char| !c.is_alphanumeric()) {
+            let word = word.to_lowercase();
+            tr += 2 * TR.contains(&word.as_str()) as usize;
+            en += 2 * EN.contains(&word.as_str()) as usize;
+        }
+    }
+    match (tr, en) {
+        (0, 0) => None,
+        (tr, en) if tr >= en => Some("tr"),
+        _ => Some("en"),
+    }
+}
+
 /// Writes a finished meeting's notes with Duyu Pro, then drops the transcript and audio
 /// unless they are kept. Without Duyu Pro, or if the notes fail, the transcript stays.
 fn write_notes(app: &AppHandle, id: i64) {
@@ -452,11 +494,17 @@ fn write_notes(app: &AppHandle, id: i64) {
         let Some(elchi) = app.try_state::<Arc<crate::elchi_pro::ElchiPro>>() else {
             return Ok("no_notes");
         };
-        let language = if get_settings(app).app_language.starts_with("en") {
-            "en"
-        } else {
-            "tr"
-        };
+        let spoken: Vec<&str> = segments
+            .iter()
+            .map(|s| s.text.as_str())
+            .chain(std::iter::once(meeting.user_notes.as_str()))
+            .collect();
+        let language =
+            language_of(&spoken).unwrap_or(if get_settings(app).app_language.starts_with("en") {
+                "en"
+            } else {
+                "tr"
+            });
         let parts: Vec<crate::elchi_pro::NotesSegment> = segments
             .iter()
             .map(|s| crate::elchi_pro::NotesSegment {
@@ -472,7 +520,13 @@ fn write_notes(app: &AppHandle, id: i64) {
                 crate::elchi_pro::meeting_notes(&token, &parts, &meeting.user_notes, language);
             match tauri::async_runtime::block_on(call) {
                 Ok(notes) => {
-                    store::set_notes(&conn, id, notes.title.trim(), notes.notes.trim())
+                    // A title the user gave the meeting stays.
+                    let title = if meeting.title.trim().is_empty() {
+                        notes.title.trim()
+                    } else {
+                        meeting.title.trim()
+                    };
+                    store::set_notes(&conn, id, title, notes.notes.trim())
                         .map_err(|e| e.to_string())?;
                     if !meeting.kept {
                         store::drop_transcript(&conn, id).map_err(|e| e.to_string())?;
@@ -502,4 +556,22 @@ fn write_notes(app: &AppHandle, id: i64) {
     }
     info!("Meeting {id}: {status}");
     changed(app);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::language_of;
+
+    #[test]
+    fn notes_follow_the_language_spoken_not_the_apps() {
+        assert_eq!(
+            language_of(&["Hadi lan, bu arada çok kötü CS oynuyorsun."]),
+            Some("tr")
+        );
+        assert_eq!(
+            language_of(&["Let's move the launch to the tenth of November."]),
+            Some("en")
+        );
+        assert_eq!(language_of(&["", "OK"]), None);
+    }
 }
