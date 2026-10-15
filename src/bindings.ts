@@ -980,6 +980,12 @@ async setMeetingNotes(id: number, notes: string) : Promise<Result<null, string>>
 }
 },
 /**
+ * The pill was clicked: Elchi's window, on the meeting.
+ */
+async openMeetingFromPill() : Promise<void> {
+    await TAURI_INVOKE("open_meeting_from_pill");
+},
+/**
  * Writes the notes again (after a failure, or once the user has Duyu Pro), from the
  * transcript a meeting without notes keeps.
  */

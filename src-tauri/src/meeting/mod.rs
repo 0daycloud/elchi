@@ -11,6 +11,7 @@
 
 mod capture;
 mod chunk;
+pub mod pill;
 pub mod store;
 
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -169,6 +170,7 @@ fn start(app: AppHandle) -> Result<ActiveMeeting, String> {
     });
     drop(active);
     hide_all_from_capture(&app, true);
+    pill::show(&app);
     info!("Meeting {id} started (call audio: {call_audio}, keep: {keep})");
     changed(&app);
     Ok(ActiveMeeting {
@@ -202,6 +204,7 @@ fn stop(app: AppHandle) -> Result<i64, String> {
         return Err("No meeting is being recorded.".into());
     };
     let id = active.id;
+    pill::hide(&app);
     store::end(&db(&app)?, id, chrono::Utc::now().timestamp()).map_err(|e| e.to_string())?;
     hide_all_from_capture(&app, false);
     changed(&app);
@@ -228,6 +231,7 @@ fn cancel(app: AppHandle) -> Result<(), String> {
     let Some(mut active) = taken else {
         return Ok(());
     };
+    pill::hide(&app);
     hide_all_from_capture(&app, false);
     active.ending.store(true, Ordering::SeqCst);
     if let Some(w) = active.worker.take() {

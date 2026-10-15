@@ -78,6 +78,14 @@ function App() {
     if (section) setCurrentSection(section);
     setView("settings");
   };
+
+  // The meeting pill was clicked: Elchi opens on the meeting.
+  useEffect(() => {
+    const un = listen("open-meetings", () => setView("meetings"));
+    return () => {
+      un.then((f) => f());
+    };
+  }, []);
   const { settings, updateSetting } = useSettings();
   const direction = getLanguageDirection(i18n.language);
   const refreshAudioDevices = useSettingsStore(

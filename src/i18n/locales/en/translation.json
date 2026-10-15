@@ -1140,6 +1140,10 @@
     "onlyMine": "Only what I wrote",
     "showTranscript_one": "Show transcript · {{count}} line",
     "showTranscript_other": "Show transcript · {{count}} lines",
-    "hideTranscript": "Hide transcript"
+    "hideTranscript": "Hide transcript",
+    "pill": {
+      "open": "Open the meeting in Elchi",
+      "listening": "Listening"
+    }
   }
 }

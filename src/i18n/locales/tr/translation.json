@@ -1140,6 +1140,10 @@
     "onlyMine": "Yalnızca benim yazdıklarım",
     "showTranscript_one": "Dökümü göster · {{count}} satır",
     "showTranscript_other": "Dökümü göster · {{count}} satır",
-    "hideTranscript": "Dökümü gizle"
+    "hideTranscript": "Dökümü gizle",
+    "pill": {
+      "open": "Toplantıyı Elchi'de aç",
+      "listening": "Dinleniyor"
+    }
   }
 }
