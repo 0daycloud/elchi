@@ -961,6 +961,7 @@
     "corrected": "Düzelttin",
     "unknownApp": "Bir uygulama",
     "more": "Daha eskileri yükle",
+    "moreFailed": "Eski kayıtlar yüklenemedi. Yeniden dene",
     "loading": "Yükleniyor…",
     "openFolder": "Kayıt klasörünü aç",
     "bar": {

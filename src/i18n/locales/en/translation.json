@@ -961,6 +961,7 @@
     "corrected": "You fixed",
     "unknownApp": "An app",
     "more": "Load older",
+    "moreFailed": "Couldn't load older dictations. Try again",
     "loading": "Loading…",
     "openFolder": "Open recordings folder",
     "bar": {

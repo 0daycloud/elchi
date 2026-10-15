@@ -75,6 +75,9 @@ export const HomeFeed: React.FC<{
   const [entries, setEntries] = useState<HistoryEntry[] | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  // An older page failed to load: scrolling stops fetching until the user
+  // asks again, so a persistent error can't loop requests.
+  const [moreFailed, setMoreFailed] = useState(false);
   const [icons, setIcons] = useState<Record<string, string>>({});
   const [stats, setStats] = useState<DictationStats | null>(null);
   const [dictionary, setDictionary] = useState<DictionaryWord[]>([]);
@@ -82,6 +85,7 @@ export const HomeFeed: React.FC<{
   const [editingId, setEditingId] = useState<number | null>(null);
   const [dismissedTrial, setDismissedTrial] = useState(readDismissed);
   const entriesRef = useRef<HistoryEntry[] | null>(null);
+  const loadingMoreRef = useRef(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -113,13 +117,23 @@ export const HomeFeed: React.FC<{
     refreshStats();
   }, [refreshStats]);
 
+  // Stable (state read through refs), so the scroll observer below is not
+  // torn down and re-armed every time a request starts or ends.
   const loadMore = useCallback(async () => {
     const last = entriesRef.current?.[entriesRef.current.length - 1];
-    if (!last || loadingMore) return;
+    if (!last || loadingMoreRef.current) return;
+    loadingMoreRef.current = true;
     setLoadingMore(true);
-    const r = await commands.getHistoryEntries(last.id, PAGE);
+    const r = await commands
+      .getHistoryEntries(last.id, PAGE)
+      .catch(() => ({ status: "error" as const }));
+    loadingMoreRef.current = false;
     setLoadingMore(false);
-    if (r.status !== "ok") return;
+    if (r.status !== "ok") {
+      setMoreFailed(true);
+      return;
+    }
+    setMoreFailed(false);
     setEntries((prev) => {
       const have = new Set((prev ?? []).map((e) => e.id));
       return [
@@ -128,7 +142,7 @@ export const HomeFeed: React.FC<{
       ];
     });
     setHasMore(r.data.has_more);
-  }, [loadingMore]);
+  }, []);
 
   useEffect(() => {
     refresh();
@@ -171,13 +185,13 @@ export const HomeFeed: React.FC<{
   // Older pages load when the end of the feed scrolls into view.
   useEffect(() => {
     const el = sentinelRef.current;
-    if (!el || !hasMore) return;
+    if (!el || !hasMore || moreFailed) return;
     const io = new IntersectionObserver((seen) => {
       if (seen[0]?.isIntersecting) loadMore();
     });
     io.observe(el);
     return () => io.disconnect();
-  }, [hasMore, loadMore]);
+  }, [hasMore, moreFailed, loadMore]);
 
   // The apps' own icons (macOS), fetched once per app name.
   useEffect(() => {
@@ -476,7 +490,11 @@ export const HomeFeed: React.FC<{
             {hasMore && (
               <div ref={sentinelRef} className="flex justify-center pt-5">
                 <GhostButton onClick={loadMore} disabled={loadingMore}>
-                  {loadingMore ? t("home.loading") : t("home.more")}
+                  {loadingMore
+                    ? t("home.loading")
+                    : moreFailed
+                      ? t("home.moreFailed")
+                      : t("home.more")}
                 </GhostButton>
               </div>
             )}
