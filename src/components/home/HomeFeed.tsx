@@ -372,7 +372,6 @@ export const HomeFeed: React.FC<{
       className={`h-screen flex flex-col bg-background select-none cursor-default ${dark ? "grain" : ""}`}
     >
       <TopBar
-        stats={stats}
         status={status}
         onOpenSettings={onOpenSettings}
         onOpenMeetings={onOpenMeetings}

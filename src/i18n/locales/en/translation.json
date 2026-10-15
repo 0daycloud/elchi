@@ -982,11 +982,6 @@
     "loading": "Loading…",
     "openFolder": "Open recordings folder",
     "bar": {
-      "words_one": "word",
-      "words_other": "words",
-      "saved": "saved",
-      "streak_one": "day streak",
-      "streak_other": "day streak",
       "hoursMinutes": "{{h}} h {{m}} min",
       "minutes": "{{m}} min",
       "engine": "Speech recognition model"

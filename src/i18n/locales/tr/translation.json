@@ -982,11 +982,6 @@
     "loading": "Yükleniyor…",
     "openFolder": "Kayıt klasörünü aç",
     "bar": {
-      "words_one": "kelime",
-      "words_other": "kelime",
-      "saved": "kazanıldı",
-      "streak_one": "gün seri",
-      "streak_other": "gün seri",
       "hoursMinutes": "{{h}} sa {{m}} dk",
       "minutes": "{{m}} dk",
       "engine": "Konuşma tanıma modeli"
