@@ -1454,6 +1454,32 @@ pub fn change_show_tray_icon_setting(app: AppHandle, enabled: bool) -> Result<()
     Ok(())
 }
 
+#[tauri::command]
+#[specta::specta]
+pub fn change_show_in_dock_setting(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    settings.show_in_dock = enabled;
+    settings::write_settings(&app, settings);
+
+    // Apply now: back in the Dock, or out of it if the window is not open.
+    #[cfg(target_os = "macos")]
+    {
+        let window_open = app
+            .get_webview_window("main")
+            .and_then(|w| w.is_visible().ok())
+            .unwrap_or(false);
+        let policy = if crate::hides_from_dock(&app) && !window_open {
+            tauri::ActivationPolicy::Accessory
+        } else {
+            tauri::ActivationPolicy::Regular
+        };
+        app.set_activation_policy(policy)
+            .map_err(|e| e.to_string())?;
+    }
+
+    Ok(())
+}
+
 /// Save accelerator settings and make the next model use reload with them.
 /// The currently running transcription, if any, keeps its existing engine.
 fn save_accelerator_and_reload_next_use(app: &AppHandle, s: settings::AppSettings) {

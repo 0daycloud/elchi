@@ -536,6 +536,10 @@ pub struct AppSettings {
     pub keyboard_implementation: KeyboardImplementation,
     #[serde(default = "default_show_tray_icon")]
     pub show_tray_icon: bool,
+    /// macOS: keep the Dock icon while the settings window is closed, so the
+    /// Dock brings Elchi back. Off, Elchi lives only in the menu bar then.
+    #[serde(default = "default_show_in_dock")]
+    pub show_in_dock: bool,
     #[serde(default = "default_paste_delay_ms")]
     pub paste_delay_ms: u64,
     #[serde(default = "default_paste_delay_after_ms")]
@@ -727,6 +731,10 @@ fn default_app_language() -> String {
 }
 
 fn default_show_tray_icon() -> bool {
+    true
+}
+
+fn default_show_in_dock() -> bool {
     true
 }
 
@@ -1069,6 +1077,7 @@ pub fn get_default_settings() -> AppSettings {
         lazy_stream_close: false,
         keyboard_implementation: KeyboardImplementation::default(),
         show_tray_icon: default_show_tray_icon(),
+        show_in_dock: default_show_in_dock(),
         paste_delay_ms: default_paste_delay_ms(),
         paste_delay_after_ms: default_paste_delay_after_ms(),
         reliable_paste: false,

@@ -11,6 +11,7 @@ import { Button } from "../../ui/Button";
 import { StartHidden } from "../StartHidden";
 import { AutostartToggle } from "../AutostartToggle";
 import { ShowTrayIcon } from "../ShowTrayIcon";
+import { ShowInDock } from "../ShowInDock";
 import { PasteMethodSetting } from "../PasteMethod";
 import { TypingToolSetting } from "../TypingTool";
 import { ClipboardHandlingSetting } from "../ClipboardHandling";
@@ -80,6 +81,11 @@ export const AdvancedSettings: React.FC = () => {
         <ChangedMark on={is("show_tray_icon")}>
           <ShowTrayIcon descriptionMode="tooltip" grouped />
         </ChangedMark>
+        {osType === "macos" && (
+          <ChangedMark on={is("show_in_dock")}>
+            <ShowInDock descriptionMode="tooltip" grouped />
+          </ChangedMark>
+        )}
       </SettingsGroup>
 
       <SettingsGroup title={t("settings.advanced.groups.indicator")}>

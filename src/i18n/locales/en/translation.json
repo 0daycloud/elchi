@@ -581,6 +581,10 @@
         "summary_other": "{{count}} more rarely changed settings — pasting, clipboard, voice detection, Chinese script…",
         "show": "Show",
         "hide": "Hide"
+      },
+      "showInDock": {
+        "label": "Show in Dock",
+        "description": "Keep Elchi in the Dock when its window is closed, so you can always click it to come back. Off, Elchi is only in the menu bar."
       }
     },
     "postProcessing": {

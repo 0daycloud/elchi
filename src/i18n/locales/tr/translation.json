@@ -581,6 +581,10 @@
         "summary_other": "Nadiren değiştirilen {{count}} ayar daha — yapıştırma, pano, ses algılama, Çince yazı…",
         "show": "Göster",
         "hide": "Gizle"
+      },
+      "showInDock": {
+        "label": "Dock'ta göster",
+        "description": "Pencere kapalıyken de Elchi Dock'ta kalır; tıklayınca geri gelir. Kapalıysa Elchi yalnızca menü çubuğunda olur."
       }
     },
     "postProcessing": {

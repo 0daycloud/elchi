@@ -225,7 +225,7 @@ fn apply_startup_activation_policy(app: &mut tauri::App, headless_mode: bool) {
     let should_hide = settings.start_hidden || cli_args.start_hidden;
     let tray_available = settings.show_tray_icon && !cli_args.no_tray;
 
-    if should_hide && tray_available {
+    if should_hide && tray_available && !settings.show_in_dock {
         log::info!("Starting hidden with tray available: launching as Accessory (no Dock icon)");
         app.set_activation_policy(tauri::ActivationPolicy::Accessory);
     }
@@ -234,6 +234,12 @@ fn apply_startup_activation_policy(app: &mut tauri::App, headless_mode: bool) {
 /// Whether the tray icon is there to reopen the settings window from.
 fn tray_available(app: &AppHandle) -> bool {
     get_settings(app).show_tray_icon && !app.state::<CliArgs>().no_tray
+}
+
+/// macOS: whether Elchi leaves the Dock while its window is closed. Only when
+/// the user turned "Show in Dock" off and the menu bar icon can bring it back.
+pub(crate) fn hides_from_dock(app: &AppHandle) -> bool {
+    tray_available(app) && !get_settings(app).show_in_dock
 }
 
 #[allow(unused_variables)]
@@ -823,6 +829,7 @@ pub fn run(cli_args: CliArgs) {
             shortcut::change_keyboard_implementation_setting,
             shortcut::get_keyboard_implementation,
             shortcut::change_show_tray_icon_setting,
+            shortcut::change_show_in_dock_setting,
             shortcut::change_transcribe_accelerator_setting,
             shortcut::change_ort_accelerator_setting,
             shortcut::change_transcribe_gpu_device,
@@ -1150,8 +1157,8 @@ pub fn run(cli_args: CliArgs) {
 
                 #[cfg(target_os = "macos")]
                 {
-                    if tray_available(window.app_handle()) {
-                        // Tray is available: hide the dock icon, app lives in the tray
+                    if hides_from_dock(window.app_handle()) {
+                        // "Show in Dock" is off: the app lives in the tray
                         let res = window
                             .app_handle()
                             .set_activation_policy(tauri::ActivationPolicy::Accessory);
