@@ -585,6 +585,10 @@
       "showInDock": {
         "label": "Show in Dock",
         "description": "Keep Elchi in the Dock when its window is closed, so you can always click it to come back. Off, Elchi is only in the menu bar."
+      },
+      "meetingKeepRecording": {
+        "label": "Keep meeting recordings",
+        "description": "Keeps each meeting's audio and full transcript. Off, only the notes stay."
       }
     },
     "postProcessing": {
@@ -1065,5 +1069,62 @@
     "streakBody": "You've dictated every day for {{count}} days.",
     "milestoneTitle": "{{n}} words!",
     "milestoneBody": "You've passed {{n}} spoken words; typing them would have taken about {{time}}."
+  },
+  "meetings": {
+    "title": "Meetings",
+    "recordingNow": "Recording",
+    "back": "Feed",
+    "me": "You",
+    "them": "Others",
+    "yourNotes": "Your notes",
+    "transcript": "Transcript",
+    "untitled": "Meeting",
+    "all": "All meetings",
+    "minutes_one": "{{count}} min",
+    "minutes_other": "{{count}} min",
+    "writing": "Writing the notes…",
+    "empty": "Nobody was heard in this meeting.",
+    "proOnly": "Meeting notes are written with Duyu Pro. The transcript is here; with Duyu Pro I can write the notes too.",
+    "interrupted": "This meeting was cut short when Elchi quit. The transcript is here, and I can write the notes now.",
+    "failed": "The notes couldn't be written. The transcript is here; try again.",
+    "upgrade": "Get Duyu Pro",
+    "retry": "Write the notes",
+    "recording": "Recording",
+    "copy": "Copy notes",
+    "copied": "Notes copied.",
+    "delete": "Delete",
+    "deleteConfirm": "Sure? Delete",
+    "past": "Past meetings",
+    "startFailed": "Couldn't start the meeting: {{error}}",
+    "status": {
+      "recording": "Recording",
+      "processing": "Writing",
+      "noNotes": "No notes",
+      "interrupted": "Cut short",
+      "empty": "Empty"
+    },
+    "new": {
+      "title": "New meeting",
+      "body": "Elchi listens through your microphone and your computer's sound; nothing joins the call. When you end it, I write the notes around your own.",
+      "bodyFree": "Elchi listens through your microphone and your computer's sound; nothing joins the call. The transcript is free; the notes are written with Duyu Pro.",
+      "start": "Start"
+    },
+    "live": {
+      "label": "Meeting in progress",
+      "recording": "Recording",
+      "stop": "End",
+      "cancel": "Discard",
+      "cancelConfirm": "Discard it?",
+      "micOnly": "Only your microphone is recorded: the others' audio needs macOS 14.6 or later.",
+      "notesPlaceholder": "Jot down what matters to you. I'll write the notes around it.",
+      "waiting": "What's said shows up here within seconds."
+    },
+    "consent": {
+      "title": "Before you record",
+      "body": "Tell the people in the call that you're recording it. In Turkey and many other countries, recording a conversation without its participants' consent is a crime.",
+      "privacy": "By default no audio is kept, and the transcript is deleted once the notes are written. You can change this in Settings > Advanced.",
+      "accept": "Understood, start",
+      "cancel": "Cancel"
+    }
   }
 }

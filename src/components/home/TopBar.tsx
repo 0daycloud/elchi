@@ -4,6 +4,7 @@ import type { DictationStats, ElchiProStatus } from "@/bindings";
 import { daysLeft } from "@/hooks/useElchiPro";
 import ElchiLogo from "../icons/ElchiLogo";
 import type { SidebarSection } from "../Sidebar";
+import { useActiveMeeting } from "../meetings/useMeetings";
 
 /**
  * Home's steel top bar: the wordmark, this week in numbers, the engine that
@@ -13,8 +14,10 @@ export const TopBar: React.FC<{
   stats: DictationStats | null;
   status: ElchiProStatus | null;
   onOpenSettings: (section?: SidebarSection) => void;
-}> = ({ stats, status, onOpenSettings }) => {
+  onOpenMeetings?: () => void;
+}> = ({ stats, status, onOpenSettings, onOpenMeetings }) => {
   const { t, i18n } = useTranslation();
+  const { active: meeting } = useActiveMeeting();
   const n = (v: number) => new Intl.NumberFormat(i18n.language).format(v);
   const duration = (m: number) => {
     const r = Math.max(m > 0 ? 1 : 0, Math.round(m));
@@ -74,6 +77,21 @@ export const TopBar: React.FC<{
           >
             <span aria-hidden="true" className="dot-accent" />
             {engine}
+          </button>
+        )}
+        {onOpenMeetings && (
+          <button
+            type="button"
+            onClick={onOpenMeetings}
+            className="flex items-center gap-1.5 px-2.5 py-[5px] rounded-full font-mono text-[10.5px] leading-none tracking-[0.06em] uppercase text-[color:var(--text-faint)] hover:text-text cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+          >
+            {meeting && (
+              <span
+                aria-hidden="true"
+                className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse"
+              />
+            )}
+            {meeting ? t("meetings.recordingNow") : t("meetings.title")}
           </button>
         )}
         <button

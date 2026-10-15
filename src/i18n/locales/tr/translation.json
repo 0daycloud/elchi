@@ -585,6 +585,10 @@
       "showInDock": {
         "label": "Dock'ta göster",
         "description": "Pencere kapalıyken de Elchi Dock'ta kalır; tıklayınca geri gelir. Kapalıysa Elchi yalnızca menü çubuğunda olur."
+      },
+      "meetingKeepRecording": {
+        "label": "Toplantı kayıtlarını sakla",
+        "description": "Her toplantının ses kaydını ve tam dökümünü saklar. Kapalıyken yalnızca notlar kalır."
       }
     },
     "postProcessing": {
@@ -1065,5 +1069,62 @@
     "streakBody": "{{count}} gündür her gün konuşarak yazıyorsun.",
     "milestoneTitle": "{{n}} kelime!",
     "milestoneBody": "Konuşarak {{n}} kelimeyi geçtin; klavyeyle aşağı yukarı {{time}} sürerdi."
+  },
+  "meetings": {
+    "title": "Toplantılar",
+    "recordingNow": "Kayıt sürüyor",
+    "back": "Akış",
+    "me": "Sen",
+    "them": "Karşı taraf",
+    "yourNotes": "Senin notların",
+    "transcript": "Döküm",
+    "untitled": "Toplantı",
+    "all": "Tüm toplantılar",
+    "minutes_one": "{{count}} dk",
+    "minutes_other": "{{count}} dk",
+    "writing": "Notlar yazılıyor…",
+    "empty": "Bu toplantıda konuşma duyulmadı.",
+    "proOnly": "Toplantı notları Duyu Pro ile yazılır. Döküm burada; Duyu Pro'ya geçince notları da yazabilirim.",
+    "interrupted": "Elchi kapandığı için bu toplantı yarıda kaldı. Döküm burada; notları şimdi yazabilirim.",
+    "failed": "Notlar yazılamadı. Döküm burada; tekrar deneyebilirsin.",
+    "upgrade": "Duyu Pro'ya geç",
+    "retry": "Notları yaz",
+    "recording": "Ses kaydı",
+    "copy": "Notları kopyala",
+    "copied": "Notlar kopyalandı.",
+    "delete": "Sil",
+    "deleteConfirm": "Emin misin? Sil",
+    "past": "Geçmiş toplantılar",
+    "startFailed": "Toplantı başlatılamadı: {{error}}",
+    "status": {
+      "recording": "Kaydediliyor",
+      "processing": "Yazılıyor",
+      "noNotes": "Not yok",
+      "interrupted": "Yarıda kaldı",
+      "empty": "Boş"
+    },
+    "new": {
+      "title": "Yeni toplantı",
+      "body": "Elchi görüşmeyi senin mikrofonundan ve bilgisayarın sesinden dinler; aramaya kimse katılmaz. Bitirince notları senin notlarının etrafında yazarım.",
+      "bodyFree": "Elchi görüşmeyi senin mikrofonundan ve bilgisayarın sesinden dinler; aramaya kimse katılmaz. Döküm ücretsiz; notları Duyu Pro yazar.",
+      "start": "Başlat"
+    },
+    "live": {
+      "label": "Süren toplantı",
+      "recording": "Kaydediliyor",
+      "stop": "Bitir",
+      "cancel": "Vazgeç",
+      "cancelConfirm": "Silinsin mi?",
+      "micOnly": "Yalnızca senin mikrofonun kaydediliyor: karşı tarafın sesi için macOS 14.6 veya üstü gerekiyor.",
+      "notesPlaceholder": "Önemli gördüklerini yaz. Notları bunların etrafında yazarım.",
+      "waiting": "Konuşulanlar birkaç saniye içinde burada görünür."
+    },
+    "consent": {
+      "title": "Kayda başlamadan önce",
+      "body": "Görüşmedekilere toplantıyı kaydettiğini söyle. Türkiye'de ve birçok ülkede, bir konuşmayı katılımcıların izni olmadan kaydetmek suçtur.",
+      "privacy": "Varsayılan olarak ses kaydı tutulmaz; notlar yazılınca döküm de silinir. Bunu Ayarlar > Gelişmiş'ten değiştirebilirsin.",
+      "accept": "Anladım, başlat",
+      "cancel": "Vazgeç"
+    }
   }
 }

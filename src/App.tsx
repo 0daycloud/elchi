@@ -20,6 +20,8 @@ import SecureInputWarning from "./components/SecureInputWarning";
 import Onboarding, { AccessibilityOnboarding } from "./components/onboarding";
 import WelcomeTour from "./components/onboarding/WelcomeTour";
 import { HomeFeed } from "./components/home/HomeFeed";
+import { Meetings } from "./components/meetings/Meetings";
+import { useOsType } from "./hooks/useOsType";
 import {
   DebugSettings,
   type OnboardingPreviewStep,
@@ -70,7 +72,8 @@ function App() {
   const [currentSection, setCurrentSection] =
     useState<SidebarSection>("general");
   // Elchi opens on its home feed; the gear there opens these settings.
-  const [view, setView] = useState<"home" | "settings">("home");
+  const [view, setView] = useState<"home" | "settings" | "meetings">("home");
+  const osType = useOsType();
   const openSettings = (section?: SidebarSection) => {
     if (section) setCurrentSection(section);
     setView("settings");
@@ -411,7 +414,19 @@ function App() {
         <ErrorBoundary context="What's New">
           <WhatsNewGate />
         </ErrorBoundary>
-        <HomeFeed onOpenSettings={openSettings} />
+        <HomeFeed
+          onOpenSettings={openSettings}
+          // Meetings record the call's audio through a Core Audio tap: macOS first.
+          onOpenMeetings={
+            osType === "macos" ? () => setView("meetings") : undefined
+          }
+        />
+      </div>
+    );
+  } else if (view === "meetings") {
+    content = (
+      <div dir={direction}>
+        <Meetings onBack={() => setView("home")} />
       </div>
     );
   } else {

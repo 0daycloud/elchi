@@ -193,6 +193,8 @@ const settingUpdaters: {
   chinese_script: (value) =>
     commands.changeChineseScriptSetting(value as ChineseScript),
   show_in_dock: (value) => commands.changeShowInDockSetting(value as boolean),
+  meeting_keep_recording: (value) =>
+    commands.changeMeetingKeepRecordingSetting(value as boolean),
   show_tray_icon: (value) =>
     commands.changeShowTrayIconSetting(value as boolean),
   transcribe_accelerator: (value) =>

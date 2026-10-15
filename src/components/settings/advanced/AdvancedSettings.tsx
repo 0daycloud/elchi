@@ -19,6 +19,7 @@ import { AutoSubmit } from "../AutoSubmit";
 import { PostProcessingToggle } from "../PostProcessingToggle";
 import { AppendTrailingSpace } from "../AppendTrailingSpace";
 import { HistoryLimit } from "../HistoryLimit";
+import { MeetingKeepRecording } from "../MeetingKeepRecording";
 import { RecordingRetentionPeriodSelector } from "../RecordingRetentionPeriod";
 import { ExperimentalToggle } from "../ExperimentalToggle";
 import { UpdateChecksToggle } from "../UpdateChecksToggle";
@@ -103,6 +104,11 @@ export const AdvancedSettings: React.FC = () => {
         <ChangedMark on={is("recording_retention_period")}>
           <RecordingRetentionPeriodSelector descriptionMode="tooltip" grouped />
         </ChangedMark>
+        {osType === "macos" && (
+          <ChangedMark on={is("meeting_keep_recording")}>
+            <MeetingKeepRecording descriptionMode="tooltip" grouped />
+          </ChangedMark>
+        )}
         <SettingContainer
           title={t("settings.advanced.recordingsFolder.title")}
           description={t("settings.advanced.recordingsFolder.description")}

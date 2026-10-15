@@ -892,6 +892,100 @@ async resetMacosPermissions(accessibility: boolean, microphone: boolean) : Promi
     else return { status: "error", error: e  as any };
 }
 },
+async startMeeting() : Promise<Result<ActiveMeeting, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("start_meeting") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Ends the recording; the last piece is transcribed and the notes written in the background.
+ */
+async stopMeeting() : Promise<Result<number, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("stop_meeting") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Ends the recording and deletes the meeting: nothing of it stays.
+ */
+async cancelMeeting() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("cancel_meeting") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async getActiveMeeting() : Promise<ActiveMeeting | null> {
+    return await TAURI_INVOKE("get_active_meeting");
+},
+async listMeetings() : Promise<Result<Meeting[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("list_meetings") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async getMeeting(id: number) : Promise<Result<MeetingDetail, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_meeting", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async setMeetingUserNotes(id: number, text: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_meeting_user_notes", { id, text }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async deleteMeeting(id: number) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("delete_meeting", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Writes the notes again (after a failure, or once the user has Duyu Pro), from the
+ * transcript a meeting without notes keeps.
+ */
+async retryMeetingNotes(id: number) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("retry_meeting_notes", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The kept recording of one side (`me` or `them`), for playback.
+ */
+async meetingAudioPath(id: number, speaker: string) : Promise<string | null> {
+    return await TAURI_INVOKE("meeting_audio_path", { id, speaker });
+},
+async acknowledgeMeetingConsent() : Promise<void> {
+    await TAURI_INVOKE("acknowledge_meeting_consent");
+},
+async changeMeetingKeepRecordingSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_meeting_keep_recording_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async getAvailableMicrophones() : Promise<Result<AudioDevice[], string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("get_available_microphones") };
@@ -1091,6 +1185,11 @@ streamTextEvent: "stream-text-event"
 
 /** user-defined types **/
 
+export type ActiveMeeting = { id: number; started_at: number; 
+/**
+ * The call's audio is recorded too (false: only the microphone, e.g. macOS before 14.6).
+ */
+call_audio: boolean }
 /**
  * The container-level `serde(default)` (backed by the `Default` impl below)
  * guarantees every field — including ones added in the future — falls back to
@@ -1163,7 +1262,16 @@ elchi_dictionary_learn?: boolean; post_process_models?: Partial<{ [key in string
  * macOS: keep the Dock icon while the settings window is closed, so the
  * Dock brings Elchi back. Off, Elchi lives only in the menu bar then.
  */
-show_in_dock?: boolean; paste_delay_ms?: number; paste_delay_after_ms?: number; 
+show_in_dock?: boolean; 
+/**
+ * Meetings (src/meeting): keep each meeting's audio and full transcript. Off, both are
+ * deleted once the notes are written; only the notes stay.
+ */
+meeting_keep_recording?: boolean; 
+/**
+ * The user has read that the people in a meeting must be told it is being recorded.
+ */
+meeting_consent_ack?: boolean; paste_delay_ms?: number; paste_delay_after_ms?: number; 
 /**
  * Debug-gated ("beta") receipt-sequenced paste: restore the clipboard only
  * after the target app actually reads the transcript, instead of after a
@@ -1326,6 +1434,28 @@ key_down: number; key_up: number; flags_changed: number; mouse: number; duration
 export type KeyboardImplementation = "tauri" | "handy_keys"
 export type LLMPrompt = { id: string; name: string; prompt: string }
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error"
+export type Meeting = { id: number; 
+/**
+ * Unix seconds.
+ */
+started_at: number; ended_at: number | null; 
+/**
+ * The notes' own title; empty until they are written.
+ */
+title: string; 
+/**
+ * What the user typed during the meeting.
+ */
+user_notes: string; 
+/**
+ * Markdown.
+ */
+notes: string | null; status: string; 
+/**
+ * The audio and full transcript are kept ("keep recordings" was on).
+ */
+kept: boolean; has_transcript: boolean }
+export type MeetingDetail = { meeting: Meeting; segments: Segment[] }
 /**
  * A round number of words passed, and the day it happened (for the home feed).
  */
@@ -1439,6 +1569,11 @@ uncovered_bindings: string[];
  * warning banner appears and explains why recording refused.
  */
 recorder_blocked: boolean }
+export type Segment = { id: number; 
+/**
+ * `me` (the microphone) or `them` (the call's audio).
+ */
+speaker: string; start_ms: number; end_ms: number; text: string }
 /**
  * How the transcribe shortcut's key events drive a recording.
  */

@@ -65,7 +65,8 @@ const DayHeader: React.FC<{ children: React.ReactNode }> = ({ children }) => (
  */
 export const HomeFeed: React.FC<{
   onOpenSettings: (section?: SidebarSection) => void;
-}> = ({ onOpenSettings }) => {
+  onOpenMeetings?: () => void;
+}> = ({ onOpenSettings, onOpenMeetings }) => {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const { status, upgrade } = useElchiPro();
@@ -370,7 +371,12 @@ export const HomeFeed: React.FC<{
     <div
       className={`h-screen flex flex-col bg-background select-none cursor-default ${dark ? "grain" : ""}`}
     >
-      <TopBar stats={stats} status={status} onOpenSettings={onOpenSettings} />
+      <TopBar
+        stats={stats}
+        status={status}
+        onOpenSettings={onOpenSettings}
+        onOpenMeetings={onOpenMeetings}
+      />
 
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-[1040px] mx-auto px-7 max-[720px]:px-5 pt-7 pb-7">
