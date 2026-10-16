@@ -6,6 +6,11 @@ import {
   type Meeting,
   type Segment,
 } from "@/bindings";
+import {
+  insertSegment,
+  type PartialPayload,
+  type Partials,
+} from "./liveTranscript";
 
 /** The meeting being recorded, if any, kept current by the backend's events. */
 export const useActiveMeeting = () => {
@@ -40,30 +45,47 @@ export const useMeetingList = () => {
   return { meetings, refresh };
 };
 
-/** The live transcript of a meeting being recorded, and how loud each side is. */
+/** The live transcript of a meeting being recorded (in the order it was said), what each
+ *  side is saying right now, and how loud each side is. */
 export const useLiveMeeting = (id: number | null) => {
   const [segments, setSegments] = useState<Segment[]>([]);
+  const [partials, setPartials] = useState<Partials>({ me: "", them: "" });
   const [levels, setLevels] = useState({ me: 0, them: 0 });
   useEffect(() => {
     setSegments([]);
+    setPartials({ me: "", them: "" });
     if (id === null) return;
     commands.getMeeting(id).then((r) => {
-      if (r.status === "ok") setSegments(r.data.segments);
+      if (r.status === "ok")
+        setSegments((live) => r.data.segments.reduce(insertSegment, live));
     });
     const unSegment = listen<{ meeting_id: number; segment: Segment }>(
       "meeting-segment",
       (e) => {
         if (e.payload.meeting_id === id)
-          setSegments((s) => [...s, e.payload.segment]);
+          setSegments((s) => insertSegment(s, e.payload.segment));
       },
     );
+    const unRemoved = listen<{ meeting_id: number; id: number }>(
+      "meeting-segment-removed",
+      (e) => {
+        if (e.payload.meeting_id === id)
+          setSegments((s) => s.filter((l) => l.id !== e.payload.id));
+      },
+    );
+    const unPartial = listen<PartialPayload>("meeting-partial", (e) => {
+      if (e.payload.meeting_id === id)
+        setPartials((p) => ({ ...p, [e.payload.speaker]: e.payload.text }));
+    });
     const unLevel = listen<{ me: number; them: number }>("meeting-level", (e) =>
       setLevels(e.payload),
     );
     return () => {
       unSegment.then((f) => f());
+      unRemoved.then((f) => f());
+      unPartial.then((f) => f());
       unLevel.then((f) => f());
     };
   }, [id]);
-  return { segments, levels };
+  return { segments, partials, levels };
 };

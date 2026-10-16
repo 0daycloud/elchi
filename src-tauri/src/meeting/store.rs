@@ -194,6 +194,12 @@ pub fn drop_transcript(conn: &Connection, id: i64) -> rusqlite::Result<()> {
     Ok(())
 }
 
+/// One line of a transcript (the microphone's, when it turned out to be the call's echo).
+pub fn delete_segment(conn: &Connection, id: i64) -> rusqlite::Result<()> {
+    conn.execute("DELETE FROM meeting_segments WHERE id = ?1", [id])?;
+    Ok(())
+}
+
 pub fn delete(conn: &Connection, id: i64) -> rusqlite::Result<()> {
     conn.execute("DELETE FROM meeting_segments WHERE meeting_id = ?1", [id])?;
     conn.execute("DELETE FROM meetings WHERE id = ?1", [id])?;

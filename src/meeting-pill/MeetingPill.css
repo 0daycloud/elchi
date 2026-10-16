@@ -104,6 +104,11 @@
   border-bottom-right-radius: 5px;
 }
 
+/* Words still being spoken: the line is not final yet. */
+.mp-partial {
+  opacity: 0.6;
+}
+
 .mp-listening {
   display: flex;
   gap: 5px;

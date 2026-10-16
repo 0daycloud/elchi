@@ -3,6 +3,11 @@ import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
 import { commands, type Segment } from "@/bindings";
 import ElchiMark from "@/components/icons/ElchiMark";
+import {
+  insertSegment,
+  type PartialPayload,
+  type Partials,
+} from "@/components/meetings/liveTranscript";
 
 /**
  * The meeting pill (src-tauri/src/meeting/pill.rs): Elchi's mark and a level meter at the
@@ -77,6 +82,7 @@ const MeetingPill: React.FC = () => {
   const [levels, setLevels] = useState({ me: 0, them: 0 });
   const [heard, setHeard] = useState(0);
   const [prompt, setPrompt] = useState<Prompt>(null);
+  const [partials, setPartials] = useState<Partials>({ me: "", them: "" });
   const end = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -87,8 +93,10 @@ const MeetingPill: React.FC = () => {
       if (!active || active.id === id) return;
       id = active.id;
       setSegments([]);
+      setPartials({ me: "", them: "" });
       const r = await commands.getMeeting(active.id);
-      if (r.status === "ok") setSegments(r.data.segments);
+      if (r.status === "ok")
+        setSegments((live) => r.data.segments.reduce(insertSegment, live));
     };
     load();
     const unChanged = listen("meetings-changed", load);
@@ -102,9 +110,20 @@ const MeetingPill: React.FC = () => {
       "meeting-segment",
       (e) => {
         if (id === null || e.payload.meeting_id === id)
-          setSegments((s) => [...s, e.payload.segment]);
+          setSegments((s) => insertSegment(s, e.payload.segment));
       },
     );
+    const unRemoved = listen<{ meeting_id: number; id: number }>(
+      "meeting-segment-removed",
+      (e) => {
+        if (e.payload.meeting_id === id)
+          setSegments((s) => s.filter((l) => l.id !== e.payload.id));
+      },
+    );
+    const unPartial = listen<PartialPayload>("meeting-partial", (e) => {
+      if (id === null || e.payload.meeting_id === id)
+        setPartials((p) => ({ ...p, [e.payload.speaker]: e.payload.text }));
+    });
     const unLevel = listen<{ me: number; them: number }>(
       "meeting-level",
       (e) => {
@@ -117,16 +136,19 @@ const MeetingPill: React.FC = () => {
       unOpen.then((f) => f());
       unPrompt.then((f) => f());
       unSegment.then((f) => f());
+      unRemoved.then((f) => f());
+      unPartial.then((f) => f());
       unLevel.then((f) => f());
     };
   }, []);
 
   useEffect(() => {
     if (open) end.current?.scrollIntoView({ block: "end" });
-  }, [open, segments.length]);
+  }, [open, segments.length, partials]);
 
   // Someone spoke in the last few seconds and their words are not in yet.
-  const listening = Date.now() - heard < 4000;
+  const speaking = Boolean(partials.me || partials.them);
+  const listening = !speaking && Date.now() - heard < 4000;
   const level = Math.min(1, Math.sqrt(Math.max(levels.me, levels.them)) * 2.6);
   const ink = levels.me >= levels.them ? "#8ea0ff" : "#ffffff";
 
@@ -142,7 +164,7 @@ const MeetingPill: React.FC = () => {
       {prompt && <PromptCard prompt={prompt} />}
       {open && !prompt && (
         <section className="mp-panel" aria-label={t("meetings.live.rail")}>
-          {segments.length === 0 && !listening && (
+          {segments.length === 0 && !listening && !speaking && (
             <p className="mp-empty">{t("meetings.live.waiting")}</p>
           )}
           {segments.map((s) => (
@@ -153,6 +175,17 @@ const MeetingPill: React.FC = () => {
               {s.text}
             </p>
           ))}
+          {(["them", "me"] as const).map(
+            (speaker) =>
+              partials[speaker] && (
+                <p
+                  key={`partial-${speaker}`}
+                  className={`mp-bubble ${speaker} mp-partial`}
+                >
+                  {partials[speaker]}
+                </p>
+              ),
+          )}
           {listening && (
             <p
               className="mp-bubble them mp-listening"

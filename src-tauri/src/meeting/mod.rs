@@ -1,7 +1,9 @@
 //! Meeting notes, the Granola way: Elchi records the user's microphone and the call's audio
-//! as two tracks (so it knows who said what without guessing voices), transcribes them in
-//! pieces while the meeting goes on, and when it ends writes notes from the transcript and
-//! the user's own rough notes (Duyu Pro, on PatientDesk's servers: POST /v1/elchi/notes).
+//! as two tracks (so it knows who said what without guessing voices), transcribes each as
+//! it is spoken, one line per utterance with its own start and end (lane.rs: streamed to
+//! Duyu Pro, or cut at pauses on this device), and when it ends writes notes from that
+//! conversation and the user's own rough notes (Duyu Pro, on PatientDesk's servers:
+//! POST /v1/elchi/notes).
 //! Nothing joins the call; macOS shows its own recording indicators, and Elchi's windows are
 //! left out of screen sharing while a meeting is recorded.
 //!
@@ -12,11 +14,15 @@
 mod capture;
 mod chunk;
 pub mod detect;
+mod lane;
 pub mod pill;
 mod share;
 pub mod store;
+mod stream;
+mod utter;
 mod webm;
 
+use std::collections::VecDeque;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -30,6 +36,7 @@ use crate::managers::history::HistoryManager;
 use crate::managers::transcription::TranscriptionManager;
 use crate::settings::{get_settings, write_settings};
 use capture::{Capture, RATE};
+use lane::{Lane, LaneEvent, Speaker};
 use store::{Meeting, Segment};
 
 /// The meeting being recorded, if any.
@@ -61,6 +68,20 @@ pub struct MeetingDetail {
 struct SegmentEvent {
     meeting_id: i64,
     segment: Segment,
+}
+
+#[derive(Clone, Serialize, Type)]
+struct SegmentRemovedEvent {
+    meeting_id: i64,
+    id: i64,
+}
+
+/// The words of what one side is saying now (empty: nothing in progress).
+#[derive(Clone, Serialize, Type)]
+struct PartialEvent {
+    meeting_id: i64,
+    speaker: &'static str,
+    text: String,
 }
 
 #[derive(Clone, Serialize, Type)]
@@ -596,7 +617,7 @@ fn take(track: &capture::Shared) -> (Vec<f32>, f32) {
 }
 
 /// The meeting's worker: takes the audio as it arrives, keeps it on disk if asked, and
-/// transcribes it piece by piece until the meeting ends.
+/// hands each side to its lane, which reports what was said utterance by utterance.
 fn record(app: AppHandle, id: i64, mut capture: Capture, keep: bool, ending: Arc<AtomicBool>) {
     let mut writers = (None, None);
     if keep {
@@ -609,8 +630,24 @@ fn record(app: AppHandle, id: i64, mut capture: Capture, keep: bool, ending: Arc
             }
         }
     }
-    let (mut me, mut them) = (Vec::<f32>::new(), Vec::<f32>::new());
-    let mut offset = 0usize;
+    let cloud = app
+        .try_state::<Arc<crate::elchi_pro::ElchiPro>>()
+        .is_some_and(|e| e.cloud_ready());
+    let (events, heard) = std::sync::mpsc::channel::<(Speaker, LaneEvent)>();
+    let device = utter::DeviceTranscriber::start(&app, events.clone());
+    let mut lanes: Vec<(Speaker, Lane)> = vec![(
+        Speaker::Me,
+        Lane::start(&app, Speaker::Me, cloud, &events, &device),
+    )];
+    if capture.them.is_some() {
+        lanes.push((
+            Speaker::Them,
+            Lane::start(&app, Speaker::Them, cloud, &events, &device),
+        ));
+    }
+    drop(events);
+    let mut merger = Merger::new(app.clone(), id);
+    let mut recorded = 0usize;
     loop {
         let last = ending.load(Ordering::SeqCst);
         if last {
@@ -625,8 +662,14 @@ fn record(app: AppHandle, id: i64, mut capture: Capture, keep: bool, ending: Arc
                 }
             }
         }
-        me.extend(new_me);
-        them.extend(new_them);
+        recorded += new_me.len();
+        for (speaker, lane) in lanes.iter_mut() {
+            lane.push(if *speaker == Speaker::Me {
+                &new_me
+            } else {
+                &new_them
+            });
+        }
         let _ = app.emit(
             "meeting-level",
             LevelEvent {
@@ -634,24 +677,37 @@ fn record(app: AppHandle, id: i64, mut capture: Capture, keep: bool, ending: Arc
                 them: level_them,
             },
         );
-        let call = capture.them.is_some();
-        while let Some(cut) = chunk::cut_point(&me, call.then_some(them.as_slice()), last) {
-            let piece_me: Vec<f32> = me.drain(..cut.min(me.len())).collect();
-            let piece_them: Vec<f32> = them.drain(..cut.min(them.len())).collect();
-            let start_ms = (offset * 1000 / RATE) as i64;
-            offset += cut;
-            let end_ms = (offset * 1000 / RATE) as i64;
-            transcribe_piece(&app, id, &piece_me, &piece_them, start_ms, end_ms);
-        }
+        merger.drain(&heard, &mut lanes, &device);
         if last {
             break;
         }
-        std::thread::sleep(Duration::from_millis(400));
+        std::thread::sleep(Duration::from_millis(100));
     }
     for writer in [writers.0, writers.1].into_iter().flatten() {
         let _ = writer.finalize();
     }
-    info!("Meeting {id}: recording ended after {} s", offset / RATE);
+    info!("Meeting {id}: recording ended after {} s", recorded / RATE);
+    // The last words: every side finishes what was being said (the server's lanes at the
+    // same time, lines still arriving meanwhile), then the device transcribes the rest.
+    let device = Arc::new(device);
+    let finishing: Vec<_> = lanes
+        .into_iter()
+        .map(|(speaker, lane)| {
+            let (app, device) = (app.clone(), device.clone());
+            std::thread::spawn(move || lane.finish(&app, speaker, &device))
+        })
+        .collect();
+    while finishing.iter().any(|t| !t.is_finished()) {
+        let _ = merger.drain_only(&heard);
+        std::thread::sleep(Duration::from_millis(100));
+    }
+    for t in finishing {
+        let _ = t.join();
+    }
+    if let Ok(device) = Arc::try_unwrap(device) {
+        device.finish();
+    }
+    let _ = merger.drain_only(&heard);
 }
 
 fn transcribe(app: &AppHandle, audio: &[f32]) -> Option<String> {
@@ -663,34 +719,199 @@ fn transcribe(app: &AppHandle, audio: &[f32]) -> Option<String> {
         Ok(text) if !text.trim().is_empty() => Some(text.trim().to_string()),
         Ok(_) => None,
         Err(e) => {
-            warn!("Meeting piece not transcribed: {e:#}");
+            warn!("Meeting utterance not transcribed: {e:#}");
             None
         }
     }
 }
 
-/// One piece of the meeting: the others first (what they said is what the user answers),
-/// then the user, unless the microphone only heard the call through the speakers.
-fn transcribe_piece(app: &AppHandle, id: i64, me: &[f32], them: &[f32], start: i64, end: i64) {
-    let theirs = transcribe(app, them);
-    let mine = transcribe(app, me)
-        .filter(|text| !theirs.as_deref().is_some_and(|t| chunk::is_echo(text, t)));
-    let Ok(conn) = db(app) else { return };
-    for (speaker, text) in [("them", theirs), ("me", mine)] {
-        let Some(text) = text else { continue };
-        match store::add_segment(&conn, id, speaker, start, end, &text) {
+/// A line kept, for checking echo against.
+struct Line {
+    id: i64,
+    start: usize,
+    end: usize,
+    text: String,
+}
+
+/// Turns the lanes' utterances into the meeting's transcript: each saved as it comes (the
+/// transcript is ordered by when it was said, whichever side answered first), and the
+/// microphone's dropped when it only heard the call through the speakers: what it said
+/// overlaps, in time and words, what the call said.
+struct Merger {
+    app: AppHandle,
+    id: i64,
+    mine: VecDeque<Line>,
+    theirs: VecDeque<Line>,
+}
+
+/// Lines further back than this are not checked for echo any more.
+const ECHO_WINDOW: usize = 120 * RATE;
+/// How far apart in time two lines can be and still be the same words.
+const ECHO_SLACK: usize = RATE;
+
+impl Merger {
+    fn new(app: AppHandle, id: i64) -> Self {
+        Self {
+            app,
+            id,
+            mine: VecDeque::new(),
+            theirs: VecDeque::new(),
+        }
+    }
+
+    /// Handles what the lanes reported; a lane that gave up goes on on the device.
+    fn drain(
+        &mut self,
+        heard: &std::sync::mpsc::Receiver<(Speaker, LaneEvent)>,
+        lanes: &mut [(Speaker, Lane)],
+        device: &utter::DeviceTranscriber,
+    ) {
+        while let Ok((speaker, event)) = heard.try_recv() {
+            if let LaneEvent::GaveUp = event {
+                if let Some((_, lane)) = lanes.iter_mut().find(|(s, _)| *s == speaker) {
+                    lane.hand_to_device(&self.app, speaker, device);
+                }
+                self.partial(speaker, String::new());
+            } else {
+                self.handle(speaker, event);
+            }
+        }
+    }
+
+    /// Handles what the lanes reported, once no lane is left to hand over to; Err once
+    /// every lane has finished.
+    fn drain_only(
+        &mut self,
+        heard: &std::sync::mpsc::Receiver<(Speaker, LaneEvent)>,
+    ) -> Result<(), ()> {
+        loop {
+            match heard.try_recv() {
+                Ok((speaker, event)) => self.handle(speaker, event),
+                Err(std::sync::mpsc::TryRecvError::Empty) => return Ok(()),
+                Err(std::sync::mpsc::TryRecvError::Disconnected) => return Err(()),
+            }
+        }
+    }
+
+    fn handle(&mut self, speaker: Speaker, event: LaneEvent) {
+        match event {
+            LaneEvent::Partial { text } => self.partial(speaker, text),
+            LaneEvent::Final { start, end, text } => {
+                self.partial(speaker, String::new());
+                let text = text.trim().to_string();
+                if !text.is_empty() {
+                    self.add(speaker, start, end, text);
+                }
+            }
+            // Only reached at the very end, when the device has nothing left to take over.
+            LaneEvent::GaveUp => {}
+        }
+    }
+
+    fn partial(&self, speaker: Speaker, text: String) {
+        let _ = self.app.emit(
+            "meeting-partial",
+            PartialEvent {
+                meeting_id: self.id,
+                speaker: speaker.as_str(),
+                text,
+            },
+        );
+    }
+
+    /// What the call said around these samples.
+    fn theirs_around(&self, start: usize, end: usize) -> String {
+        self.theirs
+            .iter()
+            .filter(|t| overlaps((t.start, t.end), (start, end)))
+            .map(|t| t.text.as_str())
+            .collect::<Vec<_>>()
+            .join(" ")
+    }
+
+    fn add(&mut self, speaker: Speaker, start: usize, end: usize, text: String) {
+        match speaker {
+            Speaker::Me => {
+                if chunk::is_echo(&text, &self.theirs_around(start, end)) {
+                    return;
+                }
+                if let Some(id) = self.save(speaker, start, end, &text) {
+                    self.mine.push_back(Line {
+                        id,
+                        start,
+                        end,
+                        text,
+                    });
+                }
+            }
+            Speaker::Them => {
+                let id = self.save(speaker, start, end, &text);
+                self.theirs.push_back(Line {
+                    id: id.unwrap_or(-1),
+                    start,
+                    end,
+                    text,
+                });
+                // The microphone's line may have come first: drop it now if it was this.
+                let echoes: Vec<i64> = self
+                    .mine
+                    .iter()
+                    .filter(|m| overlaps((m.start, m.end), (start, end)))
+                    .filter(|m| chunk::is_echo(&m.text, &self.theirs_around(m.start, m.end)))
+                    .map(|m| m.id)
+                    .collect();
+                for line in echoes {
+                    self.remove(line);
+                }
+            }
+        }
+        let newest = end;
+        for lines in [&mut self.mine, &mut self.theirs] {
+            while lines.front().is_some_and(|l| l.end + ECHO_WINDOW < newest) {
+                lines.pop_front();
+            }
+        }
+    }
+
+    fn save(&self, speaker: Speaker, start: usize, end: usize, text: &str) -> Option<i64> {
+        let conn = db(&self.app).ok()?;
+        let ms = |samples: usize| (samples * 1000 / RATE) as i64;
+        match store::add_segment(&conn, self.id, speaker.as_str(), ms(start), ms(end), text) {
             Ok(segment) => {
-                let _ = app.emit(
+                let id = segment.id;
+                let _ = self.app.emit(
                     "meeting-segment",
                     SegmentEvent {
-                        meeting_id: id,
+                        meeting_id: self.id,
                         segment,
                     },
                 );
+                Some(id)
             }
-            Err(e) => error!("Meeting {id}: segment not saved: {e}"),
+            Err(e) => {
+                error!("Meeting {}: line not saved: {e}", self.id);
+                None
+            }
         }
     }
+
+    fn remove(&mut self, line: i64) {
+        self.mine.retain(|m| m.id != line);
+        let Ok(conn) = db(&self.app) else { return };
+        if store::delete_segment(&conn, line).is_ok() {
+            let _ = self.app.emit(
+                "meeting-segment-removed",
+                SegmentRemovedEvent {
+                    meeting_id: self.id,
+                    id: line,
+                },
+            );
+        }
+    }
+}
+
+fn overlaps(a: (usize, usize), b: (usize, usize)) -> bool {
+    a.0 < b.1 + ECHO_SLACK && b.0 < a.1 + ECHO_SLACK
 }
 
 /// The language a meeting was held in (Turkish or English), from what was said and

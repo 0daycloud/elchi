@@ -55,7 +55,7 @@ rubato = "5.0"
 opus = "0.4"
 log = "0.4.25"
 env_filter = "0.1.0"
-tokio = "1.43.0"
+tokio = { version = "1.43.0", features = ["macros", "time", "sync"] }
 earshot = "1.2.2"
 enigo = "0.6.1"
 # Feedback sounds. No `recording`: microphone capture is handy-recorder's.
@@ -63,6 +63,8 @@ rodio = { version = "0.23.0", default-features = false, features = ["playback", 
 handy-recorder = "0.1"
 reqwest = { version = "0.12", features = ["json", "stream", "gzip", "brotli", "deflate", "multipart"] }
 futures-util = "0.3"
+# Meetings stream to Duyu Pro over a WebSocket (src/meeting/stream.rs).
+tokio-tungstenite = { version = "0.27", features = ["native-tls"] }
 rustfft = "6.4.0"
 strsim = "0.11.0"
 natural = "0.5.0"

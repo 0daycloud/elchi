@@ -34,6 +34,8 @@ pub const API_URL: &str = "https://voice.patientdesk.ai/v1/audio/transcriptions"
 pub const MODEL: &str = "duyu-1";
 pub const FORMAT_URL: &str = "https://voice.patientdesk.ai/v1/elchi/format";
 pub const NOTES_URL: &str = "https://voice.patientdesk.ai/v1/elchi/notes";
+/// Live transcription, for meetings (src/meeting/stream.rs).
+pub const STREAM_URL: &str = "wss://voice.patientdesk.ai/v1/audio/stream";
 /// Writing a long meeting's notes takes a few model calls on the server.
 const NOTES_TIMEOUT: Duration = Duration::from_secs(150);
 const TRANSCRIBE_TIMEOUT: Duration = Duration::from_secs(30);

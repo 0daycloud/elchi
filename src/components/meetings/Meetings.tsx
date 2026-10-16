@@ -182,7 +182,7 @@ const LiveMeeting: React.FC<{
   onStopped: (id: number) => void;
 }> = ({ active, onBack, onStopped }) => {
   const { t, i18n } = useTranslation();
-  const { segments, levels } = useLiveMeeting(active.id);
+  const { segments, partials, levels } = useLiveMeeting(active.id);
   const [now, setNow] = useState(Date.now());
   const [notes, setNotes] = useState("");
   const [title, setTitle] = useState("");
@@ -330,7 +330,7 @@ const LiveMeeting: React.FC<{
               {t("meetings.live.micOnly")}
             </p>
           )}
-          {recent.length === 0 ? (
+          {recent.length === 0 && !partials.me && !partials.them ? (
             <p className="text-[13px] text-mid-gray">
               {t("meetings.live.waiting")}
             </p>
@@ -351,6 +351,25 @@ const LiveMeeting: React.FC<{
                 {s.text}
               </p>
             ))
+          )}
+          {(["them", "me"] as const).map(
+            (speaker) =>
+              partials[speaker] && (
+                <p
+                  key={speaker}
+                  aria-live="polite"
+                  className="text-[13px] leading-[1.5] italic text-text/55"
+                >
+                  <span
+                    className={`block not-italic font-mono text-[9.5px] tracking-[0.06em] uppercase ${
+                      speaker === "me" ? "text-logo-primary" : "text-text/60"
+                    }`}
+                  >
+                    {speaker === "me" ? t("meetings.me") : t("meetings.them")}
+                  </span>
+                  {partials[speaker]}
+                </p>
+              ),
           )}
         </aside>
       </div>
