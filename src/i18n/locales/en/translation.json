@@ -586,6 +586,10 @@
         "label": "Show in Dock",
         "description": "Keep Elchi in the Dock when its window is closed, so you can always click it to come back. Off, Elchi is only in the menu bar."
       },
+      "meetingDetection": {
+        "label": "Offer notes in calls",
+        "description": "When Zoom, Teams, Google Meet or another call starts using your microphone, Elchi offers to take notes, and asks whether to stop when the call ends."
+      },
       "meetingKeepRecording": {
         "label": "Keep meeting recordings",
         "description": "Keeps each meeting's audio and full transcript. Off, only the notes stay."
@@ -1143,7 +1147,15 @@
     "hideTranscript": "Hide transcript",
     "pill": {
       "open": "Open the meeting in Elchi",
-      "listening": "Listening"
+      "listening": "Listening",
+      "startTitle": "In a meeting?",
+      "startBody": "{{app}} is using your microphone.",
+      "start": "Take notes",
+      "notNow": "Not now",
+      "stopTitle": "Call ended?",
+      "stopBody": "{{app}} stopped using your microphone.",
+      "stop": "Stop notes",
+      "keep": "Keep recording"
     },
     "share": {
       "button": "Share",

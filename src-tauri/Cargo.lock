@@ -1625,6 +1625,7 @@ dependencies = [
  "ndarray",
  "objc2",
  "objc2-app-kit",
+ "objc2-core-audio",
  "objc2-foundation",
  "objc2-service-management",
  "once_cell",

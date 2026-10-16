@@ -1043,6 +1043,38 @@ async changeMeetingKeepRecordingSetting(enabled: boolean) : Promise<Result<null,
     else return { status: "error", error: e  as any };
 }
 },
+async changeMeetingDetectionSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_meeting_detection_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The prompt's "Take notes". The first meeting shows the recording disclosure first, in
+ * Elchi's window.
+ */
+async meetingPromptStart() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("meeting_prompt_start") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The prompt's "Not now" (no notes for this call) or "Keep recording" (the meeting goes on).
+ */
+async meetingPromptDismiss() : Promise<void> {
+    await TAURI_INVOKE("meeting_prompt_dismiss");
+},
+/**
+ * Whether the meetings page should start a meeting (after the disclosure) as it opens.
+ */
+async takeMeetingStartRequest() : Promise<boolean> {
+    return await TAURI_INVOKE("take_meeting_start_request");
+},
 async getAvailableMicrophones() : Promise<Result<AudioDevice[], string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("get_available_microphones") };
@@ -1328,7 +1360,12 @@ meeting_keep_recording?: boolean;
 /**
  * The user has read that the people in a meeting must be told it is being recorded.
  */
-meeting_consent_ack?: boolean; paste_delay_ms?: number; paste_delay_after_ms?: number; 
+meeting_consent_ack?: boolean; 
+/**
+ * Meetings: offer to take notes when a call app starts using the microphone, and to
+ * stop when it lets it go (src/meeting/detect.rs).
+ */
+meeting_detection?: boolean; paste_delay_ms?: number; paste_delay_after_ms?: number; 
 /**
  * Debug-gated ("beta") receipt-sequenced paste: restore the clipboard only
  * after the target app actually reads the transcript, instead of after a

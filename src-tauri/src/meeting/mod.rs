@@ -11,6 +11,7 @@
 
 mod capture;
 mod chunk;
+pub mod detect;
 pub mod pill;
 mod share;
 pub mod store;
@@ -553,6 +554,15 @@ pub fn acknowledge_meeting_consent(app: AppHandle) {
     let mut settings = get_settings(&app);
     settings.meeting_consent_ack = true;
     write_settings(&app, settings);
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn change_meeting_detection_setting(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.meeting_detection = enabled;
+    write_settings(&app, settings);
+    Ok(())
 }
 
 #[tauri::command]

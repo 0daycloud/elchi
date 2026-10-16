@@ -586,6 +586,10 @@
         "label": "Dock'ta göster",
         "description": "Pencere kapalıyken de Elchi Dock'ta kalır; tıklayınca geri gelir. Kapalıysa Elchi yalnızca menü çubuğunda olur."
       },
+      "meetingDetection": {
+        "label": "Görüşmelerde not almayı öner",
+        "description": "Zoom, Teams, Google Meet ya da başka bir görüşme mikrofonunu kullanmaya başlayınca Elchi not almayı önerir; görüşme bitince durdurmayı sorar."
+      },
       "meetingKeepRecording": {
         "label": "Toplantı kayıtlarını sakla",
         "description": "Her toplantının ses kaydını ve tam dökümünü saklar. Kapalıyken yalnızca notlar kalır."
@@ -1143,7 +1147,15 @@
     "hideTranscript": "Dökümü gizle",
     "pill": {
       "open": "Toplantıyı Elchi'de aç",
-      "listening": "Dinleniyor"
+      "listening": "Dinleniyor",
+      "startTitle": "Toplantıda mısın?",
+      "startBody": "{{app}} mikrofonunu kullanıyor.",
+      "start": "Not al",
+      "notNow": "Şimdi değil",
+      "stopTitle": "Görüşme bitti mi?",
+      "stopBody": "{{app}} mikrofonu bıraktı.",
+      "stop": "Notları bitir",
+      "keep": "Kayda devam"
     },
     "share": {
       "button": "Paylaş",

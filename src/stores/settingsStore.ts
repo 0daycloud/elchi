@@ -195,6 +195,8 @@ const settingUpdaters: {
   show_in_dock: (value) => commands.changeShowInDockSetting(value as boolean),
   meeting_keep_recording: (value) =>
     commands.changeMeetingKeepRecordingSetting(value as boolean),
+  meeting_detection: (value) =>
+    commands.changeMeetingDetectionSetting(value as boolean),
   show_tray_icon: (value) =>
     commands.changeShowTrayIconSetting(value as boolean),
   transcribe_accelerator: (value) =>

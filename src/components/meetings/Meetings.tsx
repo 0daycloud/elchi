@@ -921,6 +921,22 @@ export const Meetings: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     else setAsking(true);
   };
 
+  // "Take notes" in the call prompt, before the disclosure was read: it is read here
+  // first. Asked as the page opens, and while it is open.
+  const onStartRef = useRef(onStart);
+  onStartRef.current = onStart;
+  useEffect(() => {
+    const take = () =>
+      commands.takeMeetingStartRequest().then((r) => {
+        if (r) onStartRef.current();
+      });
+    take();
+    const un = listen("meeting-start-requested", take);
+    return () => {
+      un.then((f) => f());
+    };
+  }, []);
+
   const accept = async () => {
     setAsking(false);
     await commands.acknowledgeMeetingConsent();

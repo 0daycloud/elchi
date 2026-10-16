@@ -547,6 +547,10 @@ pub struct AppSettings {
     /// The user has read that the people in a meeting must be told it is being recorded.
     #[serde(default)]
     pub meeting_consent_ack: bool,
+    /// Meetings: offer to take notes when a call app starts using the microphone, and to
+    /// stop when it lets it go (src/meeting/detect.rs).
+    #[serde(default = "default_true")]
+    pub meeting_detection: bool,
     #[serde(default = "default_paste_delay_ms")]
     pub paste_delay_ms: u64,
     #[serde(default = "default_paste_delay_after_ms")]
@@ -1087,6 +1091,7 @@ pub fn get_default_settings() -> AppSettings {
         show_in_dock: default_show_in_dock(),
         meeting_keep_recording: false,
         meeting_consent_ack: false,
+        meeting_detection: true,
         paste_delay_ms: default_paste_delay_ms(),
         paste_delay_after_ms: default_paste_delay_after_ms(),
         reliable_paste: false,

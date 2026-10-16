@@ -9,13 +9,74 @@ import ElchiMark from "@/components/icons/ElchiMark";
  * screen's edge while a meeting is recorded. Hovering it (the backend watches the cursor
  * and sends `meeting-pill-open`) opens the live transcript beside it; clicking it opens the
  * meeting in Elchi. Always dark, so it reads on any wallpaper or app.
+ *
+ * The same window asks when a call starts ("take notes?", without the pill) and when the
+ * call app lets the microphone go mid-meeting ("stop the notes?", beside it): see
+ * src-tauri/src/meeting/detect.rs.
  */
+
+type Prompt = { kind: "start" | "stop"; app: string } | null;
+
+const PromptCard: React.FC<{ prompt: NonNullable<Prompt> }> = ({ prompt }) => {
+  const { t } = useTranslation();
+  const [busy, setBusy] = useState(false);
+  const start = prompt.kind === "start";
+  const accept = async () => {
+    setBusy(true);
+    if (start) await commands.meetingPromptStart();
+    else {
+      await commands.stopMeeting();
+      await commands.openMeetingFromPill();
+    }
+    setBusy(false);
+  };
+  return (
+    <section
+      className="mp-ask"
+      role="alertdialog"
+      aria-labelledby="mp-ask-title"
+    >
+      <div className="mp-ask-head">
+        {start && <ElchiMark size={18} color="#ffffff" />}
+        <div>
+          <h2 id="mp-ask-title">
+            {t(start ? "meetings.pill.startTitle" : "meetings.pill.stopTitle")}
+          </h2>
+          <p>
+            {t(start ? "meetings.pill.startBody" : "meetings.pill.stopBody", {
+              app: prompt.app,
+            })}
+          </p>
+        </div>
+      </div>
+      <div className="mp-ask-actions">
+        <button
+          type="button"
+          className="mp-ask-later"
+          onClick={() => commands.meetingPromptDismiss()}
+        >
+          {t(start ? "meetings.pill.notNow" : "meetings.pill.keep")}
+        </button>
+        <button
+          type="button"
+          className="mp-ask-go"
+          disabled={busy}
+          onClick={accept}
+        >
+          {t(start ? "meetings.pill.start" : "meetings.pill.stop")}
+        </button>
+      </div>
+    </section>
+  );
+};
+
 const MeetingPill: React.FC = () => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [segments, setSegments] = useState<Segment[]>([]);
   const [levels, setLevels] = useState({ me: 0, them: 0 });
   const [heard, setHeard] = useState(0);
+  const [prompt, setPrompt] = useState<Prompt>(null);
   const end = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -34,6 +95,9 @@ const MeetingPill: React.FC = () => {
     const unOpen = listen<boolean>("meeting-pill-open", (e) =>
       setOpen(e.payload),
     );
+    const unPrompt = listen<Prompt>("meeting-pill-prompt", (e) =>
+      setPrompt(e.payload),
+    );
     const unSegment = listen<{ meeting_id: number; segment: Segment }>(
       "meeting-segment",
       (e) => {
@@ -51,6 +115,7 @@ const MeetingPill: React.FC = () => {
     return () => {
       unChanged.then((f) => f());
       unOpen.then((f) => f());
+      unPrompt.then((f) => f());
       unSegment.then((f) => f());
       unLevel.then((f) => f());
     };
@@ -65,9 +130,17 @@ const MeetingPill: React.FC = () => {
   const level = Math.min(1, Math.sqrt(Math.max(levels.me, levels.them)) * 2.6);
   const ink = levels.me >= levels.them ? "#8ea0ff" : "#ffffff";
 
+  if (prompt?.kind === "start")
+    return (
+      <div className="mp-stage">
+        <PromptCard prompt={prompt} />
+      </div>
+    );
+
   return (
     <div className="mp-stage">
-      {open && (
+      {prompt && <PromptCard prompt={prompt} />}
+      {open && !prompt && (
         <section className="mp-panel" aria-label={t("meetings.live.rail")}>
           {segments.length === 0 && !listening && (
             <p className="mp-empty">{t("meetings.live.waiting")}</p>

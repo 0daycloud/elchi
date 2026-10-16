@@ -137,7 +137,85 @@
   }
 }
 
+/* A question when a call starts (alone) or ends (beside the pill). */
+.mp-ask {
+  flex: none;
+  width: 360px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(30, 31, 37, 0.97);
+  box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.8);
+  padding: 14px 14px 12px 16px;
+  box-sizing: border-box;
+  color: #ffffff;
+  animation: mp-in 160ms ease-out;
+}
+
+.mp-ask-head {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+}
+
+.mp-ask-head svg {
+  flex: none;
+  margin-top: 1px;
+}
+
+.mp-ask h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.mp-ask p {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.mp-ask-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.mp-ask-actions button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 9px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.mp-ask-later {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.mp-ask-go {
+  border: 1px solid transparent;
+  background: #2140ff;
+  color: #ffffff;
+}
+
+.mp-ask-go:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.mp-ask-actions button:focus-visible {
+  outline: 2px solid #8ea0ff;
+  outline-offset: 2px;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .mp-ask,
   .mp-panel,
   .mp-listening span,
   .mp-bars span {

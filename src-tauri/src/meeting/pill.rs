@@ -12,10 +12,14 @@
 //! window, and a non-activating panel never is one), so a thread watches the cursor and
 //! tells the pill when it is over it; the window grows to the left to make room for the
 //! transcript and shrinks back when the cursor leaves.
+//!
+//! The same panel asks the questions detect.rs has when a call starts or ends: alone at
+//! the pill's spot ("take notes?"), or beside the pill ("stop the notes?").
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
+use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
 
 pub const LABEL: &str = "meeting_pill";
@@ -23,10 +27,31 @@ pub const LABEL: &str = "meeting_pill";
 /// Logical sizes: the pill alone, and the pill with the transcript panel to its left.
 const COLLAPSED: (f64, f64) = (64.0, 104.0);
 const EXPANDED: (f64, f64) = (470.0, 560.0);
+/// A question alone at the pill's spot, and one beside the pill.
+const ASK: (f64, f64) = (384.0, 150.0);
+const ASK_STOP: (f64, f64) = (470.0, 150.0);
 /// Gap between the pill and the screen's right edge.
 const EDGE: f64 = 10.0;
 
 static WATCHING: AtomicBool = AtomicBool::new(false);
+/// A question is on screen; the transcript does not open on hover meanwhile.
+static PROMPTING: AtomicBool = AtomicBool::new(false);
+
+#[derive(Clone, Copy, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum PromptKind {
+    /// A call started: take notes?
+    Start,
+    /// The call app let the microphone go during a meeting: stop the notes?
+    Stop,
+}
+
+#[derive(Clone, Serialize)]
+struct Prompt {
+    kind: PromptKind,
+    /// The call app, as the question names it ("Zoom").
+    app: String,
+}
 
 #[cfg(target_os = "macos")]
 tauri_nspanel::tauri_panel! {
@@ -91,6 +116,8 @@ fn create(app: &AppHandle, visible: bool) {
             return;
         }
         // Made for an earlier meeting: back on screen, closed, out of screen sharing.
+        PROMPTING.store(false, Ordering::SeqCst);
+        let _ = window.emit("meeting-pill-prompt", None::<Prompt>);
         place(app, COLLAPSED);
         let _ = window.show();
         super::hide_from_capture(&window, true);
@@ -144,10 +171,58 @@ fn create(app: &AppHandle, visible: bool) {
 /// Takes the pill off screen when the meeting ends (hidden, not destroyed: see above).
 pub fn hide(app: &AppHandle) {
     WATCHING.store(false, Ordering::SeqCst);
+    PROMPTING.store(false, Ordering::SeqCst);
     if let Some(window) = app.get_webview_window(LABEL) {
         let _ = window.emit("meeting-pill-open", false);
+        let _ = window.emit("meeting-pill-prompt", None::<Prompt>);
         let _ = window.hide();
     }
+}
+
+/// Puts a question on screen for `name`, the call app (see detect.rs).
+pub fn ask(app: &AppHandle, kind: PromptKind, name: &str) {
+    PROMPTING.store(true, Ordering::SeqCst);
+    let handle = app.clone();
+    let prompt = Prompt {
+        kind,
+        app: name.to_string(),
+    };
+    let _ = app.run_on_main_thread(move || {
+        let Some(window) = handle.get_webview_window(LABEL) else {
+            return;
+        };
+        let _ = window.emit("meeting-pill-open", false);
+        let _ = window.emit("meeting-pill-prompt", Some(prompt));
+        place(
+            &handle,
+            match kind {
+                PromptKind::Start => ASK,
+                PromptKind::Stop => ASK_STOP,
+            },
+        );
+        let _ = window.show();
+        // A call is on: someone may be sharing this screen.
+        super::hide_from_capture(&window, true);
+    });
+}
+
+/// Takes the question away: back to the pill during a meeting, off screen otherwise.
+pub fn clear_prompt(app: &AppHandle) {
+    if !PROMPTING.swap(false, Ordering::SeqCst) {
+        return;
+    }
+    let handle = app.clone();
+    let _ = app.run_on_main_thread(move || {
+        let Some(window) = handle.get_webview_window(LABEL) else {
+            return;
+        };
+        let _ = window.emit("meeting-pill-prompt", None::<Prompt>);
+        if super::is_recording() {
+            place(&handle, COLLAPSED);
+        } else {
+            let _ = window.hide();
+        }
+    });
 }
 
 /// Opens the transcript while the cursor is over the pill, closes it once the cursor has
@@ -161,6 +236,11 @@ fn watch(app: AppHandle) {
         let mut outside = 0u32;
         while WATCHING.load(Ordering::SeqCst) {
             std::thread::sleep(Duration::from_millis(120));
+            if PROMPTING.load(Ordering::SeqCst) {
+                open = false;
+                outside = 0;
+                continue;
+            }
             let Some(window) = app.get_webview_window(LABEL) else {
                 continue;
             };

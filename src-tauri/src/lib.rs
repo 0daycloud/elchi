@@ -461,6 +461,7 @@ fn initialize_core_logic(app_handle: &AppHandle) {
     utils::create_recording_overlay(app_handle);
     // The meeting pill likewise: made hidden now, so it shows at once when a meeting starts.
     meeting::pill::init(app_handle);
+    meeting::detect::init(app_handle);
     if settings.overlay_idle_line && settings.overlay_style != settings::OverlayStyle::None {
         utils::show_idle_overlay(app_handle);
     }
@@ -896,6 +897,10 @@ pub fn run(cli_args: CliArgs) {
             meeting::meeting_audio_path,
             meeting::acknowledge_meeting_consent,
             meeting::change_meeting_keep_recording_setting,
+            meeting::change_meeting_detection_setting,
+            meeting::detect::meeting_prompt_start,
+            meeting::detect::meeting_prompt_dismiss,
+            meeting::detect::take_meeting_start_request,
             commands::audio::get_available_microphones,
             commands::audio::set_selected_microphone,
             commands::audio::get_selected_microphone,
