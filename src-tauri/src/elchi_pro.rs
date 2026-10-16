@@ -509,6 +509,8 @@ pub async fn format(
 #[derive(Serialize)]
 pub struct NotesSegment<'a> {
     pub speaker: &'a str,
+    /// When it was said, from the meeting's start.
+    pub start_ms: i64,
     pub text: &'a str,
 }
 

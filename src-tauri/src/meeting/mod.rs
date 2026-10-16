@@ -972,6 +972,7 @@ fn write_notes(app: &AppHandle, id: i64) {
             .iter()
             .map(|s| crate::elchi_pro::NotesSegment {
                 speaker: &s.speaker,
+                start_ms: s.start_ms,
                 text: &s.text,
             })
             .collect();
