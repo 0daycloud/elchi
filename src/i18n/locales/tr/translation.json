@@ -1123,7 +1123,7 @@
     "consent": {
       "title": "Kayda başlamadan önce",
       "body": "Görüşmedekilere toplantıyı kaydettiğini söyle. Türkiye'de ve birçok ülkede, bir konuşmayı katılımcıların izni olmadan kaydetmek suçtur.",
-      "privacy": "Ses kaydı tutulmaz; notlar yazılınca döküm de silinir (Ayarlar › Gelişmiş'ten değiştirebilirsin). Notları yazmak için toplantının dökümü, sesi değil, OpenRouter üzerinden ScaleDown'a gönderilir.",
+      "privacy": "Ses kaydı tutulmaz; notlar yazılınca döküm de silinir (Ayarlar › Gelişmiş'ten değiştirebilirsin). Notları yazmak için toplantının dökümü, sesi değil, OpenRouter üzerinden OpenAI'a gönderilir; yalnızca hiçbir şey saklamayan sağlayıcılar kullanılır.",
       "accept": "Anladım, başlat",
       "cancel": "Vazgeç"
     },
