@@ -67,6 +67,8 @@ static MIGRATIONS: &[M] = &[
         CREATE INDEX IF NOT EXISTS meeting_segments_by_meeting
             ON meeting_segments (meeting_id, start_ms);",
     ),
+    // A meeting shared by link (crate::meeting::share): the server's id, to stop sharing, and the link.
+    M::up("ALTER TABLE meetings ADD COLUMN share_id TEXT; ALTER TABLE meetings ADD COLUMN share_url TEXT;"),
 ];
 
 #[derive(Clone, Debug, Serialize, Deserialize, Type)]

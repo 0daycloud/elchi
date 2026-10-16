@@ -24,6 +24,8 @@ pub struct Meeting {
     /// The audio and full transcript are kept ("keep recordings" was on).
     pub kept: bool,
     pub has_transcript: bool,
+    /// The link the meeting is shared at, while it is.
+    pub share_url: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq)]
@@ -37,7 +39,8 @@ pub struct Segment {
 }
 
 const COLUMNS: &str = "id, started_at, ended_at, title, user_notes, notes, status, kept,
-    EXISTS (SELECT 1 FROM meeting_segments s WHERE s.meeting_id = meetings.id) AS has_transcript";
+    EXISTS (SELECT 1 FROM meeting_segments s WHERE s.meeting_id = meetings.id) AS has_transcript,
+    share_url";
 
 fn row(r: &rusqlite::Row<'_>) -> rusqlite::Result<Meeting> {
     Ok(Meeting {
@@ -50,6 +53,7 @@ fn row(r: &rusqlite::Row<'_>) -> rusqlite::Result<Meeting> {
         status: r.get(6)?,
         kept: r.get(7)?,
         has_transcript: r.get(8)?,
+        share_url: r.get(9)?,
     })
 }
 
@@ -166,6 +170,24 @@ pub fn set_notes(conn: &Connection, id: i64, title: &str, notes: &str) -> rusqli
     Ok(())
 }
 
+/// The server's id for the meeting's share, while it is shared.
+pub fn share_id(conn: &Connection, id: i64) -> rusqlite::Result<Option<String>> {
+    conn.query_row("SELECT share_id FROM meetings WHERE id = ?1", [id], |r| {
+        r.get(0)
+    })
+    .optional()
+    .map(Option::flatten)
+}
+
+/// Marks the meeting shared at `share` (id, link), or no longer shared.
+pub fn set_share(conn: &Connection, id: i64, share: Option<(&str, &str)>) -> rusqlite::Result<()> {
+    conn.execute(
+        "UPDATE meetings SET share_id = ?2, share_url = ?3 WHERE id = ?1",
+        params![id, share.map(|s| s.0), share.map(|s| s.1)],
+    )?;
+    Ok(())
+}
+
 /// Deletes the full transcript, leaving the notes.
 pub fn drop_transcript(conn: &Connection, id: i64) -> rusqlite::Result<()> {
     conn.execute("DELETE FROM meeting_segments WHERE meeting_id = ?1", [id])?;
@@ -196,7 +218,8 @@ mod tests {
         c.execute_batch(
             "CREATE TABLE meetings (id INTEGER PRIMARY KEY AUTOINCREMENT, started_at INTEGER NOT NULL,
                ended_at INTEGER, title TEXT NOT NULL DEFAULT '', user_notes TEXT NOT NULL DEFAULT '',
-               notes TEXT, status TEXT NOT NULL DEFAULT 'recording', kept BOOLEAN NOT NULL DEFAULT 0);
+               notes TEXT, status TEXT NOT NULL DEFAULT 'recording', kept BOOLEAN NOT NULL DEFAULT 0,
+               share_id TEXT, share_url TEXT);
              CREATE TABLE meeting_segments (id INTEGER PRIMARY KEY AUTOINCREMENT,
                meeting_id INTEGER NOT NULL, speaker TEXT NOT NULL, start_ms INTEGER NOT NULL,
                end_ms INTEGER NOT NULL, text TEXT NOT NULL);",
@@ -229,6 +252,23 @@ mod tests {
             ("done", "Plan", false)
         );
         assert_eq!(m.user_notes, "teslim?");
+    }
+
+    #[test]
+    fn a_shared_meeting_remembers_its_link_until_it_is_stopped() {
+        let c = db();
+        let id = create(&c, 10, false).unwrap();
+        assert_eq!(share_id(&c, id).unwrap(), None);
+        set_share(&c, id, Some(("abc", "https://elchi.xyz/abc"))).unwrap();
+        assert_eq!(share_id(&c, id).unwrap().as_deref(), Some("abc"));
+        assert_eq!(
+            get(&c, id).unwrap().unwrap().share_url.as_deref(),
+            Some("https://elchi.xyz/abc")
+        );
+        set_share(&c, id, None).unwrap();
+        assert_eq!(share_id(&c, id).unwrap(), None);
+        assert_eq!(get(&c, id).unwrap().unwrap().share_url, None);
+        assert_eq!(share_id(&c, 999).unwrap(), None);
     }
 
     #[test]

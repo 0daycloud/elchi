@@ -12,6 +12,7 @@
 mod capture;
 mod chunk;
 pub mod pill;
+mod share;
 pub mod store;
 
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -279,11 +280,17 @@ pub fn set_meeting_notes(app: AppHandle, id: i64, notes: String) -> Result<(), S
     store::update_notes(&db(&app)?, id, &notes).map_err(|e| e.to_string())
 }
 
+/// Deletes a meeting, and stops sharing it first: a link nobody can stop any more must
+/// not outlive it. Fails with `unshare_failed` when sharing could not be stopped.
 #[tauri::command]
 #[specta::specta]
 pub async fn delete_meeting(app: AppHandle, id: i64) -> Result<(), String> {
     if get_active_meeting().is_some_and(|a| a.id == id) {
         return cancel_meeting(app).await;
+    }
+    let share_id = store::share_id(&db(&app)?, id).map_err(|e| e.to_string())?;
+    if let Some(share_id) = share_id {
+        stop_sharing(&app, &share_id).await?;
     }
     delete(&app, id)
 }
@@ -317,6 +324,220 @@ pub fn meeting_audio_path(app: AppHandle, id: i64, speaker: String) -> Option<St
     }
     let path = audio_dir(&app, id)?.join(format!("{speaker}.wav"));
     path.exists().then(|| path.to_string_lossy().into_owned())
+}
+
+/// Shares a finished meeting by link (see share.rs): its notes, with its transcript and
+/// its recording when asked and still kept. Answers the link; a meeting already shared
+/// keeps the link it has. Errors are codes the interface explains: `needs_pro`,
+/// `too_long` (the recording is past what the server takes) or `failed`.
+#[tauri::command]
+#[specta::specta]
+pub async fn share_meeting(
+    app: AppHandle,
+    id: i64,
+    transcript: bool,
+    recording: bool,
+) -> Result<String, String> {
+    if get_active_meeting().is_some_and(|a| a.id == id) {
+        return Err("failed".into());
+    }
+    let result = share(&app, id, transcript, recording).await;
+    match &result {
+        Ok(url) => {
+            info!("Meeting {id} shared (transcript: {transcript}, recording: {recording}): {url}")
+        }
+        Err(e) => warn!("Meeting {id} not shared: {e}"),
+    }
+    changed(&app);
+    result
+}
+
+fn elchi_pro(app: &AppHandle) -> Result<Arc<crate::elchi_pro::ElchiPro>, String> {
+    app.try_state::<Arc<crate::elchi_pro::ElchiPro>>()
+        .map(|s| s.inner().clone())
+        .ok_or_else(|| "failed".to_string())
+}
+
+/// The Duyu Pro token, which only the trial and Elchi Pro get.
+async fn cloud_token(elchi: &Arc<crate::elchi_pro::ElchiPro>) -> Result<String, String> {
+    let elchi = elchi.clone();
+    blocking(move || Ok(elchi.cloud_token()))
+        .await?
+        .ok_or_else(|| "needs_pro".to_string())
+}
+
+fn share_error(e: crate::elchi_pro::CloudError) -> String {
+    use crate::elchi_pro::CloudError;
+    match e {
+        CloudError::NotEntitled | CloudError::Unauthorized => "needs_pro".into(),
+        CloudError::Other(e) => {
+            warn!("Sharing failed: {e:#}");
+            "failed".into()
+        }
+    }
+}
+
+async fn share(
+    app: &AppHandle,
+    id: i64,
+    transcript: bool,
+    recording: bool,
+) -> Result<String, String> {
+    use crate::elchi_pro::CloudError;
+    let (meeting, segments) = {
+        let conn = db(app)?;
+        let meeting = store::get(&conn, id)
+            .map_err(|e| e.to_string())?
+            .ok_or("No such meeting.")?;
+        if let Some(url) = meeting.share_url.clone() {
+            return Ok(url);
+        }
+        let segments = if transcript {
+            store::segments(&conn, id).map_err(|e| e.to_string())?
+        } else {
+            Vec::new()
+        };
+        (meeting, segments)
+    };
+
+    let mut mixed = None;
+    let tracks: Vec<_> = audio_dir(app, id)
+        .filter(|_| recording)
+        .map(|dir| ["me.wav", "them.wav"].map(|f| dir.join(f)).to_vec())
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|p| p.exists())
+        .collect();
+    if let Some(dir) = tracks
+        .first()
+        .and_then(|p| p.parent())
+        .map(|d| d.to_path_buf())
+    {
+        let size = share::mixed_size(&tracks).ok_or("failed")?;
+        if size > share::MAX_AUDIO_BYTES {
+            return Err("too_long".into());
+        }
+        let out = dir.join("share.wav");
+        let path = out.clone();
+        blocking(move || share::mix(&tracks, &out).map_err(|e| format!("{e:#}"))).await?;
+        mixed = Some((path, size));
+    }
+
+    let notes = meeting
+        .notes
+        .clone()
+        .unwrap_or_else(|| meeting.user_notes.clone());
+    let request = share::ShareRequest {
+        title: meeting.title.trim(),
+        notes: &notes,
+        started_at: meeting.started_at,
+        ended_at: meeting.ended_at,
+        segments: (!segments.is_empty()).then(|| {
+            segments
+                .iter()
+                .map(|s| share::ShareSegment {
+                    speaker: &s.speaker,
+                    start_ms: s.start_ms,
+                    end_ms: s.end_ms,
+                    text: &s.text,
+                })
+                .collect()
+        }),
+        audio_bytes: mixed.as_ref().map(|m| m.1),
+    };
+
+    let elchi = elchi_pro(app)?;
+    let result = async {
+        let mut created = None;
+        for attempt in 0..2 {
+            let token = cloud_token(&elchi).await?;
+            match share::create(&token, &request).await {
+                Ok(c) => {
+                    created = Some(c);
+                    break;
+                }
+                Err(CloudError::Unauthorized) if attempt == 0 => {
+                    let elchi = elchi.clone();
+                    blocking(move || elchi.refresh().map_err(|e| format!("{e:#}"))).await?;
+                }
+                Err(CloudError::NotEntitled) => {
+                    let elchi = elchi.clone();
+                    let _ = blocking(move || {
+                        elchi.mark_not_entitled();
+                        Ok(())
+                    })
+                    .await;
+                    return Err("needs_pro".to_string());
+                }
+                Err(e) => return Err(share_error(e)),
+            }
+        }
+        let created = created.ok_or("needs_pro")?;
+        if let (Some(upload_url), Some((path, _))) = (&created.upload_url, &mixed) {
+            let uploaded = async {
+                share::upload(upload_url, path).await?;
+                // A long upload can outlast the token it started with.
+                let token = cloud_token(&elchi)
+                    .await
+                    .map_err(|_| CloudError::NotEntitled)?;
+                share::finish(&token, &created.id).await
+            };
+            if let Err(e) = uploaded.await {
+                // Leave nothing half shared behind.
+                if let Ok(token) = cloud_token(&elchi).await {
+                    let _ = share::revoke(&token, &created.id).await;
+                }
+                return Err(share_error(e));
+            }
+        }
+        Ok(created)
+    }
+    .await;
+    if let Some((path, _)) = &mixed {
+        let _ = std::fs::remove_file(path);
+    }
+    let created = result?;
+    store::set_share(&db(app)?, id, Some((&created.id, &created.url)))
+        .map_err(|e| e.to_string())?;
+    Ok(created.url)
+}
+
+/// Stops sharing a meeting: its link stops working and the server's copy is deleted.
+#[tauri::command]
+#[specta::specta]
+pub async fn unshare_meeting(app: AppHandle, id: i64) -> Result<(), String> {
+    let share_id = store::share_id(&db(&app)?, id).map_err(|e| e.to_string())?;
+    if let Some(share_id) = share_id {
+        stop_sharing(&app, &share_id).await?;
+        store::set_share(&db(&app)?, id, None).map_err(|e| e.to_string())?;
+        info!("Meeting {id} no longer shared");
+        changed(&app);
+    }
+    Ok(())
+}
+
+async fn stop_sharing(app: &AppHandle, share_id: &str) -> Result<(), String> {
+    use crate::elchi_pro::CloudError;
+    let elchi = elchi_pro(app)?;
+    for attempt in 0..2 {
+        let token = {
+            let elchi = elchi.clone();
+            blocking(move || Ok(elchi.install_token())).await?
+        }
+        .ok_or("unshare_failed")?;
+        match share::revoke(&token, share_id).await {
+            Ok(()) => return Ok(()),
+            Err(CloudError::Unauthorized) if attempt == 0 => {
+                let elchi = elchi.clone();
+                blocking(move || elchi.refresh().map_err(|e| format!("{e:#}"))).await?;
+            }
+            Err(e) => {
+                warn!("Could not stop sharing {share_id}: {e}");
+                return Err("unshare_failed".into());
+            }
+        }
+    }
+    Err("unshare_failed".into())
 }
 
 #[tauri::command]

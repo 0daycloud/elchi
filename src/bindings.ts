@@ -949,6 +949,10 @@ async setMeetingUserNotes(id: number, text: string) : Promise<Result<null, strin
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Deletes a meeting, and stops sharing it first: a link nobody can stop any more must
+ * not outlive it. Fails with `unshare_failed` when sharing could not be stopped.
+ */
 async deleteMeeting(id: number) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("delete_meeting", { id }) };
@@ -992,6 +996,31 @@ async openMeetingFromPill() : Promise<void> {
 async retryMeetingNotes(id: number) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("retry_meeting_notes", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Shares a finished meeting by link (see share.rs): its notes, with its transcript and
+ * its recording when asked and still kept. Answers the link; a meeting already shared
+ * keeps the link it has. Errors are codes the interface explains: `needs_pro`,
+ * `too_long` (the recording is past what the server takes) or `failed`.
+ */
+async shareMeeting(id: number, transcript: boolean, recording: boolean) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("share_meeting", { id, transcript, recording }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Stops sharing a meeting: its link stops working and the server's copy is deleted.
+ */
+async unshareMeeting(id: number) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("unshare_meeting", { id }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -1482,7 +1511,11 @@ notes: string | null; status: string;
 /**
  * The audio and full transcript are kept ("keep recordings" was on).
  */
-kept: boolean; has_transcript: boolean }
+kept: boolean; has_transcript: boolean; 
+/**
+ * The link the meeting is shared at, while it is.
+ */
+share_url: string | null }
 export type MeetingDetail = { meeting: Meeting; segments: Segment[] }
 /**
  * A round number of words passed, and the day it happened (for the home feed).

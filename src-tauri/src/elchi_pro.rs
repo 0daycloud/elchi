@@ -328,6 +328,24 @@ impl ElchiPro {
         token
     }
 
+    /// A token that stands for this install on any plan (the Duyu Pro one, else the
+    /// formatting one), refreshing if neither is current: for stopping a meeting shared
+    /// while the plan included Duyu Pro. Blocking.
+    pub fn install_token(&self) -> Option<String> {
+        let usable = |s: &ElchiSession| {
+            let now = Utc::now();
+            s.usable_token(now).or_else(|| s.usable_format_token(now))
+        };
+        if let Some(token) = get_settings(&self.app)
+            .elchi_session
+            .as_ref()
+            .and_then(usable)
+        {
+            return Some(token);
+        }
+        self.refresh().ok().as_ref().and_then(usable)
+    }
+
     /// Opens the upgrade page and watches for the activation.
     pub fn open_upgrade(&self) -> Result<()> {
         let url = match get_settings(&self.app).elchi_session {

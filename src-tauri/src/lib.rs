@@ -891,6 +891,8 @@ pub fn run(cli_args: CliArgs) {
             meeting::set_meeting_notes,
             meeting::pill::open_meeting_from_pill,
             meeting::retry_meeting_notes,
+            meeting::share_meeting,
+            meeting::unshare_meeting,
             meeting::meeting_audio_path,
             meeting::acknowledge_meeting_consent,
             meeting::change_meeting_keep_recording_setting,
