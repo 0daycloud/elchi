@@ -111,7 +111,9 @@ impl Capture {
                         .as_ref()
                         .is_some_and(|c| now.is_some() && now != c.device);
                     let reason = if call.is_none() {
-                        (stalled_for % 3 == 0).then_some("not open")
+                        // Every second: a call taking the headset makes the first try fail
+                        // ("Sample rate update timed out") and the next one work.
+                        Some("not open")
                     } else if moved {
                         Some("the output device changed")
                     } else if stalled_for >= 3 && since_stall_reopen >= 30 {
