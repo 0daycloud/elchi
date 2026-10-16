@@ -27,6 +27,7 @@ import json
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 from pathlib import Path
 
@@ -48,6 +49,26 @@ def one(paths: list[Path], what: str) -> Path:
     if len(paths) != 1:
         sys.exit(f"expected exactly one {what}, found {[p.name for p in paths]}")
     return paths[0]
+
+
+def check_updater_tarball(path: Path) -> None:
+    """Refuse a macOS updater bundle the updater cannot install.
+
+    tauri-plugin-updater unpacks every entry with its first path component
+    stripped, so an AppleDouble "._Elchi.app" entry (bsdtar's way of storing
+    extended attributes) is written over the extract folder itself and the
+    install fails after the download. scripts/release/macos.sh packs without
+    them; this catches a bundle made any other way.
+    """
+    with tarfile.open(path) as tar:
+        names = tar.getnames()
+    apple_double = [n for n in names if n.rsplit("/", 1)[-1].startswith("._")]
+    if apple_double:
+        sys.exit(f"{path.name} has AppleDouble entries the updater cannot install "
+                 f"(e.g. {apple_double[0]}): repack it with "
+                 "COPYFILE_DISABLE=1 tar --no-mac-metadata --no-xattrs")
+    if not all(n == "Elchi.app" or n.startswith("Elchi.app/") for n in names):
+        sys.exit(f"{path.name} must hold only Elchi.app/, found {names[:3]}")
 
 
 def main() -> None:
@@ -74,6 +95,7 @@ def main() -> None:
         mac_sig = Path(f"{mac_tar}.sig")
         if not mac_sig.exists():
             sys.exit(f"{mac_sig.name} missing")
+        check_updater_tarball(mac_tar)
         mac = (dmg, mac_tar, mac_sig)
 
     with tempfile.TemporaryDirectory() as tmp:

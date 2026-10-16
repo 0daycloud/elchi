@@ -137,7 +137,16 @@ spctl --assess --type execute --verbose "$APP"
 
 echo "==> Updater bundle"
 TARBALL="$OUT/Elchi_${VERSION}_${ARCH_LABEL}.app.tar.gz"
-tar -C "$BUNDLE" -czf "$TARBALL" Elchi.app
+# Without macOS metadata: bsdtar otherwise stores each file's extended
+# attributes (com.apple.provenance, quarantine) as AppleDouble "._<name>"
+# entries. The updater (tauri-plugin-updater) unpacks every entry with the
+# top folder stripped, so "._Elchi.app" lands on the extract folder itself and
+# fails with "Operation not permitted": the update downloads, then never
+# installs. The check reads the entries with Python's tarfile, as bsdtar's own
+# listing folds the "._" entries back into attributes and hides them.
+COPYFILE_DISABLE=1 tar --no-mac-metadata --no-xattrs -C "$BUNDLE" -czf "$TARBALL" Elchi.app
+python3 -I -c 'import sys, tarfile; sys.exit(any(n.rsplit("/", 1)[-1].startswith("._") for n in tarfile.open(sys.argv[1]).getnames()))' "$TARBALL" \
+  || fail "updater bundle still carries AppleDouble ._ entries"
 bunx tauri signer sign "$TARBALL" >/dev/null
 [ -f "$TARBALL.sig" ] || fail "updater signature was not written"
 
