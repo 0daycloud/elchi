@@ -818,7 +818,8 @@ impl Merger {
             LaneEvent::Partial { text } => self.partial(speaker, text),
             LaneEvent::Final { start, end, text } => {
                 self.partial(speaker, String::new());
-                let text = text.trim().to_string();
+                let words = get_settings(&self.app).elchi_dictionary;
+                let text = crate::dictionary::respell(&words, text.trim());
                 if !text.is_empty() {
                     self.add(speaker, start, end, text);
                 }

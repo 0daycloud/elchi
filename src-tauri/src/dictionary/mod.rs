@@ -24,8 +24,6 @@ use crate::settings::{get_settings, write_settings};
 const MAX_WORDS: usize = 500;
 /// The formatter gets the most recent entries, up to this many.
 const MAX_FOR_FORMATTER: usize = 200;
-/// Duyu Pro's hint is a short prompt: this many words at most.
-const MAX_FOR_PROMPT: usize = 40;
 
 #[derive(Clone, Debug, Serialize, Deserialize, Type, PartialEq, Eq)]
 pub struct DictionaryWord {
@@ -41,8 +39,7 @@ pub struct DictionaryWord {
     #[serde(default)]
     pub added_at: i64,
     /// A phrase the recognizer misheard as another ("VR format in" for "we are
-    /// formating"), not a name or a term: the formatter gets it, Duyu Pro's hint
-    /// does not, and the dictionary lists it apart.
+    /// formating"), not a name or a term: the dictionary lists it apart.
     #[serde(default)]
     pub phrase: bool,
 }
@@ -172,24 +169,27 @@ pub fn for_formatter(words: &[DictionaryWord]) -> Vec<DictionaryWord> {
     v
 }
 
-/// Duyu Pro's hint: the words themselves, most recent first, as a short prompt.
-pub fn prompt(words: &[DictionaryWord]) -> Option<String> {
-    if words.is_empty() {
-        return None;
+/// `text` with every misheard form the dictionary knows written as the user writes it
+/// ("elçi" -> "Elchi"), whole words only, any case. Meetings use it on each line; dictation
+/// gets the same from the formatter.
+///
+/// The recognizer is never given the words as a prompt: measured 2026-10-16 on a
+/// meeting's call audio, the one-word prompt "Elchi" lost a third of the words (253
+/// against 373), left 19 utterances empty and made the decoder loop ("beyler, beyler,
+/// beyler, beyler").
+pub fn respell(words: &[DictionaryWord], text: &str) -> String {
+    let mut out = text.to_string();
+    for entry in words {
+        for heard in &entry.heard {
+            let Ok(re) = regex::Regex::new(&format!(r"(?i)\b{}\b", regex::escape(heard))) else {
+                continue;
+            };
+            out = re
+                .replace_all(&out, regex::NoExpand(&entry.word))
+                .into_owned();
+        }
     }
-    // Names and terms only: a phrase is not a spelling to steer the recognizer toward.
-    let mut v: Vec<&DictionaryWord> = words.iter().filter(|e| !e.phrase).collect();
-    if v.is_empty() {
-        return None;
-    }
-    v.sort_by_key(|e| std::cmp::Reverse(e.added_at));
-    Some(
-        v.iter()
-            .take(MAX_FOR_PROMPT)
-            .map(|e| e.word.as_str())
-            .collect::<Vec<_>>()
-            .join(", "),
-    )
+    out
 }
 
 #[tauri::command]
@@ -218,4 +218,25 @@ pub fn set_dictionary_learning(app: AppHandle, enabled: bool) {
     let mut settings = get_settings(&app);
     settings.elchi_dictionary_learn = enabled;
     write_settings(&app, settings);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{respell, DictionaryWord};
+
+    #[test]
+    fn misheard_forms_are_respelled_as_whole_words() {
+        let words = vec![DictionaryWord {
+            word: "Elchi".into(),
+            heard: vec!["elçi".into(), "Tarık Paşa".into()],
+            learned: true,
+            added_at: 0,
+            phrase: false,
+        }];
+        assert_eq!(
+            respell(&words, "Elçi ile, elçi'yi; tarık paşa elçiler"),
+            "Elchi ile, Elchi'yi; Elchi elçiler"
+        );
+        assert_eq!(respell(&[], "aynı"), "aynı");
+    }
 }

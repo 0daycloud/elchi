@@ -297,16 +297,13 @@ impl Task {
             "tr" | "en" => settings.selected_language.as_str(),
             _ => "auto",
         };
-        let mut start = serde_json::json!({
+        let start = serde_json::json!({
             "type": "start",
             "sampleRate": RATE,
             "partials": true,
             "eager_final": true,
             "language": language,
         });
-        if let Some(prompt) = crate::dictionary::prompt(&settings.elchi_dictionary) {
-            start["prompt"] = prompt.into();
-        }
         if ws.send(Message::text(start.to_string())).await.is_err() {
             return retry;
         }
