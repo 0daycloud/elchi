@@ -14,6 +14,7 @@ mod chunk;
 pub mod pill;
 mod share;
 pub mod store;
+mod webm;
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
@@ -413,13 +414,18 @@ async fn share(
         .and_then(|p| p.parent())
         .map(|d| d.to_path_buf())
     {
-        let size = share::mixed_size(&tracks).ok_or("failed")?;
-        if size > share::MAX_AUDIO_BYTES {
+        let length = share::mixed_length(&tracks).ok_or("failed")?;
+        if length > share::MAX_RECORDING {
             return Err("too_long".into());
         }
-        let out = dir.join("share.wav");
+        let out = dir.join(format!("share.{}", share::AUDIO_FORMAT));
         let path = out.clone();
         blocking(move || share::mix(&tracks, &out).map_err(|e| format!("{e:#}"))).await?;
+        let size = std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
+        if size == 0 || size > share::MAX_AUDIO_BYTES {
+            let _ = std::fs::remove_file(&path);
+            return Err(if size == 0 { "failed" } else { "too_long" }.into());
+        }
         mixed = Some((path, size));
     }
 
@@ -444,6 +450,7 @@ async fn share(
                 .collect()
         }),
         audio_bytes: mixed.as_ref().map(|m| m.1),
+        audio_format: mixed.as_ref().map(|_| share::AUDIO_FORMAT),
     };
 
     let elchi = elchi_pro(app)?;

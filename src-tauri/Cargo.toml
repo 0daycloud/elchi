@@ -50,6 +50,9 @@ hound = "3.5.1"
 # both resampled to 16 kHz. The same versions handy-recorder uses.
 cpal = "0.18"
 rubato = "5.0"
+# A shared meeting's recording: Opus (in WebM, src/meeting/webm.rs), about 12 MB an hour.
+# libopus is bundled and built with CMake, which the build needs anyway.
+opus = "0.4"
 log = "0.4.25"
 env_filter = "0.1.0"
 tokio = "1.43.0"
