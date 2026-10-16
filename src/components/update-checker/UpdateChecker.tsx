@@ -3,8 +3,14 @@ import { Trans, useTranslation } from "react-i18next";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { Button } from "../ui/Button";
 import { Dialog } from "../ui/Dialog";
-import { useUpdater } from "./UpdaterContext";
+import { useUpdater, type UpdateErrorKind } from "./UpdaterContext";
 import { PORTABLE_RELEASES_URL } from "./portableInstaller";
+
+const ERROR_MESSAGE_KEYS: Record<UpdateErrorKind, string> = {
+  check: "footer.updateCheckFailed",
+  install: "footer.updateInstallFailed",
+  relaunch: "footer.updateRelaunchFailed",
+};
 
 interface UpdateCheckerProps {
   className?: string;
@@ -24,6 +30,7 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
     isInstalling,
     downloadProgress,
     showUpToDate,
+    error,
     portableDialogOpen,
     portableInstallerUrl,
     checkNow,
@@ -89,6 +96,16 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
           </Button>
         )}
       </div>
+      {error && !isInstalling && !isChecking && (
+        <div role="alert" className="mt-2.5 flex flex-col gap-1">
+          <p className="text-error text-[12px] leading-relaxed">
+            {t(ERROR_MESSAGE_KEYS[error.kind])}
+          </p>
+          <p className="font-mono text-[10.5px] text-text/45 break-words select-text">
+            {error.detail}
+          </p>
+        </div>
+      )}
       {isInstalling && downloadProgress > 0 && downloadProgress < 100 && (
         <div
           aria-hidden="true"

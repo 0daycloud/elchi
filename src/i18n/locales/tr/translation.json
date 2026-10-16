@@ -851,7 +851,10 @@
       "installing": "Güncelleniyor · %{{progress}}"
     },
     "updateAvailableVersion": "Güncelleme var · <v>v{{version}}</v>",
-    "installAndRestart": "Kur ve yeniden başlat"
+    "installAndRestart": "Kur ve yeniden başlat",
+    "updateCheckFailed": "Güncellemeler denetlenemedi. Bağlantınızı denetleyip yeniden deneyin.",
+    "updateInstallFailed": "Güncelleme kurulamadı. Yeniden deneyin ya da Elchi'nin son sürümünü speech.patientdesk.ai/elchi adresinden indirin.",
+    "updateRelaunchFailed": "Güncelleme kuruldu. Yeni sürümü başlatmak için Elchi'den çıkıp yeniden açın."
   },
   "common": {
     "loading": "Yükleniyor...",

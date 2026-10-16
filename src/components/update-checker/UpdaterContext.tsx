@@ -18,6 +18,18 @@ import {
   PORTABLE_RELEASES_URL,
 } from "./portableInstaller";
 
+/**
+ * What went wrong in the last update step the user started: a manual check,
+ * the download and install, or the relaunch after a good install.
+ */
+export type UpdateErrorKind = "check" | "install" | "relaunch";
+
+export interface UpdateError {
+  kind: UpdateErrorKind;
+  /** The updater's own message, shown under ours for bug reports. */
+  detail: string;
+}
+
 export interface UpdaterState {
   /** The running version ("1.0.2"), empty until known. */
   version: string;
@@ -31,6 +43,8 @@ export interface UpdaterState {
   downloadProgress: number;
   /** A manual check just came back with nothing new (clears after 3s). */
   showUpToDate: boolean;
+  /** The last manual check, install or relaunch failed; cleared on retry. */
+  error: UpdateError | null;
   /** Portable installs cannot self-update: the manual-update dialog. */
   portableDialogOpen: boolean;
   portableInstallerUrl: string;
@@ -56,6 +70,7 @@ export const UpdaterProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isInstalling, setIsInstalling] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [showUpToDate, setShowUpToDate] = useState(false);
+  const [error, setError] = useState<UpdateError | null>(null);
   const [portableDialogOpen, setPortableDialogOpen] = useState(false);
   const [portableInstallerUrl, setPortableInstallerUrl] = useState<string>(
     PORTABLE_RELEASES_URL,
@@ -86,9 +101,11 @@ export const UpdaterProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const runCheck = useCallback(async () => {
     if (!enabledRef.current || isCheckingRef.current) return;
+    const manual = isManualCheckRef.current;
     try {
       isCheckingRef.current = true;
       setIsChecking(true);
+      if (manual) setError(null);
       const update = await check();
       if (update) {
         setAvailableVersion(update.version);
@@ -100,7 +117,7 @@ export const UpdaterProvider: React.FC<{ children: React.ReactNode }> = ({
         );
       } else {
         setAvailableVersion(null);
-        if (isManualCheckRef.current) {
+        if (manual) {
           setShowUpToDate(true);
           clearTimeout(upToDateTimeoutRef.current);
           upToDateTimeoutRef.current = setTimeout(
@@ -109,8 +126,11 @@ export const UpdaterProvider: React.FC<{ children: React.ReactNode }> = ({
           );
         }
       }
-    } catch (error) {
-      console.error("Failed to check for updates:", error);
+    } catch (err) {
+      console.error("Failed to check for updates:", err);
+      // The check on start stays quiet (offline at login is normal); one the
+      // user asked for says it failed.
+      if (manual) setError({ kind: "check", detail: String(err) });
     } finally {
       isCheckingRef.current = false;
       setIsChecking(false);
@@ -131,6 +151,7 @@ export const UpdaterProvider: React.FC<{ children: React.ReactNode }> = ({
       setIsChecking(false);
       setAvailableVersion(null);
       setShowUpToDate(false);
+      setError(null);
       return;
     }
     void runCheck();
@@ -143,18 +164,22 @@ export const UpdaterProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const install = useCallback(async () => {
     if (!enabledRef.current) return;
-    if (await commands.isPortable()) {
-      setPortableDialogOpen(true);
-      return;
-    }
     let downloaded = 0;
     let contentLength = 0;
+    let installed = false;
     try {
+      setError(null);
+      if (await commands.isPortable()) {
+        setPortableDialogOpen(true);
+        return;
+      }
       setIsInstalling(true);
       setDownloadProgress(0);
       const update = await check();
       if (!update) {
+        // The release was pulled since the last check: nothing to install.
         console.log("No update available during install attempt");
+        setAvailableVersion(null);
         return;
       }
       await update.downloadAndInstall((event) => {
@@ -174,9 +199,20 @@ export const UpdaterProvider: React.FC<{ children: React.ReactNode }> = ({
           }
         }
       });
+      installed = true;
       await relaunch();
-    } catch (error) {
-      console.error("Failed to install update:", error);
+    } catch (err) {
+      // Say which step failed: with the console alone the button looks dead.
+      console.error(
+        installed
+          ? "Update installed but relaunch failed:"
+          : "Failed to install update:",
+        err,
+      );
+      setError({
+        kind: installed ? "relaunch" : "install",
+        detail: String(err),
+      });
     } finally {
       setIsInstalling(false);
       setDownloadProgress(0);
@@ -191,6 +227,7 @@ export const UpdaterProvider: React.FC<{ children: React.ReactNode }> = ({
     isInstalling,
     downloadProgress,
     showUpToDate,
+    error,
     portableDialogOpen,
     portableInstallerUrl,
     checkNow,

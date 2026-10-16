@@ -851,7 +851,10 @@
       "installing": "Updating · {{progress}}%"
     },
     "updateAvailableVersion": "Update available · <v>v{{version}}</v>",
-    "installAndRestart": "Install and restart"
+    "installAndRestart": "Install and restart",
+    "updateCheckFailed": "Couldn't check for updates. Check your connection and try again.",
+    "updateInstallFailed": "The update couldn't be installed. Try again, or download the latest Elchi from speech.patientdesk.ai/elchi.",
+    "updateRelaunchFailed": "The update is installed. Quit and reopen Elchi to start the new version."
   },
   "whatsNew": {
     "title": "New in Elchi {{version}}"
