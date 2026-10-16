@@ -1144,6 +1144,37 @@
     "pill": {
       "open": "Toplantıyı Elchi'de aç",
       "listening": "Dinleniyor"
+    },
+    "share": {
+      "button": "Paylaş",
+      "shared": "Paylaşıldı",
+      "title": "Notları paylaş",
+      "body": "Bağlantıya sahip herkes notları okuyabilir, aşağıda eklediklerini dinleyip indirebilir. Bağlantı, paylaşmayı durdurana kadar çalışır.",
+      "include": "Ekle",
+      "transcript": "Döküm",
+      "recording": "Ses kaydı",
+      "notKept": "Bu toplantıda saklanmadı",
+      "upload": "Yaklaşık {{size}} MB yüklenecek",
+      "create": "Bağlantı oluştur",
+      "creating": "Bağlantı oluşturuluyor…",
+      "uploading": "Ses kaydı yükleniyor…",
+      "cancel": "Vazgeç",
+      "close": "Kapat",
+      "link": "Bağlantı",
+      "copy": "Bağlantıyı kopyala",
+      "copied": "Bağlantı kopyalandı.",
+      "open": "Aç",
+      "snapshot": "Bağlantı, toplantıyı paylaştığın andaki haliyle gösterir.",
+      "stop": "Paylaşmayı durdur",
+      "stopConfirm": "Emin misin? Durdur",
+      "stopped": "Paylaşım durduruldu. Bağlantı artık çalışmıyor.",
+      "deleteConfirm": "Silip paylaşımı durdur?",
+      "errors": {
+        "needs_pro": "Paylaşım Duyu Pro'ya dahil.",
+        "too_long": "Ses kaydı paylaşmak için çok uzun. Kayıt olmadan paylaş.",
+        "failed": "Toplantı paylaşılamadı. Bağlantını kontrol edip tekrar dene.",
+        "unshare_failed": "Paylaşım durdurulamadı. Bağlantını kontrol edip tekrar dene."
+      }
     }
   }
 }

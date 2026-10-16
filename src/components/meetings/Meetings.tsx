@@ -17,6 +17,7 @@ import { ChipButton, GhostButton } from "../home/FeedRow";
 import { MiniPlayer } from "../home/MiniPlayer";
 import { useIsDark } from "../home/useIsDark";
 import { dayKey } from "../home/text";
+import { ShareDialog } from "./ShareDialog";
 import {
   openTasks,
   parseNotes,
@@ -467,6 +468,7 @@ const MeetingView: React.FC<{ id: number; onBack: () => void }> = ({
   const [detail, setDetail] = useState<MeetingDetail | null>(null);
   const [onlyMine, setOnlyMine] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const [audio, setAudio] = useState<{
     me: string | null;
     them: string | null;
@@ -522,9 +524,18 @@ const MeetingView: React.FC<{ id: number; onBack: () => void }> = ({
   };
   const remove = async () => {
     const r = await commands.deleteMeeting(id);
-    if (r.status === "error") toast.error(r.error);
+    if (r.status === "error")
+      toast.error(
+        r.error === "unshare_failed"
+          ? t("meetings.share.errors.unshare_failed")
+          : r.error,
+      );
     else onBack();
   };
+  const shareable =
+    m.status !== "recording" &&
+    m.status !== "processing" &&
+    (!!m.notes || m.has_transcript || !!m.share_url);
 
   return (
     <>
@@ -543,12 +554,30 @@ const MeetingView: React.FC<{ id: number; onBack: () => void }> = ({
         {m.notes && (
           <ChipButton onClick={copy}>{t("meetings.copy")}</ChipButton>
         )}
+        {shareable && (
+          <ChipButton onClick={() => setSharing(true)}>
+            {m.share_url
+              ? t("meetings.share.shared")
+              : t("meetings.share.button")}
+          </ChipButton>
+        )}
         <ConfirmButton
           label={t("meetings.delete")}
-          confirm={t("meetings.deleteConfirm")}
+          confirm={
+            m.share_url
+              ? t("meetings.share.deleteConfirm")
+              : t("meetings.deleteConfirm")
+          }
           onConfirm={remove}
         />
       </Bar>
+      {sharing && (
+        <ShareDialog
+          meeting={m}
+          hasRecording={!!(audio.me || audio.them)}
+          onClose={() => setSharing(false)}
+        />
+      )}
 
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-[700px] mx-auto px-7 max-[720px]:px-5 pt-12 pb-14 flex flex-col gap-4">

@@ -1144,6 +1144,37 @@
     "pill": {
       "open": "Open the meeting in Elchi",
       "listening": "Listening"
+    },
+    "share": {
+      "button": "Share",
+      "shared": "Shared",
+      "title": "Share the notes",
+      "body": "Anyone with the link can read the notes, and play and download what you add below. The link works until you stop sharing.",
+      "include": "Include",
+      "transcript": "Transcript",
+      "recording": "Recording",
+      "notKept": "Not kept for this meeting",
+      "upload": "About {{size}} MB to upload",
+      "create": "Create link",
+      "creating": "Creating the link…",
+      "uploading": "Uploading the recording…",
+      "cancel": "Cancel",
+      "close": "Close",
+      "link": "Link",
+      "copy": "Copy link",
+      "copied": "Link copied.",
+      "open": "Open",
+      "snapshot": "The link shows the meeting as it was when you shared it.",
+      "stop": "Stop sharing",
+      "stopConfirm": "Sure? Stop sharing",
+      "stopped": "Sharing stopped. The link no longer works.",
+      "deleteConfirm": "Delete and stop sharing?",
+      "errors": {
+        "needs_pro": "Sharing is part of Duyu Pro.",
+        "too_long": "The recording is too long to share. Share without it.",
+        "failed": "Couldn't share the meeting. Check your connection and try again.",
+        "unshare_failed": "Couldn't stop sharing. Check your connection and try again."
+      }
     }
   }
 }
