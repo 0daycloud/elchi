@@ -648,13 +648,30 @@ fn record(app: AppHandle, id: i64, mut capture: Capture, keep: bool, ending: Arc
     drop(events);
     let mut merger = Merger::new(app.clone(), id);
     let mut recorded = 0usize;
+    // The call's side, kept level with the microphone's: while its audio does not arrive (the
+    // tap not open yet, or reopening after the output device changed), silence stands in, so
+    // what is said after it comes back is timed right.
+    let mut them_recorded = 0usize;
+    let mut them_quiet = 0u32;
     loop {
         let last = ending.load(Ordering::SeqCst);
         if last {
             capture.stop();
         }
         let (new_me, level_me) = take(&capture.me);
-        let (new_them, level_them) = capture.them.as_ref().map(take).unwrap_or_default();
+        let (mut new_them, level_them) = capture.them.as_ref().map(take).unwrap_or_default();
+        if capture.them.is_some() {
+            them_quiet = if new_them.is_empty() {
+                them_quiet + 1
+            } else {
+                0
+            };
+            let behind = (recorded + new_me.len()).saturating_sub(them_recorded);
+            if them_quiet >= THEM_QUIET_TICKS && behind > 0 {
+                new_them = vec![0.0; behind];
+            }
+            them_recorded += new_them.len();
+        }
         for (samples, writer) in [(&new_me, &mut writers.0), (&new_them, &mut writers.1)] {
             if let Some(w) = writer.as_mut() {
                 for s in samples.iter() {
@@ -743,6 +760,9 @@ struct Merger {
     mine: VecDeque<Line>,
     theirs: VecDeque<Line>,
 }
+
+/// Worker ticks (100 ms) without the call's audio before silence stands in for it.
+const THEM_QUIET_TICKS: u32 = 10;
 
 /// Lines further back than this are not checked for echo any more.
 const ECHO_WINDOW: usize = 120 * RATE;

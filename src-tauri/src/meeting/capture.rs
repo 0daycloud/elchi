@@ -33,7 +33,9 @@ pub type Shared = Arc<Mutex<Track>>;
 
 pub struct Capture {
     pub me: Shared,
-    /// None when the call's audio cannot be recorded here (an older macOS, no output device).
+    /// None when the call's audio cannot be recorded here (an older macOS, Linux). Where it
+    /// can, the track is there even while the tap is not open yet: it is retried every few
+    /// seconds, and a call that takes the headset as the meeting starts lets it open late.
     pub them: Option<Shared>,
     stop: Arc<AtomicBool>,
     thread: Option<std::thread::JoinHandle<()>>,
@@ -45,6 +47,7 @@ impl Capture {
         let me: Shared = Arc::default();
         let them: Shared = Arc::default();
         let stop = Arc::new(AtomicBool::new(false));
+        let supported = system_audio_supported();
         let (ready_tx, ready_rx) = mpsc::channel::<Result<bool, String>>();
         let (me2, them2, stop2) = (me.clone(), them.clone(), stop.clone());
         let thread = std::thread::Builder::new()
@@ -71,7 +74,6 @@ impl Capture {
                     }
                 };
                 // The call's audio is a bonus: without it the meeting is the user's side only.
-                let supported = system_audio_supported();
                 let mut call = if supported {
                     open_call(&host, &them2)
                         .map_err(|e| warn!("Meeting: the call's audio is not recorded: {e}"))
@@ -139,13 +141,20 @@ impl Capture {
                 drop(mic_stream);
             })
             .map_err(|e| e.to_string())?;
-        let has_call = ready_rx
+        let open = ready_rx
             .recv_timeout(Duration::from_secs(10))
             .map_err(|_| "audio devices did not open".to_string())??;
-        info!("Meeting capture started (call audio: {has_call})");
+        info!(
+            "Meeting capture started (call audio: {})",
+            match (supported, open) {
+                (false, _) => "not on this system",
+                (true, true) => "open",
+                (true, false) => "not open yet, retrying",
+            }
+        );
         Ok(Self {
             me,
-            them: has_call.then_some(them),
+            them: supported.then_some(them),
             stop,
             thread: Some(thread),
         })
